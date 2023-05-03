@@ -1,0 +1,94 @@
+openapi: 3.0.1
+info:
+  title: Personal Budget 2
+  version: 1.0.0
+  description: An api for 'personal budget 2' project on Codecademy's backend engineer path.
+servers:
+  - url: http://localhost:3000
+paths:
+  /envelopes:
+    get:
+      summary: Returns a list of all envelopes.
+      responses:
+        '200':
+          description: A JSON Array of envelopes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+    post:
+      summary: Add a new envelope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                amount:
+                  type: integer
+              example:
+                name: Madindkøb
+                amount: 3000
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid request body
+            
+      
+  /envelopes/{envelopeId}:
+    get:
+      summary: return an envelope by ID.
+      parameters:
+        - name: envelopeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            example: 197
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  amount:
+                    type: integer
+                
+        '404':
+          description: Enevelope not found
+    delete:
+      summary: delete envelope by ID.
+      parameters:
+        - name: envelopeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            example: 99
+      responses:
+        '200':
+          description: Envelope deleted
+        '404':
+          description: Envelope not found
+          
+          
+  /transaction:
+    summary: Returns a list of all transactions
+    
+    
