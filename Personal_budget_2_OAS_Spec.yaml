@@ -39,8 +39,6 @@ paths:
           description: OK
         '400':
           description: Invalid request body
-            
-      
   /envelopes/{envelopeId}:
     get:
       summary: return an envelope by ID.
@@ -86,9 +84,105 @@ paths:
           description: Envelope deleted
         '404':
           description: Envelope not found
+  /expenses:
+    summary: Get/Add expenses
+    get:
+      summary: Returns a list of all expenses
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  amount:
+                    type: integer
+                  date:
+                    type: string
+                    format: date
+                example:
+                  id: 5
+                  name: benzin
+                  amount: 250
+                  date: 05-02-2023
+        '400':
+          description: No expenses found
           
-          
-  /transaction:
-    summary: Returns a list of all transactions
+    post:
+      summary: Add a new expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                amount:
+                  type: integer
+                date:
+                  type: string
+                  format: date
+              example:
+                name: To-go kaffe
+                amount: 30
+                date: "02-05-2023"
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Invalid request body
+  /expenses/{expenseId}:
+    summary: Retuerns expense by ID.
+    parameters:
+      - name: expenseId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 382
+    get:
+      summary: Get expense by ID.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  amount:
+                    type: integer
+                  date:
+                    type: string
+                    format: date
+                example:
+                  id: 32
+                  name: Biografbilletter
+                  amount: 145
+                  date: "04-05-2023"
+        '400':
+          description: Expense not found
+    delete:
+      summary: Delete expense by ID.
+      responses:
+        '200':
+          description: Expense deleted
+        '400':
+           description: Expense not found
+    
+        
     
     
