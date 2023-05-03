@@ -2,7 +2,7 @@
   "name": "personal_budget_2",
   "version": "1.0.0",
   "description": "for completing \"personal budget 2\" on codecademy",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
