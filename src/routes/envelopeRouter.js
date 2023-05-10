@@ -13,6 +13,8 @@ router.post('/', db.createEnvelope)
 
 router.delete('/:id', db.deleteEnvelope)
 
+router.put('/', db.updateEnvelope)
+
 
 // GET /envelopes
 // POST /envelopes
