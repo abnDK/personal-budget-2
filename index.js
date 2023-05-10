@@ -24,8 +24,13 @@ console.log(`Starting server with username ${process.env.USERNAME}`)
 
 // setting up routes
 const envelopes = require('./src/routes/envelopeRouter')
+const expenses = require('./src/routes/expenseRouter')
+const reports = require('./src/routes/reportsRouter')
+
 
 app.use('/envelopes', envelopes)
+app.use('/expenses', expenses)
+app.use('/reports', reports)
 
 app.get('/', (req, res) => {
     res.status(200).send(
