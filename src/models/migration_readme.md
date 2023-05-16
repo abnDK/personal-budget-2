@@ -11,3 +11,10 @@ the latest version. Also make a reverse file changing
 the db from the new version to the current version.
 Name the files db_<version-number>_<up/down>_<version-number>.sql
 and add the names to upfiles and downfiles.
+
+Flow of data:
+- up.sh: 
+    reads upfiles and runs each filename on the psql -f command
+    <version_number> is extracted from filenames. Last filename will be sent to write_version.sh
+- write_version.sh:
+    takes <version_number> as input and writes to file current_version
