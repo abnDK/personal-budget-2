@@ -1,7 +1,11 @@
 #!/bin/bash
 
-filename="current_version"
+### LOGIC
 
-version_number=$(head -n 1 $filename)
+# will echo the current version number from current_version
 
-echo "test_data_$version_number.sql"
+current_version_filename="current_version"
+
+version_number=$(head -n 1 $current_version_filename)
+
+echo $version_number
