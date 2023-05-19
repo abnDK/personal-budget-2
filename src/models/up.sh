@@ -1,68 +1,74 @@
 #!/bin/bash
 
+### LOGIC
+
+# onyl run psql with filename, if version is greater than current_version
+
+# When to run psql command with filename from upfiles:
+# NEXT MAJOR  |  eq    |  gt        |
+# NEXT MINOR  |  gt    |  x         |
+# DO          |  run   |  run       |
+
 # get upfiles
-filename="upfiles"
+upfiles="upfiles"
 
-# here we need to find current_version of db
-current_version=$(cat current_version)
+# get current_version and set major and minor variable
+current_version_string=$(cat current_version)
+
 IFS="-"
-echo "IFS = '$IFS'"
-read -r -a array <<< "$current_version"
-current_major=${array[0]}
-current_minor=${array[1]}
+read -r -a current_version_array <<< "$current_version_string"
 
-# iterate each filename
-while read -r  line
+current_major=${current_version_array[0]}
+current_minor=${current_version_array[1]}
+
+unset IFS
+
+# iterate each filename in upfiles
+while read -r  filename
 
 do
-echo "line: $line"
 
-
-
-# check if version is above current version, only run psql if
-# if version in $line is: (compared to <current_version>
-# major  eq  eq  eq  gt  gt  gt  lt  lt  lt
-# minor  eq  gt  lt  eq  gt  lt  eq  gt  lt
-# do     sk  rn  sk  rb  rn  rn  sk  sk  sk
-
-# only run line if:
-#  - major is equal, minor is greater
-#  - major is greater
-
-
-IFS="_."
-echo "IFS = '$IFS'"
-read -r -a line_array <<< "$line"
-next_version=${line_array[3]}
-echo "next version pre array: $next_version"
-IFS="- "
-echo "IFS = '$IFS'"
-read -r -a version_array <<< $next_version
-echo "version_array: $version_array"
-next_major=${version_array[0]}
-next_minor=${version_array[1]}
-
-echo "next major: $next_major"
-echo "next minor: $next_minor"
-
-
-# if [ $current_major > 
-
-# write migration to db tables
-# psql -d personal_budget_2 -U abndk -a -f "$line"
-
-# extract version number
-IFS="_. "
-echo "IFS = '$IFS'"
-read -a array <<< $line
-
-if [ "$line" != "" ]
+# skip filename if filename string is empty
+if [[ ${filename:0:1} == "" ]]
 then
-   version_number=${array[3]}
+  continue
 fi
 
-done < "$filename"
+
+# analyzing next_version and set to variables
+IFS="_."
+read -r -a filename_array <<< "$filename"
+next_version=${filename_array[3]}
+
+IFS="- "
+read -r -a next_version_array <<< $next_version
+next_major=${next_version_array[0]}
+next_minor=${next_version_array[1]}
+unset IFS
+
+# if next major is greater than current major, run psql
+if [[ $next_major -gt $current_major ]]
+then
+
+  # write migration to db tables
+  psql -d personal_budget_2 -U abndk -a -f "$filename"
+
+fi
+
+
+# if next major is equal to current major, but next minor is greater than current minor, run psql
+if [[ $next_major -eq $current_major ]] && [[ $next_minor -gt $current_minor ]]
+then
+
+  # write migration to db tables
+  psql -d personal_budget_2 -U abndk -a -f "$filename"
+
+fi
+
+# extract version number from last filename in upfiles
+version_number="${next_major}-${next_minor}"
+
+done < "$upfiles"
 
 # write new version number to file current_version
-bash write_version.sh $version_number
-
+./write_version.sh $version_number
