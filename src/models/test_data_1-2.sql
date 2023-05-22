@@ -1,3 +1,10 @@
+-- insert 3 envelopes
+
+INSERT INTO envelope ("name", "amount") VALUES
+('test_envelope_1', 100),
+('test_envelope_2', 200),
+('test_envelope_3', 300);
+
 -- insert 10 expenses with envelope 1
 
 INSERT INTO expense ("name", "amount", "date", "envelope_id", "recipient", "comment") 
