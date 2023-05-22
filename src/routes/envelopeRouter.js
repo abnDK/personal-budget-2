@@ -11,7 +11,7 @@ router.get('/:id', db.getEnvelopeById)
 
 router.post('/', db.createEnvelope)
 
-router.delete('/:id', db.deleteEnvelope)
+// router.delete('/:id', db.deleteEnvelope)
 
 router.put('/', db.updateEnvelope)
 
