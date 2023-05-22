@@ -68,6 +68,8 @@ fi
 # extract version number from last filename in upfiles
 version_number="${next_major}-${next_minor}"
 
+echo "db tables migrated to version: $version_number"
+
 done < "$upfiles"
 
 # write new version number to file current_version
