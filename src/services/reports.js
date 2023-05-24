@@ -14,7 +14,7 @@ const getReportByEnvelopeId = async (req, res) => {
     }
 
     const { rows: expenses } = await pool.query('SELECT * FROM expense WHERE envelope_id = $1', [envelope_id])
-
+    console.log(expenses)
     let expense_sum = 0;
 
     for (let expense of expenses) {
@@ -28,16 +28,31 @@ const getReportByEnvelopeId = async (req, res) => {
     console.log(`Envelope amount: ${envelope[0].amount}`)
     console.log(`Total expenses: ${expense_sum}`)
     console.log(`Available amount: ${available_amount}`)
-
+    res.render('report', {
+        "envelope_id": envelope_id,
+        "envelope_name": envelope[0].name,
+        "envelope_amount": envelope[0].amount,
+        "total_expenses": expense_sum,
+        "available_amount": available_amount,
+        "expenses": expenses
+    })
+    /*
     res.status(200).json({
         "envelope_name": envelope[0].name,
         "envelope_amount": envelope[0].amount,
         "total_expenses": expense_sum,
         "available_amount": available_amount
     })
+    */
 
 }
 
+const reportTest = (req, res) => {
+    console.log(__dirname)
+    res.render('index', { title: "hello there", message: "we're live!" })
+}
+
 module.exports = {
-    getReportByEnvelopeId
+    getReportByEnvelopeId,
+    reportTest
 }

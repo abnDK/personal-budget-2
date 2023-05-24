@@ -8,4 +8,6 @@ const db = require('../services/reports');
 
 router.get('/:id', db.getReportByEnvelopeId)
 
+router.get('/', db.reportTest)
+
 module.exports = router
