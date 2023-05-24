@@ -1,0 +1,27 @@
+html 
+  head
+    title='Reports'
+  body
+    link(rel="stylesheet" href="/css/report.css")
+    include header.pug
+    - var up_id = envelope_id + 1
+    - var down_id = envelope_id - 1
+    
+    if down_id > 0
+      a(href='http://localhost:3000/reports/' + down_id) PREV
+    p
+    
+    
+    a(href='http://localhost:3000/reports/' + up_id) NEXT
+
+
+    h1='Report example'
+    p='Envelope: ' + envelope_name
+    p='Amount: ' + envelope_amount 
+    p='Expenses: ' + total_expenses 
+    p='Available: ' + available_amount
+    ul
+    each element in expenses
+      li=element.name + ': ' + element.amount
+
+    include footer.pug
