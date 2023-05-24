@@ -1,7 +1,6 @@
-
 // entrypoint for Personal Budget 2 @ Codecademy
 
-
+const path = require('path')
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
@@ -21,6 +20,11 @@ app.use(bodyParser.urlencoded(
 require('dotenv').config();
 console.log(`Starting server with username ${process.env.USERNAME}`)
 
+// setting up views and view engine
+console.log(__dirname, __filename)
+app.set('views', path.join(__dirname, './src/static/views'))
+app.set('view engine', 'pug')
+app.use(express.static('./src/static'))
 
 // setting up routes
 const envelopes = require('./src/routes/envelopeRouter')
