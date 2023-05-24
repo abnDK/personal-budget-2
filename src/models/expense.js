@@ -38,10 +38,8 @@ const createExpense = (req, res) => {
 
 const updateExpense = (req, res) => {
 
-    console.log(req.params);
-    
-    const id = parseInt(req.body.id);
-    
+    const id = parseInt(req.params.id);
+       
     const { name, amount, date, envelope_id } = req.body;
 
     if (!name || !amount || !date ) {

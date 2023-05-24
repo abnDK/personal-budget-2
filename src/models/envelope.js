@@ -37,10 +37,8 @@ const createEnvelope = (req, res) => {
 
 
 const updateEnvelope = (req, res) => {
-
-    console.log(req.params);
     
-    const id = parseInt(req.body.id);
+    const id = parseInt(req.params.id);
     
     const { name, amount } = req.body;
 
