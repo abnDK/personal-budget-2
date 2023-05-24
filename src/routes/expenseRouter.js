@@ -13,7 +13,7 @@ router.post('/', db.createExpense)
 
 router.delete('/:id', db.deleteExpense)
 
-router.put('/', db.updateExpense)
+router.put('/:id', db.updateExpense)
 
 
 module.exports = router
