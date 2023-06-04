@@ -6,14 +6,14 @@ const pool = require('../configs/queries')
 const getReportByEnvelopeId = async (req, res) => {
     const envelope_id = parseInt(req.params.id)
 
-    const { rows: envelope } = await pool.query('SELECT * FROM envelope WHERE id = $1', [envelope_id])
+    const { rows: envelope } = await pool.query('SELECT * FROM category WHERE id = $1', [envelope_id])
 
     if (envelope.length == 0) {
-        res.status(400).json({"message": "Envelope id unknown"})
+        res.status(400).json({"message": "Category id unknown"})
         return
     }
 
-    const { rows: expenses } = await pool.query('SELECT * FROM expense WHERE envelope_id = $1', [envelope_id])
+    const { rows: expenses } = await pool.query('SELECT * FROM transaction WHERE category_id = $1', [envelope_id])
     console.log(expenses)
     let expense_sum = 0;
 
