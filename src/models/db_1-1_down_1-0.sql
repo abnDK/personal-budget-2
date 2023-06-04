@@ -1,16 +1,3 @@
--- expense
--- from:
---   id integer
---   name text
---   amount real
---   date timestamp without time zone
---   envelope_id integer
---   recipient text
--- to:
---   id integer
---   name text
---   amount real
---   date timestamp without time zone
---   envelope_id integer
+-- ### MIGRATE 1-1 >> 1-0
 
 ALTER TABLE expense DROP recipient;
