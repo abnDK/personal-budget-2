@@ -1,4 +1,4 @@
--- SQL statements for creating tables v. 1-0
+-- ### CREATING DB v 1-0
 
 CREATE TABLE envelope (id serial PRIMARY KEY, name text, amount real);
 
