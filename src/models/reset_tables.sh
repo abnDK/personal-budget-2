@@ -1,7 +1,7 @@
 # Reset database for testing purposes
 
-# drop all relevant tables and sequences
-psql -d personal_budget_2 -U abndk -a -f drop_tables.sql
+# reset database
+./reset_database.sh
 
 # set current_version to 0-0
 ./write_version.sh 0-0
