@@ -7,6 +7,9 @@
 # NEXT MINOR   |  x    |   lt   |
 # DO           |  run  |   run  |
 
+# define user for performing migrations to the db
+postgresuser="andersbusk"
+
 # get downfiles
 downfiles="downfiles"
 
@@ -48,7 +51,7 @@ if [[ $next_major -lt $current_major ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U abndk -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
 
 fi
 
@@ -58,7 +61,7 @@ if [[ $next_major -eq $current_major ]] && [[ $next_minor -lt $current_minor ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U abndk -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
 
 fi
 
