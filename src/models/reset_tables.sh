@@ -16,5 +16,6 @@ psql -d personal_budget_2 -U abndk -a -f db_1-0.sql
 # insert test data (optional)
 if [[ $1 = 'data' ]]
 then
-  ./insert_test_data.sh
+  ./export_tables.sh
+  #./insert_test_data.sh
 fi
