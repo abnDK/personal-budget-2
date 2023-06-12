@@ -574,9 +574,36 @@ console.log(tableB)
 */
 
 class Table {
-    constructor(name, children = null) {
-        this.name = name        
+    constructor(parent, children = null) {
+        this.parent = parent        
         this.children = children
+    }
+
+    get child() {
+        if (this.children != null) {
+            return this.children[0]
+        }
+        return null
+
+    }
+
+    get children() {
+        return this._children
+    }
+
+    set children(children) {
+        if (typeof children == null) {
+            this._children = null;
+        }
+
+        if (typeof children == 'string') {
+            this._children = new Array()
+            this._children.push(children)
+        }
+
+        if (Array.isArray(children)) {
+            this._children = children;
+        }
     }
 
     addChild(child) {
@@ -586,11 +613,70 @@ class Table {
 
 
 class ForeignKeyTree {
-    constructor() {
-        this.root = new Table('root')
-        this.visitedQ = new Array()
-        this.toVisitQ = new Array()
-        this.toVisitQ.push(this.root)
+    constructor(tables) {
+        this.tables = tables;
+        this.visited = new Array()
+        this.queue = new Array()
+        this.queue.push(new Table('root'))
+        this.addRootChildren()
+
+    }
+
+    get alone() {
+        // nodes without parents or any children
+        return this.tables.filter(table => table.children == null)
+
+    }
+
+    get withChildren() {
+        return this.tables.filter(table => table.children != null)
+    }
+
+    addRootChildren() {
+        // will return root with child notes, that have no parents
+        let parentArray = this.tables.map(table => table.parent)
+        let uniqueParents = [...new Set(parentArray)]
+
+        let childrenArray = this.tables.map(table => table.child)
+        let uniqueChildren = new Array();
+        for (let child of childrenArray) {
+            if (child != null && !uniqueChildren.includes(child)) {
+                uniqueChildren.push(child)
+            }
+        }
+
+
+        for (let unqParent of uniqueParents) {
+            if (!uniqueChildren.includes(unqParent)) {
+                this.tables.push(new Table('root', unqParent))
+            }
+        }
+    }
+    
+    
+
+    
+    get tree() {
+        // will build tree with BFS approach
+
+        
+        while (this.queue.length > 0) {
+            let visitTable = this.queue.shift()
+            
+            let children = this.tables.filter(table => table.parent == visitTable.parent).map(table => table.child).filter(child => child != null)
+                visitTable.children = children
+
+
+            for (let child of visitTable.children) {
+                this.queue.push(new Table(child))
+            }
+            this.visited.push(visitTable)
+            console.log('Visited: ')
+            console.log(visitTable)
+
+            // somewhere we have to add nodes to the tree.
+        }
+
     }
 
     find(table, match) {
@@ -631,7 +717,7 @@ class ForeignKeyTree {
 
     }
 
-    build(tables) {
+    build() {
         // try to find match on either name og child
         // if no - add (see logic on gh)
         for (let tableToAdd of tables) {
@@ -761,20 +847,19 @@ class ForeignKeyTree {
  * - - - d
  */
 
-let fkAC = new ForeignKeyRelation('a', 'c')
-let fkCD = new ForeignKeyRelation('c', 'd')
-let fkA = new ForeignKeyTable('a')
-let fkB = new ForeignKeyTable('b')
-let fkC = new ForeignKeyTable('c')
-let fkD = new ForeignKeyTable('d')
+let fkAC = new Table('a', 'c')
+let fkAD = new Table('a', 'd')
+let fkB = new Table('b')
+let fkCE = new Table('c', 'e')
 
 
 
-let fkTree = new ForeignKeyTree(tables = [fkB], relations = [fkCD, fkAC])
+
+
+let fkTree = new ForeignKeyTree(tables = [fkCE, fkAD, fkB, fkAC])
 console.log(fkTree.tables)
-console.log(fkTree.relations)
-let fkTreeRes = fkTree.bfsGet()
-console.log(fkTreeRes)
+//console.log(fkTree.root)
+fkTree.tree
 
 /*
 let testTable = new Table('category1');
