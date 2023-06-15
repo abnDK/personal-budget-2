@@ -50,8 +50,6 @@ reset_tables.sh
 database to file "tabledata"
     - imports all data into personal_budget_2 database
 
-=> TODO: Find place for exporting fkeyCon rel and sorting tables 
-before running reset_tables.sh
 
 
 
