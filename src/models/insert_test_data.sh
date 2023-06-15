@@ -22,7 +22,7 @@ if [[ -z $found ]]
     then
         echo "No testdata found for current version ($version_number)"
     else
-        psql -d personal_budget_2 -U abndk -a -f "$current_version_test_data"
+        psql -d personal_budget_2 -a -f "$current_version_test_data"
         echo "Test data written for db version $version_number"
     fi
 

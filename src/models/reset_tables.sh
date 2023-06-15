@@ -1,5 +1,7 @@
 # Reset database for testing purposes
 
+
+
 # reset database
 ./reset_database.sh
 
@@ -13,9 +15,8 @@ psql -d personal_budget_2 -U abndk -a -f db_1-0.sql
 # update to newest version (user should be able to specify)
 ./up.sh
 
-# insert test data (optional)
+# export data from database 
 if [[ $1 = 'data' ]]
 then
-  ./export_tables.sh
-  #./insert_test_data.sh
+  ./export_import_data.sh
 fi

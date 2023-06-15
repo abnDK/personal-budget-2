@@ -33,6 +33,27 @@ in db.
 
 
 
+### On resetting database
+- resetting database and preserving data
+reset_tables.sh
+- calls reset_database.sh
+  - oldifies current data - naming database = personal_budget_2_old
+  - create new database = personal_budget_2
+- writes current_version = '0-0'
+- creates tables equivalent to db version 1-0
+- calls up.sh
+  - migrates tables etc to highest version
+- if 'data' is given as param $1
+  - call export_tables.sh
+    - reads file "tablenames"
+    - copies all data from each table in tablenames in _old 
+database to file "tabledata"
+    - imports all data into personal_budget_2 database
+
+=> TODO: Find place for exporting fkeyCon rel and sorting tables 
+before running reset_tables.sh
+
+
 
 TODO:
 

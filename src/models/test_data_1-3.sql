@@ -1,9 +1,20 @@
+INSERT INTO budget ("name","date_start", "date_end")
+VALUES
+('Mad', '2023-01-01', '2023-12-31'),
+('Hus', '2023-01-01', '2023-12-31'),
+('Transport', '2023-01-01', '2023-12-31');
+
 -- insert 3 envelopes
 
-INSERT INTO category ("name", "amount") VALUES
-('test_envelope_1', 100),
-('test_envelope_2', 200),
-('test_envelope_3', 300);
+INSERT INTO category ("name", "amount", "budget_id") VALUES
+('Fakta', 300, 1),
+('Bilka', 100, 1),
+('Vand', 200, 2),
+('Varme', 500, 2),
+('Forsikring', 900, 2),
+('Rejsekort', 300, 3),
+('Benzin', 350, 3),
+('Færge', 400, 3);
 
 -- insert 10 expenses with envelope 1
 
