@@ -83,4 +83,5 @@ echo "db tables migrated to version: $version_number"
 done < "$upfiles_full_path"
 
 # write new version number to file current_version
-./write_version.sh $version_number
+relpwd=$(dirname -- "$0") # dirname commands sets relative pwd. When called from other script in other folder, this works as if pwd was called in this location
+$relpwd/write_version.sh "$version_number"
