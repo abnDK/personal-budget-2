@@ -14,11 +14,11 @@
 #!/bin/bash
 
 # extract foreign key relationships
-psql -d personal_budget_2_old -f foreign_key_constraints.sql > foreign_key_constraints.csv
+psql -d personal_budget_2_old -f $(pwd)/db_reset/foreign_key_constraints.sql > $(pwd)/db_reset/foreign_key_constraints.csv
 
-cat foreign_key_constraints.csv
+cat $(pwd)/db_reset/foreign_key_constraints.csv
 
 # sort tables using a bfs approach
-node sort_tables.js "$(pwd)/tablenames" "$(pwd)/foreign_key_constraints.csv"
+node $(pwd)/db_reset/sort_tables.js "$(pwd)/db_reset/tablenames" "$(pwd)/db_reset/foreign_key_constraints.csv"
 
 

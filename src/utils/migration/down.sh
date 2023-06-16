@@ -7,18 +7,21 @@
 # NEXT MINOR   |  x    |   lt   |
 # DO           |  run  |   run  |
 
+relpwd=$(dirname -- "$0") # dirname commands sets relative pwd. When called from other script in other folder, this works as if pwd was called in this location
+relpwd=$(pwd)/"$relpwd"
+
 # define user for performing migrations to the db
 postgresuser="andersbusk"
 
 # path to migration files
-migration_path="../../models/migration"
+migration_path="$relpwd/../../models/migration"
 
 # get downfiles
 downfiles="downfiles"
 downfiles_full_path="$migration_path/$downfiles"
 
 # get current_version and set major and minor variable
-current_version_string=$(cat current_version)
+current_version_string=$(cat $relpwd/current_version)
 
 IFS="-"
 read -r -a current_version_array <<< "$current_version_string"
@@ -34,12 +37,10 @@ do
 
 # add relative path from ./ to filename 
 filename_full_path="$migration_path"/"$filename"
-echo $filename_full_path
 
 # skip filename if filename string is empty
 if [[ ${filename:0:1} == "" ]]
 then
-  echo "###"
   continue
 fi
 
@@ -83,4 +84,4 @@ echo "db tables down migrated to $version_number"
 done < "$downfiles_full_path"
 
 # write version number to file current_version
-./write_version.sh $version_number
+$relpwd/write_version.sh $version_number
