@@ -1,4 +1,0 @@
-Child;Parent;Foreign key name;Schema
-category;category;category_parent_id_fkey;public
-category;budget;category_budget_id_fkey;public
-transaction;category;transaction_category_id_fkey;public
