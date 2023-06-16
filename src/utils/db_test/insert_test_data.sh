@@ -8,7 +8,7 @@
 # will be run with the psql command.
 
 # get the current version number and define test data filename
-version_number=$(./get_current_version.sh)
+version_number=$(../migration/get_current_version.sh)
 
 current_version_test_data="test_data_$version_number.sql"
 
