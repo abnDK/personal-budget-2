@@ -10,8 +10,12 @@
 # define user for performing migrations to the db
 postgresuser="andersbusk"
 
+# path to migration files
+migration_path="../../models/migration"
+
 # get downfiles
 downfiles="downfiles"
+downfiles_full_path="$migration_path/$downfiles"
 
 # get current_version and set major and minor variable
 current_version_string=$(cat current_version)
@@ -26,14 +30,20 @@ unset IFS
 
 # iterate each filename
 while read -r filename
-
 do
+
+# add relative path from ./ to filename 
+filename_full_path="$migration_path"/"$filename"
+echo $filename_full_path
 
 # skip filename if filename string is empty
 if [[ ${filename:0:1} == "" ]]
 then
+  echo "###"
   continue
 fi
+
+
 
 # analyzing next_version and set to variables
 IFS="_."
@@ -51,7 +61,7 @@ if [[ $next_major -lt $current_major ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 
@@ -61,17 +71,16 @@ if [[ $next_major -eq $current_major ]] && [[ $next_minor -lt $current_minor ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 
 
 # extract version number from last filename in upfiles
 version_number="${next_major}-${next_minor}"
-
 echo "db tables down migrated to $version_number"
 
-done < "$downfiles"
+done < "$downfiles_full_path"
 
 # write version number to file current_version
 ./write_version.sh $version_number

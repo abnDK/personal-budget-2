@@ -13,12 +13,11 @@
 postgresuser="andersbusk"
 
 # path to migration files
-migration_path="../../models/migration/"
+migration_path="../../models/migration"
 
 # get upfiles
 upfiles="upfiles"
-
-upfiles_full_path="$migration_path""$upfiles"
+upfiles_full_path="$migration_path/$upfiles"
 
 # get current_version and set major and minor variable
 current_version_string=$(cat current_version)
@@ -30,19 +29,20 @@ current_major=${current_version_array[0]}
 current_minor=${current_version_array[1]}
 
 unset IFS
-
 # iterate each filename in upfiles
-while read -r  filename
-
-filename_full_path="$migration_path""$filename"
-
+while read -r filename
 do
+
+# add relative path from ./ to filename
+filename_full_path="$migration_path/$filename"
 
 # skip filename if filename string is empty
 if [[ ${filename:0:1} == "" ]]
 then
   continue
 fi
+
+
 
 
 # analyzing next_version and set to variables
@@ -61,7 +61,7 @@ if [[ $next_major -gt $current_major ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 
@@ -72,13 +72,14 @@ then
 
   # write migration to db tables
 
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename"
+  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 
 # extract version number from last filename in upfiles
 version_number="${next_major}-${next_minor}"
 echo "db tables migrated to version: $version_number"
+
 done < "$upfiles_full_path"
 
 # write new version number to file current_version
