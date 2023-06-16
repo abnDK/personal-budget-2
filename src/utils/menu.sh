@@ -8,7 +8,7 @@ echo "3. insert test data"
 echo "4. migrate database up to latest version"
 echo "5. migrate database down to version 1-0"
 echo "6. get current version"
-echo "7 set version number"
+echo "7. set version number"
 echo
 read choice
 
