@@ -1,0 +1,69 @@
+## Resetting the database
+Below we take a closer look into the proces of resetting the database.
+The database can be reset with the current data preserved, or it can be rebuild with empty tables. Resetting the database will essentially deliver the database in the newest version available in upfiles (See 4.1 - Migration).
+
+
+Entry point is db_reset/reset_tables.sh
+- reset_database.sh is called.
+  - current database is renamed to <name>_old.
+    - Uses db_reset/oldify_database.sql
+  - new database is created with the name "personal_budget_2"
+    - Uses db_reset/create_database.sql
+- "0-0" is writted to current_version
+  - uses migration/write_version.sh
+- Database version 1-0 is writted
+  - uses ../models/migration/db_1-0.sql
+- Database is migrated up to newest version
+  - reads files listed in ../models/migration/upfiles
+- if 'data' is given as parameter when calling reset_tables.sh:
+  - data from the "_old" version of db is read and copied to the newly created database.
+    - uses db_reset/export_import_data.sh
+
+When running reset_tables.sh, queries towards the database will be printed to the terminal. Thus a light debugging can be done reading the output from running the process.
+
+### Preserving data (export_import_data.sh)
+When preserving data, a few important notes to make is:
+- As the database consist of several foreign key constraints, it is important to write the data in the right sequence in order not to violate the foreign key constraints.
+
+Entry points is db_reset/export_import_data.sh
+- tables names is read from the newly created database and written to db_reset/tablenames
+  - uses db_reset/get_tablesnames.sh
+    - uses db_reset/get_tablenames.sql
+      - gets all table names under the schema "public"
+      - tablenames is written to db_reset/tablenames  
+- tables are ordered in parent/child relationships representing the foreign key constraints between tables.
+  - uses db_reset/order_tables.sh
+    - First gets all foreign key constraints
+      - uses db_reset/foreign_key_constraints.sql
+      - foreign key constraints is written to db_reset/foreign_key_constraints.csv
+      - written in format csv with header on first row and the following columns (delimited by ";"):
+        - Child;Parent;Foreign key name;Schema
+    - db_reset/tablenames is then read and afterwards overwritten with new tableorder.
+    - order_tables.sh calls order_tables.js which uses a breadth first search algorithm to list tablenames in generational order (in contrast to depth first search).
+      - for detailed documentation of order_tables.sh, see "4.3.1 Order tables"
+- For each table in db_reset/tablenames the data is copied from "_old" database to the newly created database.
+  - Between each read and write, data is written to db_reset/tabledata in csv format delimited by ";".
+
+
+
+
+
+
+
+- resetting database and preserving data
+
+reset_tables.sh
+- calls reset_database.sh
+  - oldifies current data - naming database = personal_budget_2_old
+  - create new database = personal_budget_2
+- writes current_version = '0-0'
+- creates tables equivalent to db version 1-0
+- calls up.sh
+  - migrates tables etc to highest version
+- if 'data' is given as param $1
+  - call export_tables.sh
+    - reads file "tablenames"
+    - copies all data from each table in tablenames in _old 
+database to file "tabledata"
+    - imports all data into personal_budget_2 database
+
