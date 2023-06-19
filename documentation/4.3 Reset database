@@ -1,4 +1,4 @@
-## Resetting the database
+## 4.3 Resetting the database
 Below we take a closer look into the proces of resetting the database.
 The database can be reset with the current data preserved, or it can be rebuild with empty tables. Resetting the database will essentially deliver the database in the newest version available in upfiles (See 4.1 - Migration).
 
@@ -21,7 +21,7 @@ Entry point is db_reset/reset_tables.sh
 
 When running reset_tables.sh, queries towards the database will be printed to the terminal. Thus a light debugging can be done reading the output from running the process.
 
-### Preserving data (export_import_data.sh)
+### 4.3.1 Preserving data (export_import_data.sh)
 When preserving data, a few important notes to make is:
 - As the database consist of several foreign key constraints, it is important to write the data in the right sequence in order not to violate the foreign key constraints.
 
@@ -40,30 +40,74 @@ Entry points is db_reset/export_import_data.sh
         - Child;Parent;Foreign key name;Schema
     - db_reset/tablenames is then read and afterwards overwritten with new tableorder.
     - order_tables.sh calls order_tables.js which uses a breadth first search algorithm to list tablenames in generational order (in contrast to depth first search).
-      - for detailed documentation of order_tables.sh, see "4.3.1 Order tables"
+      - for detailed documentation of order_tables.sh, see "4.3.2 Order tables"
 - For each table in db_reset/tablenames the data is copied from "_old" database to the newly created database.
   - Between each read and write, data is written to db_reset/tabledata in csv format delimited by ";".
 
+### 4.3.2 Order tables
+
+db_reset/order_tables.js is written in javascript in contrast to other db tools written in bash. This is mainly in order to get acces to data structures not available in bash.
+
+db_reset/order_tables.js is called with 2 arguments. First is the path to tablenames file. Second is the path to foreign key constraints csv file.
+
+the main functionality is taking in a list of tables and returning the tables in the same format sorted by foreign key parent/child relationships. Tables are read and written in simple format of tablenames delimeted by newline characters.
+
+File contains 4 main classes:
+- Table
+- ForeignKeyTree
+- pgTableWriter
+- pgTableReader
+
+#### Table
+- The primary datastructure for tables with 2 properties.   
+- Properties:
+  - parent: String (essentially the name of the table)
+  - children: Array
+
+#### ForeignKeyTree
+- Takes in an array of Tables and sorts them either by breath first search (.sortByGeneration()) or by depth first search (.sortByBranch())
+- Properties:
+  - tables: Array
+  - visited: Array
+  - queue: Array
+  - root: Table(parent='root')
+- initialization:
+  - besides setting tables property .addRootChildren is run.
+
+- sortByGeneration():
+  - uses a queue to keep track of children of tables. Tables is then visited using af FIFO approach essentially resulting in reading the siblings of the current table before reading the its children.
+  - initially the root tables is pushed onto the queue.
+  - root is read looking for children adding any to the queue.
+  - next in queue is a child of root, which then is read for any children.
+    - children will be pushed onto the queue
+    - table name will be added to the visited array. Every tablename except the root is pushed onto the visited array. This will result in a sorted list of table names with parents being written before it's children.
+    - the process of visiting the children in the queue is repeated until no children is left in the queue.
+
+- addRootChildren():
+  - tables who does not have a parent (regardless of it being a parent or not) is written as the child of the root table.
+  - Used to initialize the sorting algorithm (both "byGeneration" and "byBranch")
+
+
+#### pgTableReader
+- reads tablenames and foreign key constraints file.
+- properties:
+  - tablesnamesPath: String
+  - foreignKeyConstraintsPath: String
+- methods:
+  - tablesFor(<treestructure>) 
+    - input used is a string equal to the class ordering the tables. For now, only 'ForeignKeyTree' is available.
+    - returns an unordered array containing all tablenames 
+
+#### pgTableWriter
+- takes in tables prepared for ForeignKeyTree class and writes tablenames using .sortByGeneration
+- properties:
+  - tree: ForeignKeyTree
+- methods:
+  - write(<writePath>)
+    - calls .sortByGeneration on tree
+    - writes sorted tables to <writePath>
 
 
 
 
-
-
-- resetting database and preserving data
-
-reset_tables.sh
-- calls reset_database.sh
-  - oldifies current data - naming database = personal_budget_2_old
-  - create new database = personal_budget_2
-- writes current_version = '0-0'
-- creates tables equivalent to db version 1-0
-- calls up.sh
-  - migrates tables etc to highest version
-- if 'data' is given as param $1
-  - call export_tables.sh
-    - reads file "tablenames"
-    - copies all data from each table in tablenames in _old 
-database to file "tabledata"
-    - imports all data into personal_budget_2 database
 
