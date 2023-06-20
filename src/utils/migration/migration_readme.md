@@ -19,13 +19,9 @@ Flow of data:
     holds <version_number> of db. Is updated with each migration up or down.
 - up.sh/down.sh: 
     reads upfiles/downfiles and runs each filename on the psql -f command
-    <version_number> is extracted from filenames. Last filename will be sent to write_version.sh
+    <version_number> is extracted from filenames. Version number of last filename will be sent to write_version.sh
 - write_version.sh:
     takes <version_number> as input and writes to file current_version
-- insert_test_data.sh:
-    inserts test data relating to current db version.
-    uses get_current_version.sh to define 
-version_number and filename containing testdata.
 - get_current_version.sh:
     looks in the current_version and returns filename 
 of .sql file with relevant test data to be inserted 
@@ -35,6 +31,7 @@ in db.
 
 ### On resetting database
 - resetting database and preserving data
+
 reset_tables.sh
 - calls reset_database.sh
   - oldifies current data - naming database = personal_budget_2_old
