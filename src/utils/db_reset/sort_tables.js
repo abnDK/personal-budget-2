@@ -14,7 +14,50 @@ console.log(args)
 const tablenamesPath = args[0]
 const foreignKeyConstraintsPath = args[1]
 
+class pgDatabase {
+    constructor(tablenames, fkeyCons) {
+        this.tablenames = tablenames;
+        this.fkeyCons = fkeyCons
+    }
 
+    exportAs(datastructureType) {
+        if (datastructureType == 'ForeignKeyTree') {
+            /**
+             * should export a tree like structure equivalent to the 
+             * foreign key hierarchy of db.
+             */
+        }
+    }
+
+    tablesArrayFor(treeClass) {
+        // this could be prep function for a function that build
+        // the tree of fkey constraints
+        // Use FkeyTree.sortByBranch for this
+        let tables = new Array()
+        if (treeClass == 'ForeignKeyTree') {
+            // add fkey constraints as parent/child rel
+            for (let fkeyCon of this.foreignKeyConstraints) {
+                tables.push(new Table(fkeyCon.Parent, fkeyCon.Child))
+            }
+            
+            for (let tablename of this.tablenames) {
+                // add tables (who are not in a fkey constraint) as parent-null relationships
+                if (tables.some(table => table.parent != tablename) && !tables.some(table => table.hasChild(tablename))) {
+                    tables.push(new Table(tablename))
+                }
+
+                // add children in fkey constraints, who does not have a child themselves
+                if (tables.some(table => table.parent != tablename) && tables.some(table => table.hasChild(tablename))) {
+                    tables.push(new Table(tablename))
+                }
+            }
+
+        }
+
+        return tables
+
+    }
+}
 
 class Table {
     constructor(parent, children = []) {
@@ -66,10 +109,13 @@ class Table {
 
 class pgTableReader {
     constructor(tablenamesPath, foreignKeyConstraintsPath) {
+        this.tablenames; // might introduce bug
+        this.foreignKeyConstraints; // might introduce bug
         this.tablenamesPath = tablenamesPath
         this.readTablenames()
         this.foreignKeyConstraintsPath = foreignKeyConstraintsPath
         this.readForeignKeyConstraints()
+        
     }
 
     // READING / WRITING TABLENAMES ETC
@@ -104,37 +150,12 @@ class pgTableReader {
         }
     }
 
-    tablesFor(treeClass) {
-        let tables = new Array()
-        if (treeClass == 'ForeignKeyTree') {
-            // add fkey constraints as parent/child rel
-            for (let fkeyCon of this.foreignKeyConstraints) {
-                tables.push(new Table(fkeyCon.Parent, fkeyCon.Child))
-            }
-
-   
-                
-
-            
-            for (let tablename of this.tablenames) {
-                // WHY IS TRANSACTION NOT INCLUDED IN TABLENAMES WHEN SORTING?
-                // RUN ./RESET_TABLES.SH DATA IN VS CODE TERMINAL TO GET DEBUGGER TO THIS POINT
-                // add tables (who are not in a fkey constraint) as parent-null relationships
-                if (tables.some(table => table.parent != tablename) && !tables.some(table => table.hasChild(tablename))) {
-                    tables.push(new Table(tablename))
-                }
-
-                // add children in fkey constraints, who does not have a child themselves
-                if (tables.some(table => table.parent != tablename) && tables.some(table => table.hasChild(tablename))) {
-                    tables.push(new Table(tablename))
-                }
-            }
-
-        }
-
-        return tables
-
+    getDatabase() {
+        let db = new pgDatabase(this.tablenames, this.foreignKeyConstraints)
+        return db
     }
+
+    
 }
 
 class pgTableWriter {
