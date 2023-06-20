@@ -6,107 +6,217 @@
 
 const fs = require('fs')
 const { parse } = require('csv-parse/sync');
-const { table } = require('console');
 
+// Setting arguments for identifying path of tablenames and foreignkey constraints
 const args = process.argv.slice(2)
 console.log('sort_tables called with arguments: ')
 console.log(args)
 const tablenamesPath = args[0]
 const foreignKeyConstraintsPath = args[1]
 
+
+// MAIN CLASSES
 class pgDatabase {
     constructor(tablenames, fkeyCons) {
         this.tablenames = tablenames;
         this.fkeyCons = fkeyCons
     }
 
-    exportAs(datastructureType) {
-        if (datastructureType == 'ForeignKeyTree') {
-            /**
-             * should export a tree like structure equivalent to the 
-             * foreign key hierarchy of db.
-             */
+    makeTree() {
+        // build a tree with tables related to parent and child(ren)
+        // All tables with no parent will be related to a root table
+        let tables = new Array();
+        let root = new Table('root');
+
+        // make all tablenames into Table
+        for (let tablename of this.tablenames) {
+            tables.push(new Table(tablename))
         }
-    }
 
-    tablesArrayFor(treeClass) {
-        // this could be prep function for a function that build
-        // the tree of fkey constraints
-        // Use FkeyTree.sortByBranch for this
-        let tables = new Array()
-        if (treeClass == 'ForeignKeyTree') {
-            // add fkey constraints as parent/child rel
-            for (let fkeyCon of this.foreignKeyConstraints) {
-                tables.push(new Table(fkeyCon.Parent, fkeyCon.Child))
-            }
-            
-            for (let tablename of this.tablenames) {
-                // add tables (who are not in a fkey constraint) as parent-null relationships
-                if (tables.some(table => table.parent != tablename) && !tables.some(table => table.hasChild(tablename))) {
-                    tables.push(new Table(tablename))
-                }
+        // check Tables for fkey relationsips
+        for (let fkey of this.fkeyCons) {
+            let fkeyParent = tables.find(table => table.name == fkey.Parent);
+            let fkeyChild = tables.find(table => table.name == fkey.Child);
 
-                // add children in fkey constraints, who does not have a child themselves
-                if (tables.some(table => table.parent != tablename) && tables.some(table => table.hasChild(tablename))) {
-                    tables.push(new Table(tablename))
-                }
-            }
+            fkeyParent.addChild(fkeyChild)
 
         }
 
-        return tables
 
+        // add all Table without parents to root
+        let noParents = tables.filter(table => table.parent == null)
+        for (let table of noParents) {
+            root.addChild(table)
+        }
+
+        return new ForeignKeyTree(root)
     }
+    
+    sortTablesByGeneration
+    
 }
 
 class Table {
-    constructor(parent, children = []) {
-        this.parent = parent        
-        this.children = children
+    
+    
+    constructor(name, parent = null, children = []) {
+        this.name = name;       
+        this.parent = parent;
+        this.children = children;
     }
 
-    get child() {
-        if (this.children != null) {
-            return this.children[0]
+    // PARENT
+
+    get parent() {
+        return this._parent;
+    }
+
+    set parent(newParent) {
+        if (newParent == null) {
+            this._parent = null;
+            return
         }
-        return null
+
+        if (newParent.constructor.name != 'Table') {
+            throw new Error('Parent must be type Table')
+        }
+
+        if (this._parent) {
+            throw new Error('Parent already exists. Current parent name: ' + this._parent.name + '. New parent name: ' + newParent.name)
+        }
+           
+        this._parent = newParent;
+
+        if (!newParent.children.some(child => child.name == this.name)) {
+            //console.log('after adding ' + newParent.name + ' as parent to ' + this.name + ' we find that')
+            //console.log('parent ' + newParent.name + ' already has ' + this.name + ' as a child.')
+            //console.log(newParent)
+            //console.log(this)
+            newParent._children.push(this)
+
+        }
 
     }
+
+    // CHILDREN
+
+    get name() {
+        return this._name;
+    }
+
+    set name(newName) {
+        if (typeof newName != 'string') {
+            throw new Error('Only strings can be accepted when changing name')
+        }
+
+        this._name = newName;
+    }
+
+    // CHILDREN
 
     get children() {
         return this._children
     }
 
     set children(children) {
-        if (typeof children == null) {
-            this._children = null;
+        if (children.some(child => child.constructor.name != 'Table')) {
+            throw new Error('Only arrays of Tables can be accepted as childen')
+        }
+        if (!this._children) {
+            this._children = new Array();
         }
 
-        if (typeof children == 'string') {
-            this._children = new Array()
-            this._children.push(children)
-        }
-
-        if (Array.isArray(children)) {
-            this._children = children;
+        // alt use: if (!Array.isArray(Children)) { throw new Error... };
+        for (let child of children) {
+            this.addChild(child)
         }
     }
 
     addChild(child) {
-        this.children.push(child)
+        if (child.constructor.name != 'Table') {
+            throw new Error('Only child of type Table can be added')
+        }
+
+        // Setting relationship both ways in parent-table-child node
+        if (!this.children.some(alreadyChild => alreadyChild.name == child.name)) {
+            
+            this.children.push(child)
+
+            child.parent = this;
+
+ 
+        }
     }
 
     hasChild(potentialChild) {
+        // Still in use?
+
         // checks if a potential child actually is a child of this table
-        // input must be a string name of the table
-        if (this.parent == 'child_of_budget') {
-            console.log()
-        }
-        return this.children.some(child => child == potentialChild)
+        // input must be of type Table
+        
+        return this.children.some(child => child.name == potentialChild.name)
     }
 }
 
+class ForeignKeyTree {
+    constructor(root) {
+        this.root = root
+    }
 
+    get root() {
+        return this._root;
+    }
+
+    set root(newRoot) {
+        if (newRoot.constructor.name != 'Table') {
+            throw new Error('Root has to be of type Table')
+        }
+
+        this._root = newRoot;
+    }
+
+    
+    #sortTables(method) {
+        // will build tree with BFS or DFS approach
+        let visited = new Array()
+        let queue = new Array()
+
+        queue.push(this.root)
+        
+        while (queue.length > 0) {
+            let visitTable;
+            if (method == 'bfs') {
+                visitTable = queue.shift()
+            } else if (method == 'dfs') {
+                visitTable = queue.pop()
+            }
+
+            visitTable.children.forEach(child => queue.push(child))
+            
+            visited.push(visitTable)
+
+        }
+
+        return visited
+
+    }
+
+    sortByBranch() {
+        // sorts tables by branch using Depth First Search
+        return this.#sortTables('dfs')
+    }
+
+    sortByGeneration() {
+        // sorts tables by generation using Bread First Search
+        return this.#sortTables('bfs')
+    }
+
+    
+
+    
+}
+
+// UTILS
 class pgTableReader {
     constructor(tablenamesPath, foreignKeyConstraintsPath) {
         this.tablenames; // might introduce bug
@@ -176,16 +286,20 @@ class pgTableWriter {
             // and filter out root table - root is only in use
             // for this file/function, not when inserting to 
             // pg database.
-            let tables = this.tree.sortByGeneration()
-            let sortedTablesNames = this.tree.sortByGeneration().map(table => table.parent).filter(table => table != 'root')
+            let sortedTables = this.tree.sortByGeneration()
 
             // concatenate tables in one string, separated by \n char
             // write it to tablenames for use before copying data 
             // in fkey consistent order
             let sortedTableNamesString = ""
-            for (let tableName of sortedTablesNames) {
-                sortedTableNamesString += `${tableName}\n`
+            for (let table of sortedTables) {
+                if (table.name != 'root') {
+                    sortedTableNamesString += table.name
+                    sortedTableNamesString += '\n'
+                }
             }
+
+            sortedTableNamesString = sortedTableNamesString.trim()
 
             try {
                 fs.writeFileSync(writePath, sortedTableNamesString)
@@ -197,131 +311,16 @@ class pgTableWriter {
     }
 }
 
-class ForeignKeyTree {
-    constructor(tables) {
-        this.tables = tables;
-        this.visited = new Array()
-        this.queue = new Array()
-        this.root = new Table('root')
-        this.#addRootChildren()
-
-    }
-
-    // MAKING THE TREE
-
-    #parents() {
-        // return array of names of unique parents.
-        let parentArray = this.tables.map(table => table.parent)
-        let uniqueParents = [...new Set(parentArray)]
-        return uniqueParents
-    }
-
-    #children() {
-        // returns array of unique names of children.
-        let childrenArray = this.tables.map(table => table.child)
-        let uniqueChildren = new Array();
-        for (let child of childrenArray) {
-            if (child != null && !uniqueChildren.includes(child)) {
-                uniqueChildren.push(child)
-            }
-        }
-        return uniqueChildren
-    }
-
-    #addRootChildren() {
-        // will return root with child notes, that have no parents
-        let parents = this.#parents()
-
-        let children = this.#children()
-
-        // Add names of tables who is not itself a child of a node.
-        // Tables correspond to first generation of the tree
-        // and will thus be added to root
-        for (let parent of parents) {
-            if (!children.includes(parent)) {
-                this.tables.push(new Table('root', parent))
-            }
-        }
-    }
-    
-    #sortTables(method) {
-        // will build tree with BFS approach
-        let visited = []
-        this.queue.push(this.root)
-        
-        while (this.queue.length > 0) {
-            let visitTable;
-            if (method == 'bfs') {
-                visitTable = this.queue.shift()
-            } else if (method == 'dfs') {
-                visitTable = this.queue.pop()
-            }
-            
-            let children = this.tables.filter(table => table.parent == visitTable.parent).map(table => table.child).filter(child => child != null)
-                visitTable.children = children
-
-
-            for (let child of visitTable.children) {
-                this.queue.push(new Table(child))
-            }
-            visited.push(visitTable)
-
-        }
-
-        return visited
-
-    }
-
-    sortByBranch() {
-        // sorts tables by branch using Depth First Search
-        return this.#sortTables('dfs')
-    }
-
-    sortByGeneration() {
-        // sorts tables by generation using Bread First Search
-        return this.#sortTables('bfs')
-    }
-
-    
-
-    
-}
-
-let pb2db = new pgTableReader(tablenamesPath, foreignKeyConstraintsPath)
-
-tables = pb2db.tablesFor('ForeignKeyTree')
-
-let fkTree = new ForeignKeyTree(tables)
-
-let tableWriter = new pgTableWriter(fkTree)
-tableWriter.write(tablenamesPath)
 
 
 
+// RUN SCRIPT FOR READING TABLENAMES AND FKEY CONSTRAINTS
+// ANALYZE AND BUILD TREE OF TABLES
+// WRITE TABLEARRAY SORTED BY GENERATION (PARENTS BEFOE CHILDREN)
 
+let reader = new pgTableReader(tablenamesPath, foreignKeyConstraintsPath)
+db = reader.getDatabase()
+let root = db.makeTree()
+let writer = new pgTableWriter(root)
+writer.write(tablenamesPath)
 
-/**
- * TEST DATA FROM ForeignKeyTree SORTING ALGORITHMS
- * 
- * 
- * root
- * - b
- * - a
- * - - c
- * - - - d
- * - f
- * - - g
- * - - - h
- * - - - - i
-
-
-let fkAC = new Table('a', 'c')
-let fkAD = new Table('a', 'd')
-let fkB = new Table('b')
-let fkCE = new Table('c', 'e')
-let fkFG = new Table('f', 'g')
-let fkGH = new Table('g', 'h')
-let fkHI = new Table('h', 'i')
-let tables = [fkCE, fkAD, fkB, fkAC, fkGH, fkHI, fkFG, fkAC]
-
- */
