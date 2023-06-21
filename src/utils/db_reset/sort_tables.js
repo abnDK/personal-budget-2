@@ -19,7 +19,7 @@ const foreignKeyConstraintsPath = args[1]
 class pgDatabase {
     constructor(tablenames, fkeyCons) {
         this.tablenames = tablenames;
-        this.fkeyCons = fkeyCons
+        this.fkeyCons = fkeyCons;
     }
 
     makeTree() {
