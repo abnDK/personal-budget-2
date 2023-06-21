@@ -39,25 +39,72 @@ Entry points is db_reset/export_import_data.sh
       - written in format csv with header on first row and the following columns (delimited by ";"):
         - Child;Parent;Foreign key name;Schema
     - db_reset/tablenames is then read and afterwards overwritten with new tableorder.
-    - order_tables.sh calls order_tables.js which uses a breadth first search algorithm to list tablenames in generational order (in contrast to depth first search).
-      - for detailed documentation of order_tables.sh, see "4.3.2 Order tables"
+    - order_tables.sh calls sort_tables.js which uses a breadth first search algorithm to list tablenames in generational order (in contrast to depth first search).
+      - for detailed documentation of sort_tables.sh, see "4.3.2 Sort tables"
 - For each table in db_reset/tablenames the data is copied from "_old" database to the newly created database.
   - Between each read and write, data is written to db_reset/tabledata in csv format delimited by ";".
 
-### 4.3.2 Order tables
+### 4.3.2 Sort tables
 
-db_reset/order_tables.js is written in javascript in contrast to other db tools written in bash. This is mainly in order to get acces to data structures not available in bash.
+db_reset/sort_tables.js is written in javascript in contrast to other db tools written in bash. This is mainly in order to get acces to data structures not available in bash.
 
-db_reset/order_tables.js is called with 2 arguments. First is the path to tablenames file. Second is the path to foreign key constraints csv file.
+db_reset/sort_tables.js is called with 2 arguments. First is the path to tablenames file. Second is the path to foreign key constraints csv file.
 
-the main functionality is taking in a list of tables and returning the tables in the same format sorted by foreign key parent/child relationships. Tables are read and written in simple format of tablenames delimeted by newline characters.
+the main functionality is taking in a list of tables and returning the tables in the same format sorted by foreign key parent/child relationships. Tables are read and written in simple format of tablenames delimeted by newline characters. Tablenames is written to file db_reset/tablenames
 
-File contains 4 main classes:
-- Table
-- ForeignKeyTree
-- pgTableWriter
-- pgTableReader
+#### Classes
 
+=====
+Table
+-----
++ name: string
++ parent: Table
++ children: Array<Table>
+-----
++ addChild(child: Table): void
+=====
+
+=====
+pgDatabase
+-----
++ tablenames: Array<string>
++ fkeyCons: Array<object> // {Child, Parent, Foreign key name, Schema}
+-----
++ makeTree(): ForeignKeyTree // 'root'
+=====
+
+=====
+ForeignKeyTree
+-----
++ root: Table
+-----
++ sortByBranch(): Array<Table>
++ sortByGeneration(): Array<Table>
+=====
+
+=====
+pgTableReader
+-----
++ tablenamesPath: string
++ foreignKeyConstraints: string
++ tablenames: Array<string>
++ foreignKeyConstraints: Array<object> // {Child, Parent, Foreign key name, Schema}
+-----
++ readTablenames(): Array<string>
++ readForeignKeyConstraints(): Array<object>
++ getDatabase(): pgDatabase
+=====
+
+=====
+pgTableWriter
+-----
++ tree: ForeignKeyTree
+-----
++ write(writePath: string): void
+=====
+
+
+==============>>> UPDATE BELOW DESCRIPTIONS - REMOVE INFO SHOWN IN ABOVE CLASSES - FOCUS ON INTENT OF CLASS AND METHODS <<<===================
 #### Table
 - The primary datastructure for tables with 2 properties.   
 - Properties:
