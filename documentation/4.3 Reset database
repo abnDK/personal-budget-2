@@ -104,25 +104,20 @@ pgTableWriter
 =====
 
 
-==============>>> UPDATE BELOW DESCRIPTIONS - REMOVE INFO SHOWN IN ABOVE CLASSES - FOCUS ON INTENT OF CLASS AND METHODS <<<===================
 #### Table
-- The primary datastructure for tables with 2 properties.   
-- Properties:
-  - parent: String (essentially the name of the table)
-  - children: Array
+- Primary datastructure for handling tables in the database
+- Holds reference to potential parent and children
+
+#### pgDatabase
+- Holds reference to an array of tablenames and an array of objects representing the foreign key relationsship.
+- Has one method: .makeTree(), which in turn returns the root Table of a tree, where each Table references it's potential parent and child(ren).
 
 #### ForeignKeyTree
-- Takes in an array of Tables and sorts them either by breath first search (.sortByGeneration()) or by depth first search (.sortByBranch())
-- Properties:
-  - tables: Array
-  - visited: Array
-  - queue: Array
-  - root: Table(parent='root')
-- initialization:
-  - besides setting tables property .addRootChildren is run.
+- Holds the root Table of a tree representing tables in the db ordered by their foreign key relationships. Root is an abstract class for holding reference to all tables in db with no parent.
+- Holds methods for sorting the tables based on either a breadth first (.sortByGeneration()) or depth first search (.sortByBranch()).
 
 - sortByGeneration():
-  - uses a queue to keep track of children of tables. Tables is then visited using af FIFO approach essentially resulting in reading the siblings of the current table before reading the its children.
+  - uses a queue to keep track of children of tables. Tables is then visited using af FIFO approach essentially resulting in reading the siblings of the current table before reading its children.
   - initially the root tables is pushed onto the queue.
   - root is read looking for children adding any to the queue.
   - next in queue is a child of root, which then is read for any children.
@@ -130,30 +125,14 @@ pgTableWriter
     - table name will be added to the visited array. Every tablename except the root is pushed onto the visited array. This will result in a sorted list of table names with parents being written before it's children.
     - the process of visiting the children in the queue is repeated until no children is left in the queue.
 
-- addRootChildren():
-  - tables who does not have a parent (regardless of it being a parent or not) is written as the child of the root table.
-  - Used to initialize the sorting algorithm (both "byGeneration" and "byBranch")
-
-
 #### pgTableReader
-- reads tablenames and foreign key constraints file.
-- properties:
-  - tablesnamesPath: String
-  - foreignKeyConstraintsPath: String
-- methods:
-  - tablesFor(<treestructure>) 
-    - input used is a string equal to the class ordering the tables. For now, only 'ForeignKeyTree' is available.
-    - returns an unordered array containing all tablenames 
+- Holds reference to path of tablenames and foreignkey relationships.
+- On init tablenames and foreignkey relationship is parsed
+- its main method - .getDatabase() - returns a new instantiation of the pgDatabase class with tablenames and foreignkey relationships as input.
 
 #### pgTableWriter
-- takes in tables prepared for ForeignKeyTree class and writes tablenames using .sortByGeneration
-- properties:
-  - tree: ForeignKeyTree
-- methods:
-  - write(<writePath>)
-    - calls .sortByGeneration on tree
-    - writes sorted tables to <writePath>
-
+- Takes in tree datastructure
+- It has one method: .write(writePath), that reads the classname of the tree and writes to writePath. For now, only class ForeignKeyTree is recognized and will result in writing a file with tablenames ordered by fkey-generations (grandparents - parents - children and so forth...). Root tablename is ignored.
 
 
 
