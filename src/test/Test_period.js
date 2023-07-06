@@ -78,4 +78,3 @@ var Test_period = exports.Test_period = /** @class */ (function () {
     };
     return Test_period;
 }());
-console.log(Test_period);

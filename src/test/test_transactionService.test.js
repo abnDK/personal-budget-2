@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // TEST LIBRARIES
 //const chai = require('chai');
 var assert = require('chai').assert;
+var Test_period_1 = require("./Test_period");
 // CLASSES UNDER TEST
 var transactionService_1 = require("../services/transactionService");
 // const chaiHttp = require('chai-http');
@@ -14,20 +15,81 @@ var transactionService_1 = require("../services/transactionService");
 // const { pool } = require('../db'); // in medium article on test, this would have been "const { client } = require(./poolClient)"
 // const { Post } = require('../Model/Post');
 describe('transactionService', function () {
-    it('.getTransactions() returns array of transactions', function () {
-        var Transactions = transactionService_1.TransactionService.getTransactions();
-        assert.typeOf(Transactions, 'Array', 'getTransactions returns an array');
-        Transactions.forEach(function (trans) {
-            console.log(trans);
-            assert.typeOf(trans, 'Transaction', 'element of array is type Transaction');
+    describe('.getTransactions()', function () {
+        it('Returns array of transactions', function () {
+            var transactions = transactionService_1.TransactionService.getTransactions();
+            assert.isArray(transactions);
+            transactions.forEach(function (trans) {
+                console.log(trans);
+                assert.typeOf(trans, 'Transaction', 'element of array is type Transaction');
+            });
         });
-    });
-    it('.getTransactions(startDate=month_1, endDate=month_1) returns 2 transactions with date in month 1', function () {
-        // first and last day of a month:
-        // https://stackoverflow.com/questions/222309/calculate-last-day-of-month
-        var startDate = new Date(2020, 0, 1, 1);
-        var endDate = new Date(2020, 1, 0, 1);
-        var Transactions = transactionService_1.TransactionService.getTransactions(startDate, endDate);
-        console.log(Transactions);
+        describe('startDate=month_1 and endDate=month_1', function () {
+            it('returns 3 transactions', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                // VERIFY
+                assert.lengthOf(transactions, 3, '3 transactions returned');
+            });
+            it('returns only transactions with date in month 1', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                // VERIFY
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_1.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+            });
+        });
+        describe('startDate=month_1 and endDate=month_2', function () {
+            it('returns 7 transactions', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
+                // VERIFY
+                assert.lengthOf(transactions, 7, '7 transactions returned');
+            });
+            it('returns only transactions with date in month 1 or 2', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
+                // VERIFY
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_2.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+            });
+        });
+        describe('startDate=month_1 and endDate=month_3', function () {
+            it('returns 8 transactions', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
+                // VERIFY
+                assert.lengthOf(transactions, 8, '8 transactions returned');
+            });
+            it('returns only transactions with date in month 1, 2 or 3', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
+                // VERIFY
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
+                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_3.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+            });
+        });
+        describe('startDate=month_1, endDate=month_1, category="a"', function () {
+            it('returns 2 transactions', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                // VERIFY
+                assert.lengthOf(transactions, 2, '2 transactions returned');
+            });
+            it('returns only transactions with category A', function () {
+                // ARRANGE
+                // ACT
+                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                // VERIFY
+                transactions.forEach(function (trans) { return assert.equal(trans.category.name, 'a', "".concat(trans, ": transaction category correct (\"a\")")); });
+            });
+        });
     });
 });
