@@ -6,6 +6,8 @@ import { Test_period } from "./Test_period"
 // CLASSES UNDER TEST
 import { TransactionService } from "../services/transactionService";
 import { Category } from "../models/1.3/category";
+import { Test } from "mocha";
+import { Transaction } from "../models/1.3/transaction";
 
 
 // const chaiHttp = require('chai-http');
@@ -33,6 +35,7 @@ describe('transactionService', () => {
 
 
         })
+
         it('Returns 8 transactions', () => {
             // ARRANGE
 
@@ -42,11 +45,9 @@ describe('transactionService', () => {
             // VERIFY
             assert.lengthOf(transactions, 8, '8 transactions returned')
             })
-
-
-        })
         
-        describe('startDate=month_1 and endDate=month_1', () => {
+        
+        describe('startDate=month_1.primo and endDate=month_1.ultimo', () => {
             it('returns 3 transactions', () => {
             // ARRANGE
 
@@ -70,7 +71,7 @@ describe('transactionService', () => {
             })
         })
 
-        describe('startDate=month_1 and endDate=month_2', () => {
+        describe('startDate=month_1.primo and endDate=month_2.ultimo', () => {
             it('returns 7 transactions', () => {
             // ARRANGE
 
@@ -95,7 +96,7 @@ describe('transactionService', () => {
             })
         })
 
-        describe('startDate=month_1 and endDate=month_3', () => {
+        describe('startDate=month_1.primo and endDate=month_3.ultimo', () => {
             it('returns 8 transactions', () => {
             // ARRANGE
 
@@ -120,7 +121,21 @@ describe('transactionService', () => {
             })
         })
 
-        describe('startDate=month_1, endDate=month_1, category="a"', () => {
+        describe('startDate=month_4.primo, endDate=month_4.ultimo', () => {
+            it('returns empty array', () => {
+                // ARRANGE
+                const startDate = Test_period.month_4.primo
+                const endDate = Test_period.month_4.ultimo
+
+                // ACT
+                const transactions = TransactionService.getTransactions(startDate, endDate);
+
+                // VERIFY
+                assert.lengthOf(transactions, 0, '0 transactions returned')
+            })
+        })
+
+        describe('startDate=month_1.primo, endDate=month_1.ultimo, category="a"', () => {
             it('returns 2 transactions', () => {
                 // ARRANGE
                 let cat_a = new Category('A', 1)
@@ -144,7 +159,7 @@ describe('transactionService', () => {
                 transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`))
             })
         })
-        describe('startDate=month_1, endDate=month_2, category="a"', () => {
+        describe('startDate=month_1.primo, endDate=month_2.ultimo, category="a"', () => {
             it('returns 4 transactions', () => {
                 // ARRANGE
                 let cat_a = new Category('A', 1)
@@ -168,7 +183,7 @@ describe('transactionService', () => {
                 transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`))
             })
         })
-        describe('startDate=month_3, endDate=month_3, category="a"', () => {
+        describe('startDate=month_3.primo, endDate=month_3.ultimo, category="a"', () => {
             it('returns empty array', () => {
                 // ARRANGE
                 let cat_a = new Category('A', 1)
@@ -183,4 +198,28 @@ describe('transactionService', () => {
 
             
         })
+
+        /**
+         * if only endDate given, filter is everything before end date // can only do if using interface as a way of defining function with named parameters. Let's do it later.
+         * if only startDate given, filter is everthing efter start data // can only do if using interface as a way of defining function with named parameters. Let's do it later.
+         * if endDate is before startDate, error is thrown
+         * 
+         * make sure to have boundary value elements to test against
+         */
+
+        describe('startDate=month_1.ultimo, endDate=month_1.primo', () => {
+            it('throws RangeError as endDate cannot be before startDate', () => {
+                // ARRANGE
+                const getTransactions = TransactionService.getTransactions
+                
+                // ACT
+                const getTransactionsWithInvalidDateInput = getTransactions.bind(TransactionService, Test_period.month_1.ultimo, Test_period.month_1.primo);
+                
+                // VERIFY
+                assert.throws(getTransactionsWithInvalidDateInput, RangeError);
+            })
+        })
+
+        
     })
+})
