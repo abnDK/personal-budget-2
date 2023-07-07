@@ -5,6 +5,7 @@ import { Test_period } from "./Test_period"
 
 // CLASSES UNDER TEST
 import { TransactionService } from "../services/transactionService";
+import { Category } from "../models/1.3/category";
 
 
 // const chaiHttp = require('chai-http');
@@ -19,11 +20,27 @@ import { TransactionService } from "../services/transactionService";
 describe('transactionService', () => {
     describe('.getTransactions()', () => {
         it('Returns array of transactions', () => {
+            // ARRANGE
+
+            // ACT
             const transactions = TransactionService.getTransactions();
+            
+            // VERIFY
             assert.isArray(transactions)
             transactions.forEach(trans => {
-                console.log(trans)
                 assert.typeOf(trans, 'Transaction', 'element of array is type Transaction')
+            })
+
+
+        })
+        it('Returns 8 transactions', () => {
+            // ARRANGE
+
+            // ACT
+            const transactions = TransactionService.getTransactions();
+
+            // VERIFY
+            assert.lengthOf(transactions, 8, '8 transactions returned')
             })
 
 
@@ -105,25 +122,65 @@ describe('transactionService', () => {
 
         describe('startDate=month_1, endDate=month_1, category="a"', () => {
             it('returns 2 transactions', () => {
-            // ARRANGE
+                // ARRANGE
+                let cat_a = new Category('A', 1)
 
-            // ACT
-            const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo);
+                // ACT
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo, cat_a);
 
-            // VERIFY
-            assert.lengthOf(transactions, 2, '2 transactions returned')
+                // VERIFY
+                assert.lengthOf(transactions, 2, '2 transactions returned')
 
             })
 
             it('returns only transactions with category A', () => {
                 // ARRANGE
+                let cat_a = new Category('A', 1)
 
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo, cat_a);
 
                 // VERIFY
-                transactions.forEach(trans => assert.equal(trans.category.name, 'a', `${trans}: transaction category correct ("a")`))
+                transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`))
             })
         })
+        describe('startDate=month_1, endDate=month_2, category="a"', () => {
+            it('returns 4 transactions', () => {
+                // ARRANGE
+                let cat_a = new Category('A', 1)
+
+                // ACT
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_2.ultimo, cat_a);
+
+                // VERIFY
+                assert.lengthOf(transactions, 4, '4 transactions returned')
+
+            })
+
+            it('returns only transactions with category A', () => {
+                // ARRANGE
+                let cat_a = new Category('A', 1)
+
+                // ACT
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_2.ultimo, cat_a);
+
+                // VERIFY
+                transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`))
+            })
+        })
+        describe('startDate=month_3, endDate=month_3, category="a"', () => {
+            it('returns empty array', () => {
+                // ARRANGE
+                let cat_a = new Category('A', 1)
+
+                // ACT
+                const transactions = TransactionService.getTransactions(Test_period.month_3.primo, Test_period.month_3.ultimo, cat_a);
+
+                // VERIFY
+                assert.lengthOf(transactions, 0, 'empty array returned')
+
+            })
+
+            
+        })
     })
-})
