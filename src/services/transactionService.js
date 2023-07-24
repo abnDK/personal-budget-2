@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var category_1 = require("../models/1.3/category");
 var transaction_1 = require("../models/1.3/transaction");
-var Mock_data_1 = require("../test/Mock_data");
 var pool = require('../configs/queries');
 var TransactionService = /** @class */ (function () {
     function TransactionService() {
@@ -104,7 +103,7 @@ var TransactionService = /** @class */ (function () {
     };
     TransactionService.createTransaction = function (name, amount, date, category_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var category, data_category, data_trans, temp, transaction;
+            var category, data_category, data_trans, transaction;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -127,8 +126,7 @@ var TransactionService = /** @class */ (function () {
                     case 3: return [4 /*yield*/, pool.query('INSERT INTO transaction (name, amount, date, category_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, date, category_id])];
                     case 4:
                         data_trans = _a.sent();
-                        temp = { name: 'temp', amount: 100 };
-                        data_trans.rows.push(temp);
+                        // verify only 1 transaction has been created and returned from db
                         if (!data_trans.rows.length) {
                             throw new Error('no new transaction has been created, for some reason?');
                         }
@@ -138,23 +136,42 @@ var TransactionService = /** @class */ (function () {
                         }
                         transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date);
                         transaction.category = category;
-                        // return transaction
+                        // return transaction object
                         return [2 /*return*/, transaction];
                 }
             });
         });
     };
-    TransactionService.deleteTransaction = function (id) {
-        // get Transactions in database
-        // build array of transactions
-        var data = Mock_data_1.Mock_data.getMockTransactions(); // While testing use mock_data object
-        // filter transactions
-        var transaction = data.filter(function (transaction) { return transaction.id == id; })[0];
-        if (transaction == undefined) {
-            throw new Error('Id not known');
-        }
-        // DELETE TRANSACTION HERE
-        return "Transaction with id: ".concat(id, " has been deleted.");
+    TransactionService.deleteTransaction = function (delete_id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var id, to_be_deleted_transaction_sql_object, deleted_transaction_sql_object, deleted_transaction;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        id = parseInt(delete_id);
+                        return [4 /*yield*/, pool.query('SELECT * FROM transaction WHERE id = $1', [id])
+                            // verify id only equals 1 transaction 
+                        ];
+                    case 1:
+                        to_be_deleted_transaction_sql_object = _a.sent();
+                        // verify id only equals 1 transaction 
+                        if (to_be_deleted_transaction_sql_object['rows'].length === 0) {
+                            throw new Error('id unknown');
+                        }
+                        if (to_be_deleted_transaction_sql_object['rows'].length > 1) {
+                            throw new Error('Multiple rows to be deleted - id should be unique');
+                        }
+                        return [4 /*yield*/, pool.query('DELETE FROM transaction WHERE id = $1 RETURNING *', [id])
+                            // create Transaction object
+                        ];
+                    case 2:
+                        deleted_transaction_sql_object = _a.sent();
+                        deleted_transaction = new transaction_1.Transaction(deleted_transaction_sql_object['rows'][0].id, deleted_transaction_sql_object['rows'][0].name, deleted_transaction_sql_object['rows'][0].amount, deleted_transaction_sql_object['rows'][0].date);
+                        // send response
+                        return [2 /*return*/, deleted_transaction];
+                }
+            });
+        });
     };
     return TransactionService;
 }());

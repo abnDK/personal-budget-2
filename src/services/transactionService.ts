@@ -103,21 +103,36 @@ class TransactionService {
 
     }
 
-    static deleteTransaction(id): string {
-        // get Transactions in database
+    static async deleteTransaction(delete_id): Promise<Transaction> {
+        // parse id
+        const id : number = parseInt(delete_id);
 
-        // build array of transactions
-        let data = Mock_data.getMockTransactions(); // While testing use mock_data object
+        // query db
+        const to_be_deleted_transaction_sql_object : Object = await pool.query('SELECT * FROM transaction WHERE id = $1', [id])
 
-        // filter transactions
-        let transaction = data.filter(transaction => transaction.id == id)[0]
-        if (transaction == undefined) {
-            throw new Error('Id not known')
+        
+        // verify id only equals 1 transaction 
+        if (to_be_deleted_transaction_sql_object['rows'].length === 0) {
+            throw new Error('id unknown')
+        }
+        if (to_be_deleted_transaction_sql_object['rows'].length > 1) {
+            throw new Error('Multiple rows to be deleted - id should be unique')
         }
 
-        // DELETE TRANSACTION HERE
+        // delete transaction in db
+        const deleted_transaction_sql_object : Object = await pool.query('DELETE FROM transaction WHERE id = $1 RETURNING *', [id])
 
-        return `Transaction with id: ${id} has been deleted.`
+        // create Transaction object
+        const deleted_transaction : Transaction = new Transaction(
+            deleted_transaction_sql_object['rows'][0].id,
+            deleted_transaction_sql_object['rows'][0].name,
+            deleted_transaction_sql_object['rows'][0].amount,
+            deleted_transaction_sql_object['rows'][0].date
+        )
+
+        // send response
+        return deleted_transaction
+
     }
 
 } 
