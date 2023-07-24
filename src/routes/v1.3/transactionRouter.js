@@ -15,7 +15,6 @@ const TransactionService = require('../../services/transactionService')
 router.get('/', async (req, res) => {
     // CODE THAT CALLS SERVICE (THAT CALLS DATABASE)
     let transactions = await TransactionService.getTransactions();
-    console.log(transactions)
     res.status(200).json(transactions)
 
 })
@@ -31,8 +30,8 @@ router.post('/', async (req, res) => {
 })
 
 
-router.delete('/:id', (req, res) => {
-    let transaction = TransactionService.deleteTransaction(req.params.id)
+router.delete('/:id', async (req, res) => {
+    let transaction = await TransactionService.deleteTransaction(req.params.id)
     res.status(200).json(transaction)
 })
 
