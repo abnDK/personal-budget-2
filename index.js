@@ -27,14 +27,16 @@ app.set('view engine', 'pug')
 app.use(express.static('./src/static'))
 
 // setting up routes
-const envelopes = require('./src/routes/envelopeRouter')
-const expenses = require('./src/routes/expenseRouter')
-const reports = require('./src/routes/reportsRouter')
+const transactionRouter = require('./src/routes/v1.3/transactionRouter')
+const categoryRouter = require('./src/routes/v1.3/categoryRouter')
+const budgetRouter = require('./src/routes/v1.3/budgetRouter')
+//const reports = require('./src/routes/reportsRouter')
 
 
-app.use('/envelopes', envelopes)
-app.use('/expenses', expenses)
-app.use('/reports', reports)
+app.use('/categories', categoryRouter)
+app.use('/transactions', transactionRouter)
+app.use('/budgets', budgetRouter)
+//app.use('/reports', reports) // TODO: UPDATE FOR 1.3
 
 app.get('/', (req, res) => {
     res.status(200).send(
