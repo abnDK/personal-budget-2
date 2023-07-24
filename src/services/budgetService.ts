@@ -12,7 +12,7 @@ class BudgetService {
         let data = await pool.query('SELECT * FROM budget ORDER BY id ASC')
         
         // make budgets array
-        let budgets = data.rows.map(res => new Budget(res.name, res.start_date, res.end_date, parseInt(res.id)))
+        let budgets = data.rows.map(res => new Budget(res.name, res.date_start, res.date_end, parseInt(res.id)))
 
         return budgets;
     }
@@ -23,7 +23,7 @@ class BudgetService {
 
 
         // init budget as Budget object
-        let budget_in_array = data.rows.map(res => new Budget(res.name, res.start_date, res.end_date, parseInt(res.id)))
+        let budget_in_array = data.rows.map(res => new Budget(res.name, res.date_start, res.date_end, parseInt(res.id)))
         let budget = budget_in_array[0]
 
         // if budget unknown / id not known
@@ -34,63 +34,64 @@ class BudgetService {
         return budget
     }
 
-    static async createTransaction(name: string, amount: number, date: Date, category_id?: number): Promise<Transaction> {
-        // TODO
-        let category;
+    static async createBudget(name: string, date_start: Date, date_end: Date): Promise<Budget> {
 
+        // create budget
+        let data_budget = await pool.query('INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *', [name, date_start, date_end]);
 
-        // create transaction
-        let data_trans = await pool.query('INSERT INTO transaction (name, amount, date, category_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, date, category_id]);
-
-        // verify only 1 transaction has been created and returned from db
-        if (!data_trans.rows.length) {
-            throw new Error('no new transaction has been created, for some reason?')
-        } else if (data_trans.rows.length > 1) {
-            console.log(data_trans.rows)
-            throw new Error('more than one transaction has been created in db. Something is not right...')
+        // verify only 1 budget has been created and returned from db
+        if (!data_budget.rows.length) {
+            throw new Error('no new budget has been created, for some reason?') // WILL THIS ERROR BE THROWN WHEN QUERING DB?
+        } else if (data_budget.rows.length > 1) {
+            console.log(data_budget.rows)
+            throw new Error('more than one budget has been created in db. Something is not right...')
         }
 
-        // init transaction object
-        let transaction = new Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date)
-        transaction.category = category;
+        // init budget object
+        let budget = new Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id)
 
         // return transaction object
-        return transaction
+        return budget
 
 
     }
 
-    static async deleteTransaction(delete_id): Promise<Transaction> {
+    static async deleteBudget(delete_id): Promise<Budget> {
         // TODO
+        // - What to do if category fkeys to to_be_deleted budget?
+        // --- deleted all
+        // --- delete budget, and remove fkey rel on category
+        // --- throw error, and delete category first (CURRENT CHOICE)
 
         // parse id
         const id : number = parseInt(delete_id);
 
         // query db
-        const to_be_deleted_transaction_sql_object : Object = await pool.query('SELECT * FROM transaction WHERE id = $1', [id])
+        const to_be_deleted_budget_sql_object : Object = await pool.query('SELECT * FROM budget WHERE id = $1', [id])
 
         
         // verify id only equals 1 transaction 
-        if (to_be_deleted_transaction_sql_object['rows'].length === 0) {
+        if (to_be_deleted_budget_sql_object['rows'].length === 0) {
             throw new Error('id unknown')
         }
-        if (to_be_deleted_transaction_sql_object['rows'].length > 1) {
+        if (to_be_deleted_budget_sql_object['rows'].length > 1) {
             throw new Error('Multiple rows to be deleted - id should be unique')
         }
 
         // delete transaction in db
-        const deleted_transaction_sql_object : Object = await pool.query('DELETE FROM transaction WHERE id = $1 RETURNING *', [id])
+        const deleted_budget_sql_object : Object = await pool.query('DELETE FROM budget WHERE id = $1 RETURNING *', [id])
 
         // create Transaction object
-        const deleted_transaction : Transaction = new Transaction(
-            deleted_transaction_sql_object['rows'][0].id,
-            deleted_transaction_sql_object['rows'][0].name,
-            deleted_transaction_sql_object['rows'][0].amount,
-            deleted_transaction_sql_object['rows'][0].date
+        const deleted_budget : Budget = new Budget(
+            deleted_budget_sql_object['rows'][0].name,
+            deleted_budget_sql_object['rows'][0].date_start,
+            deleted_budget_sql_object['rows'][0].date_end,
+            deleted_budget_sql_object['rows'][0].id
+
         )
 
         // send response
-        return deleted_transaction
+        return deleted_budget
 
     }
 

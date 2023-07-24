@@ -19,15 +19,15 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-    const { name, amount, date, category_id } = req.body;
-    let newTransaction = await TransactionService.createTransaction(name, amount, date, category_id);
-    res.status(200).json(newTransaction)
+    const { name, date_start, date_end } = req.body;
+    let newBudget = await BudgetService.createBudget(name, date_start, date_end);
+    res.status(200).json(newBudget)
 })
 
 
 router.delete('/:id', async (req, res) => {
-    let transaction = await TransactionService.deleteTransaction(req.params.id)
-    res.status(200).send(transaction)
+    let budget = await BudgetService.deleteBudget(req.params.id)
+    res.status(200).send(budget)
 })
 
 

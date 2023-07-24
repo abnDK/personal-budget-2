@@ -39,7 +39,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var budget_1 = require("../models/1.3/budget");
-var transaction_1 = require("../models/1.3/transaction");
 var pool = require('../configs/queries');
 var BudgetService = /** @class */ (function () {
     function BudgetService() {
@@ -54,7 +53,7 @@ var BudgetService = /** @class */ (function () {
                     ];
                     case 1:
                         data = _a.sent();
-                        budgets = data.rows.map(function (res) { return new budget_1.Budget(res.name, res.start_date, res.end_date, parseInt(res.id)); });
+                        budgets = data.rows.map(function (res) { return new budget_1.Budget(res.name, res.date_start, res.date_end, parseInt(res.id)); });
                         return [2 /*return*/, budgets];
                 }
             });
@@ -70,7 +69,7 @@ var BudgetService = /** @class */ (function () {
                     ];
                     case 1:
                         data = _a.sent();
-                        budget_in_array = data.rows.map(function (res) { return new budget_1.Budget(res.name, res.start_date, res.end_date, parseInt(res.id)); });
+                        budget_in_array = data.rows.map(function (res) { return new budget_1.Budget(res.name, res.date_start, res.date_end, parseInt(res.id)); });
                         budget = budget_in_array[0];
                         // if budget unknown / id not known
                         if (budget == undefined) {
@@ -81,57 +80,56 @@ var BudgetService = /** @class */ (function () {
             });
         });
     };
-    BudgetService.createTransaction = function (name, amount, date, category_id) {
+    BudgetService.createBudget = function (name, date_start, date_end) {
         return __awaiter(this, void 0, void 0, function () {
-            var category, data_trans, transaction;
+            var data_budget, budget;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, pool.query('INSERT INTO transaction (name, amount, date, category_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, date, category_id])];
+                    case 0: return [4 /*yield*/, pool.query('INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *', [name, date_start, date_end])];
                     case 1:
-                        data_trans = _a.sent();
-                        // verify only 1 transaction has been created and returned from db
-                        if (!data_trans.rows.length) {
-                            throw new Error('no new transaction has been created, for some reason?');
+                        data_budget = _a.sent();
+                        // verify only 1 budget has been created and returned from db
+                        if (!data_budget.rows.length) {
+                            throw new Error('no new budget has been created, for some reason?'); // WILL THIS ERROR BE THROWN WHEN QUERING DB?
                         }
-                        else if (data_trans.rows.length > 1) {
-                            console.log(data_trans.rows);
-                            throw new Error('more than one transaction has been created in db. Something is not right...');
+                        else if (data_budget.rows.length > 1) {
+                            console.log(data_budget.rows);
+                            throw new Error('more than one budget has been created in db. Something is not right...');
                         }
-                        transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date);
-                        transaction.category = category;
+                        budget = new budget_1.Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id);
                         // return transaction object
-                        return [2 /*return*/, transaction];
+                        return [2 /*return*/, budget];
                 }
             });
         });
     };
-    BudgetService.deleteTransaction = function (delete_id) {
+    BudgetService.deleteBudget = function (delete_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var id, to_be_deleted_transaction_sql_object, deleted_transaction_sql_object, deleted_transaction;
+            var id, to_be_deleted_budget_sql_object, deleted_budget_sql_object, deleted_budget;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         id = parseInt(delete_id);
-                        return [4 /*yield*/, pool.query('SELECT * FROM transaction WHERE id = $1', [id])
+                        return [4 /*yield*/, pool.query('SELECT * FROM budget WHERE id = $1', [id])
                             // verify id only equals 1 transaction 
                         ];
                     case 1:
-                        to_be_deleted_transaction_sql_object = _a.sent();
+                        to_be_deleted_budget_sql_object = _a.sent();
                         // verify id only equals 1 transaction 
-                        if (to_be_deleted_transaction_sql_object['rows'].length === 0) {
+                        if (to_be_deleted_budget_sql_object['rows'].length === 0) {
                             throw new Error('id unknown');
                         }
-                        if (to_be_deleted_transaction_sql_object['rows'].length > 1) {
+                        if (to_be_deleted_budget_sql_object['rows'].length > 1) {
                             throw new Error('Multiple rows to be deleted - id should be unique');
                         }
-                        return [4 /*yield*/, pool.query('DELETE FROM transaction WHERE id = $1 RETURNING *', [id])
+                        return [4 /*yield*/, pool.query('DELETE FROM budget WHERE id = $1 RETURNING *', [id])
                             // create Transaction object
                         ];
                     case 2:
-                        deleted_transaction_sql_object = _a.sent();
-                        deleted_transaction = new transaction_1.Transaction(deleted_transaction_sql_object['rows'][0].id, deleted_transaction_sql_object['rows'][0].name, deleted_transaction_sql_object['rows'][0].amount, deleted_transaction_sql_object['rows'][0].date);
+                        deleted_budget_sql_object = _a.sent();
+                        deleted_budget = new budget_1.Budget(deleted_budget_sql_object['rows'][0].name, deleted_budget_sql_object['rows'][0].date_start, deleted_budget_sql_object['rows'][0].date_end, deleted_budget_sql_object['rows'][0].id);
                         // send response
-                        return [2 /*return*/, deleted_transaction];
+                        return [2 /*return*/, deleted_budget];
                 }
             });
         });
