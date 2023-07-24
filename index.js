@@ -44,6 +44,10 @@ app.get('/', (req, res) => {
     )
 })
 
+app.get('/add_transaction', (req, res) => {
+    res.render('<h1>ADD TRANSACTIONS FORM</h1>')
+}) // WRONG BUT SEE REPORT.JS under SERVICES
+
 
 app.listen(port, ()=>{
     console.log(`Personal budget 2, ready for implementation on port ${port}`)
