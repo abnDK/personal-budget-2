@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Category = void 0;
 var Category = /** @class */ (function () {
-    function Category(name, amount, parent_id, budget_id) {
+    function Category(name, amount, id, parent_id, budget_id) {
         this.name = name;
         this.amount = amount;
+        this.id = id;
         this.parent_id = parent_id;
         this.budget_id = budget_id;
     }
