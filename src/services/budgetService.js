@@ -1,6 +1,4 @@
 "use strict";
-// REWRITE FROM TRANSACTION TO CATEGORY
-// DONE?
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -97,7 +95,7 @@ var BudgetService = /** @class */ (function () {
                             throw new Error('more than one budget has been created in db. Something is not right...');
                         }
                         budget = new budget_1.Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id);
-                        // return transaction object
+                        // return budget object
                         return [2 /*return*/, budget];
                 }
             });
@@ -111,11 +109,11 @@ var BudgetService = /** @class */ (function () {
                     case 0:
                         id = parseInt(delete_id);
                         return [4 /*yield*/, pool.query('SELECT * FROM budget WHERE id = $1', [id])
-                            // verify id only equals 1 transaction 
+                            // verify id only equals 1 budget 
                         ];
                     case 1:
                         to_be_deleted_budget_sql_object = _a.sent();
-                        // verify id only equals 1 transaction 
+                        // verify id only equals 1 budget 
                         if (to_be_deleted_budget_sql_object['rows'].length === 0) {
                             throw new Error('id unknown');
                         }
@@ -123,7 +121,7 @@ var BudgetService = /** @class */ (function () {
                             throw new Error('Multiple rows to be deleted - id should be unique');
                         }
                         return [4 /*yield*/, pool.query('DELETE FROM budget WHERE id = $1 RETURNING *', [id])
-                            // create Transaction object
+                            // create budget object
                         ];
                     case 2:
                         deleted_budget_sql_object = _a.sent();

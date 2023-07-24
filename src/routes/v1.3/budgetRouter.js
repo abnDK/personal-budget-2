@@ -1,9 +1,3 @@
-// REWRITE FROM TRANSACTION TO BUDGET
-// DONE?
-
-
-// routes for envelope table
-//const express = require('express')
 const router = require('@root/async-router').Router();
 const BudgetService = require('../../services/budgetService')
 

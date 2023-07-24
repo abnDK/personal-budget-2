@@ -1,8 +1,4 @@
-// REWRITE FROM TRANSACTION TO CATEGORY
-// DONE?
-
 import { Budget } from "../models/1.3/budget";
-import { Transaction } from "../models/1.3/transaction";
 const pool = require('../configs/queries')
 
 class BudgetService {
@@ -50,7 +46,7 @@ class BudgetService {
         // init budget object
         let budget = new Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id)
 
-        // return transaction object
+        // return budget object
         return budget
 
 
@@ -70,7 +66,7 @@ class BudgetService {
         const to_be_deleted_budget_sql_object : Object = await pool.query('SELECT * FROM budget WHERE id = $1', [id])
 
         
-        // verify id only equals 1 transaction 
+        // verify id only equals 1 budget 
         if (to_be_deleted_budget_sql_object['rows'].length === 0) {
             throw new Error('id unknown')
         }
@@ -78,10 +74,10 @@ class BudgetService {
             throw new Error('Multiple rows to be deleted - id should be unique')
         }
 
-        // delete transaction in db
+        // delete budget in db
         const deleted_budget_sql_object : Object = await pool.query('DELETE FROM budget WHERE id = $1 RETURNING *', [id])
 
-        // create Transaction object
+        // create budget object
         const deleted_budget : Budget = new Budget(
             deleted_budget_sql_object['rows'][0].name,
             deleted_budget_sql_object['rows'][0].date_start,
