@@ -1,4 +1,15 @@
 #!/bin/bash
+if [ "$1" = "reset_database_insert_test_data" ]
+then
+  echo "Resetting database while preserving your precious data.."
+  ./db_reset/reset_tables.sh data
+  echo "Inserting some testdata..."
+  ./db_test/insert_test_data.sh
+  exit 0
+fi
+
+
+# MENU OPTIONS
 echo "Welcome to pb2 utilities menu"
 echo
 echo "Following commands are available:"

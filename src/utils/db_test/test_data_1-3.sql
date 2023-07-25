@@ -1,5 +1,8 @@
+-- insert 3 budgets
+
 INSERT INTO budget ("name","date_start", "date_end")
 VALUES
+('Test_budget', '2000-01-01', '2100-12-31'),
 ('Mad', '2023-01-01', '2023-12-31'),
 ('Hus', '2023-01-01', '2023-12-31'),
 ('Transport', '2023-01-01', '2023-12-31');
@@ -7,43 +10,37 @@ VALUES
 -- insert 3 envelopes
 
 INSERT INTO category ("name", "amount", "budget_id") VALUES
-('Fakta', 300, 1),
-('Bilka', 100, 1),
-('Vand', 200, 2),
-('Varme', 500, 2),
-('Forsikring', 900, 2),
-('Rejsekort', 300, 3),
-('Benzin', 350, 3),
-('Færge', 400, 3);
+('test_a', 0, 1),
+('test_b', 0, 1),
+('Fakta', 300, 2),
+('Bilka', 100, 2),
+('Vand', 200, 3),
+('Varme', 500, 3),
+('Forsikring', 900, 3),
+('Rejsekort', 300, 4),
+('Benzin', 350, 4),
+('Færge', 400, 4);
 
--- insert 10 expenses with envelope 1
+-- insert transactions with category "test_a"
 
-INSERT INTO transaction ("name", "amount", "date", "category_id", "recipient", "comment") 
+INSERT INTO transaction ("name", "amount", "date", "category_id") 
 VALUES 
-('test_expense_1', 1, '01-01-2000', 1, 'banken', 'gebyrer'),
-('test_expense_2', 2, '01-02-2000', 1, 'tankstation', 'cola'),
-('test_expense_3', 3, '01-03-2000', 1, 'bibliotek', 'bøde'),
-('test_expense_4', 4, '01-04-2000', 1, 'supermarked', 'mælk'),
-('test_expense_5', 5, '01-05-2000', 1, 'bageren', 'brød'),
-('test_expense_6', 6, '01-06-2000', 1, 'cykelhandler', 'reparation'),
-('test_expense_7', 7,'01-07-2000', 1, 'H&M', 'Nyt tøj'),
-('test_expense_8', 8, '01-08-2000', 1, 'DSB', 'Pendlerkort'),
-('test_expense_9', 9, '01-09-2000', 1, 'Apotek', 'Piller'),
-('test_expense_10', 10, '01-10-2000', 1, 'BR', 'Legetøj');
+('test_trans_month1_a_1', 1, '2000-01-01', 1),
+('test_trans_month1_a_2', 1, '2000-01-31', 1),
+('test_trans_month2_a_1', 1, '2000-02-01', 1),
+('test_trans_month2_a_2', 1, '2000-02-28', 1);
 
-
-
-
--- insert 10 expenses with envelope 2
-INSERT INTO transaction ("name", "amount", "date", "category_id", "recipient", "comment") 
+-- insert transactions with cateogry "test_b"
+INSERT INTO transaction ("name", "amount", "date", "category_id") 
 VALUES 
-('test_expense_11', 11, '01-11-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_12', 12, '01-12-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_13', 13, '01-13-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_14', 14, '01-14-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_15', 15, '01-15-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_16', 16, '01-16-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_17', 17, '01-17-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_18', 18, '01-18-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_19', 19, '01-19-2000', 2, 'test_modtager', 'test_comment'),
-('test_expense_20', 20, '01-20-2000', 2, 'test_modtager', 'test_comment');
+('test_trans_month2_b_1', 1, '2000-02-01', 2),
+('test_trans_month3_b_1', 1, '2000-03-01', 2);
+
+-- insert transactions without category
+INSERT INTO transaction ("name", "amount", "date")
+VALUES
+('test_trans_month1_none_1', 1, '2000-01-15'),
+('test_trans_month2_none_1', 1, '2000-02-14');
+
+
+
