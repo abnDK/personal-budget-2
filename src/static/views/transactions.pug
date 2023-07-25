@@ -1,0 +1,26 @@
+html 
+  head
+    title='Transactions'
+  body
+    link(rel="stylesheet" href="/css/transactions.css")
+    include header.pug
+    
+    div.transactions_title Transactions
+    ul
+        each trans in transactions
+            li
+                div.transaction    
+                    p.trans_name= trans.name
+                    p -
+                    p.trans_amount Kr: #{trans.amount}
+                    p -
+                
+                    if trans.category_id 
+                        p.categorized Category id: #{trans.category_id}
+                    else
+                        p.uncategorized Transaction has yet to be categorized
+                    br
+                    p.trans_date= trans.date
+
+
+    include footer.pug

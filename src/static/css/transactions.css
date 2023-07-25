@@ -1,0 +1,55 @@
+
+
+* {
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    
+
+}
+
+ul {
+    list-style-type: none; /* Remove bullets */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margins */
+}
+
+.transactions_title {
+    font-size: 2em;
+}
+
+.transaction {
+    white-space: nowrap;
+}
+
+.transaction * {
+    display: inline-block;
+    margin-right: 10px;
+    font-size: 1em;
+    margin-bottom: 0px;
+
+}
+
+.trans_name {
+
+
+}
+
+.trans_amount {
+
+}
+
+.trans_category {
+
+}
+
+.trans_date {
+    font-size: .5em;
+    margin-top: 5px;
+}
+
+.categorized {
+    color: green;
+}
+
+.uncategorized {
+    color: red;
+}
