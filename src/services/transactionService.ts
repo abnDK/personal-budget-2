@@ -1,47 +1,41 @@
 import { Category } from "../models/1.3/category";
+//import { CategoryService } from "./categoryService";
+const CategoryService = require('./categoryService')
 import { Transaction } from "../models/1.3/transaction";
 import { Mock_data } from "../test/Mock_data";
 const pool = require('../configs/queries')
 
 class TransactionService {
-    // service will get models/dataclasses
-    // service will call db service
-    // service will return array of class type xyz
+    // TEST FUNCTION. 
+    static getTransactionsPromise(): any {
+        // get Transactions in database
+        let data = pool.query('SELECT * FROM transaction ORDER BY id ASC');
+        
 
-    // service will be called by router (API)
-    // i.e. GET request goes through transactionService which in turn calls the databaseService, that gets the data. transactionService then packs the data in i.e. an array and returns to route as response.
+        // build array of transactions
+        data.then(
+            data => {
+                console.log(data)
+                let trans = data.rows.map(res => new Transaction(parseInt(res.id), res.name, res.amount, res.date))
+                console.log(trans)
+                return trans
+            },
+            error => {
+                return error;
+                
+            }
+        )
+        
+   
+    }
 
-    
-
-
-    /**
-     *  FIGURE OUT HOW TO PORT THIS INTO A (REQ, RES) KINDA FUNCTION FOR USE WITH ROUTER.
-     */
-    static async getTransactions(startDate?: Date, endDate?: Date, category?: Category): Promise<Array<Transaction>> {
+    static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
         let data = await pool.query('SELECT * FROM transaction ORDER BY id ASC')
         
         // build array of transactions
-        let transactions = data.rows.map(res => new Transaction(parseInt(res.id), res.name, res.amount, res.date))
+        let transactions = data.rows.map(res => new Transaction(parseInt(res.id), res.name, res.amount, res.date, res.category_id))
 
-        // filter transactions
-        if (startDate) {
-            transactions = transactions.filter(trans => trans.date >= startDate)
-            
-            if (endDate) {
-                transactions = transactions.filter(trans => trans.date <= endDate)
-                if (startDate > endDate) {throw new RangeError('endDate cannot be before startDate')}
-            }
-
-        }
-
-        if (category) {
-
-            transactions = transactions.filter(trans => trans.category !== undefined)
-            
-            transactions = transactions.filter(trans => trans.category.name == category.name)
-        }
-        
         return transactions;
     }
 
@@ -63,7 +57,7 @@ class TransactionService {
     }
 
     static async createTransaction(name: string, amount: number, date: Date, category_id?: number): Promise<Transaction> {
-        
+
         let category;
 
         // if no category_id; set to undefined
@@ -71,15 +65,9 @@ class TransactionService {
             category_id = undefined
         } else {
             // if category_id; check validity
-            // TODO: Use categoryService when API is done
-            let data_category = await pool.query('SELECT * FROM category WHERE id = $1', [category_id])
-            if (!data_category.rows.length) {
-                throw new Error('category_id unknown - please provide valid id instead')
-            } else if (data_category.rows.length > 1) {
-                throw new Error('More than one category with same id should not be possible...')
-            } else {
-                category = new Category(data_category.rows[0].name, data_category.rows[0].amount)
-            }
+            category = await CategoryService.getCategoryById(category_id)
+
+            
         }
 
         // create transaction
@@ -94,8 +82,7 @@ class TransactionService {
         }
 
         // init transaction object
-        let transaction = new Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date)
-        transaction.category = category;
+        let transaction = new Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id)
 
         // return transaction object
         return transaction

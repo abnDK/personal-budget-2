@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Transaction = void 0;
 var Transaction = /** @class */ (function () {
-    function Transaction(id, name, amount, date) {
+    function Transaction(id, name, amount, date, category_id) {
         this.id = id;
         this.name = name;
         this.amount = amount;
         this.date = date;
+        this.category_id = category_id;
     }
     Object.defineProperty(Transaction.prototype, Symbol.toStringTag, {
         // for assertions of instances type.

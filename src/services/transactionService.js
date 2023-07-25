@@ -36,21 +36,28 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var category_1 = require("../models/1.3/category");
+//import { CategoryService } from "./categoryService";
+var CategoryService = require('./categoryService');
 var transaction_1 = require("../models/1.3/transaction");
 var pool = require('../configs/queries');
 var TransactionService = /** @class */ (function () {
     function TransactionService() {
     }
-    // service will get models/dataclasses
-    // service will call db service
-    // service will return array of class type xyz
-    // service will be called by router (API)
-    // i.e. GET request goes through transactionService which in turn calls the databaseService, that gets the data. transactionService then packs the data in i.e. an array and returns to route as response.
-    /**
-     *  FIGURE OUT HOW TO PORT THIS INTO A (REQ, RES) KINDA FUNCTION FOR USE WITH ROUTER.
-     */
-    TransactionService.getTransactions = function (startDate, endDate, category) {
+    // TEST FUNCTION. 
+    TransactionService.getTransactionsPromise = function () {
+        // get Transactions in database
+        var data = pool.query('SELECT * FROM transaction ORDER BY id ASC');
+        // build array of transactions
+        data.then(function (data) {
+            console.log(data);
+            var trans = data.rows.map(function (res) { return new transaction_1.Transaction(parseInt(res.id), res.name, res.amount, res.date); });
+            console.log(trans);
+            return trans;
+        }, function (error) {
+            return error;
+        });
+    };
+    TransactionService.getTransactions = function () {
         return __awaiter(this, void 0, void 0, function () {
             var data, transactions;
             return __generator(this, function (_a) {
@@ -60,21 +67,7 @@ var TransactionService = /** @class */ (function () {
                     ];
                     case 1:
                         data = _a.sent();
-                        transactions = data.rows.map(function (res) { return new transaction_1.Transaction(parseInt(res.id), res.name, res.amount, res.date); });
-                        // filter transactions
-                        if (startDate) {
-                            transactions = transactions.filter(function (trans) { return trans.date >= startDate; });
-                            if (endDate) {
-                                transactions = transactions.filter(function (trans) { return trans.date <= endDate; });
-                                if (startDate > endDate) {
-                                    throw new RangeError('endDate cannot be before startDate');
-                                }
-                            }
-                        }
-                        if (category) {
-                            transactions = transactions.filter(function (trans) { return trans.category !== undefined; });
-                            transactions = transactions.filter(function (trans) { return trans.category.name == category.name; });
-                        }
+                        transactions = data.rows.map(function (res) { return new transaction_1.Transaction(parseInt(res.id), res.name, res.amount, res.date, res.category_id); });
                         return [2 /*return*/, transactions];
                 }
             });
@@ -103,25 +96,21 @@ var TransactionService = /** @class */ (function () {
     };
     TransactionService.createTransaction = function (name, amount, date, category_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var category, data_category, data_trans, transaction;
+            var category, data_trans, transaction;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        console.log(name);
+                        console.log(amount);
+                        console.log(date);
+                        console.log(category_id);
                         if (!!category_id) return [3 /*break*/, 1];
                         category_id = undefined;
                         return [3 /*break*/, 3];
-                    case 1: return [4 /*yield*/, pool.query('SELECT * FROM category WHERE id = $1', [category_id])];
+                    case 1: return [4 /*yield*/, CategoryService.getCategoryById(category_id)];
                     case 2:
-                        data_category = _a.sent();
-                        if (!data_category.rows.length) {
-                            throw new Error('category_id unknown - please provide valid id instead');
-                        }
-                        else if (data_category.rows.length > 1) {
-                            throw new Error('More than one category with same id should not be possible...');
-                        }
-                        else {
-                            category = new category_1.Category(data_category.rows[0].name, data_category.rows[0].amount);
-                        }
+                        // if category_id; check validity
+                        category = _a.sent();
                         _a.label = 3;
                     case 3: return [4 /*yield*/, pool.query('INSERT INTO transaction (name, amount, date, category_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, date, category_id])];
                     case 4:
@@ -134,8 +123,7 @@ var TransactionService = /** @class */ (function () {
                             console.log(data_trans.rows);
                             throw new Error('more than one transaction has been created in db. Something is not right...');
                         }
-                        transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date);
-                        transaction.category = category;
+                        transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id);
                         // return transaction object
                         return [2 /*return*/, transaction];
                 }

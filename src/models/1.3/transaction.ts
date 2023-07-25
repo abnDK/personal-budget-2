@@ -5,13 +5,14 @@ export class Transaction {
     name: string;
     amount: number;
     date: Date;
-    category: Category;
+    category_id: number;
 
-    constructor(id, name, amount, date) {
+    constructor(id, name, amount, date, category_id?) {
         this.id = id;
         this.name = name;
         this.amount = amount;
         this.date = date;
+        this.category_id = category_id;
     }
 
     // for assertions of instances type.

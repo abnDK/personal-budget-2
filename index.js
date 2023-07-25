@@ -21,7 +21,7 @@ require('dotenv').config();
 console.log(`Starting server with username ${process.env.USERNAME}`)
 
 // setting up views and view engine
-console.log(__dirname, __filename)
+//console.log(__dirname, __filename)
 app.set('views', path.join(__dirname, './src/static/views'))
 app.set('view engine', 'pug')
 app.use(express.static('./src/static'))
@@ -44,9 +44,6 @@ app.get('/', (req, res) => {
     )
 })
 
-app.get('/add_transaction', (req, res) => {
-    res.render('<h1>ADD TRANSACTIONS FORM</h1>')
-}) // WRONG BUT SEE REPORT.JS under SERVICES
 
 
 app.listen(port, ()=>{
