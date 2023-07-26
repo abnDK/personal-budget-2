@@ -4,16 +4,14 @@ html
   body
     link(rel="stylesheet" href="/css/add_transaction.css")
     include header.pug
-    
-    form(action="/transactions", method='POST').add_trans_form
-        label Amount
-        input(name='amount', value='', type='number')
-        label Name
-        input(name='name', value='', type='text')
-        label Date
-        input(name='date', value='', type='date')
-        label Category 
-        input(name='category_id', valie='', type='number')
-        input(value='Submit', type='submit')
+    .content
+        .add-trans
+            .title New Transaction
+            form(action="/transactions", method='POST')
+                input(name='amount', value='', type='number', placeholder='Amount')
+                input(name='name', value='', type='text', placeholder='Description')
+                input(name='date', value='', type='date')
+                input(name='category_id', valie='', type='number', placeholder='Category')
+                input(value='Submit', type='submit').submit
 
     include footer.pug

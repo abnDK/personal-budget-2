@@ -1,4 +1,99 @@
-.add_trans_form * {
+:root {
+    --main-bg-color: yellow;
+    --input-font-size: 20px;
+    --button-color: pink;
+    --button-color-focus: #f77;
+    --button-text-color-focus: white;
+    --title-bg-color: black;
+    --title-text-color: white;
+    --input-focus-border-color: pink;
+
+
+    --box-size: 30px;
+    --box-size-half: 15px;
+    --box-size-double: 60px;
+    --box-size-triple: 90px;
+    --box-size-five: 150px;
+    --box-size-seven: 210px;
+
+
+}   
+
+* {
+    margin: 0px;
+    padding: 0px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.content {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    margin-top: calc(var(--box-size) * 1);
+    margin-bottom: calc(var(--box-size) * 1);
+}
+
+
+.add-trans {
+
+    width: calc(var(--box-size)*7);
+
+    font-size: calc(var(--box-size) * 1);
+
+    border: 1px solid black;
+
+    box-shadow: 15px 15px #333;
+
+
+}
+
+.title {
     display: block;
-    margin-bottom: 5px;
+    background-color: var(--title-bg-color);
+    color: var(--title-text-color);
+    font-size: calc(var(--box-size) * 0.5);
+    line-height: calc(var(--box-size) * 1);
+    text-align: center;
+    font-style: italic;
+    
+}
+
+input {
+    outline: none;
+    width: calc(var(--box-size) * 5);
+    margin-left: calc(var(--box-size) * 1);
+    margin-right: calc(var(--box-size) * 1);
+
+    display: block;
+
+    text-align: center;
+
+    font-size: calc(var(--box-size) * 0.5);
+
+    line-height: calc(var(--box-size) * 1);
+
+    margin-bottom: calc(var(--box-size) * 0.5);
+
+    border: 0px;
+    border-bottom: 2px solid black;
+
+}
+
+input:focus:not(.submit:focus) {
+    border-bottom-color: var(--input-focus-border-color)
+}
+
+input:first-child {
+    margin-top: calc(var(--box-size) * 0.5);}
+
+
+.submit {
+    background-color: var(--button-color);
+    margin-top: calc(var(--box-size) * 0.5);
+    border: 2px solid darkred;
+}
+
+.submit:hover {
+    background-color: var(--button-color-focus);
+    color: var(--button-text-color-focus);
 }
