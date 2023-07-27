@@ -58,7 +58,7 @@
     
 }
 
-input {
+input, select {
     outline: none;
     width: calc(var(--box-size) * 5);
     margin-left: calc(var(--box-size) * 1);
@@ -96,4 +96,26 @@ input:first-child {
 .submit:hover {
     background-color: var(--button-color-focus);
     color: var(--button-text-color-focus);
+}
+
+.prev_added_transaction {
+    width: calc(var(--box-size)*7);
+
+    font-size: calc(var(--box-size) * 0.5);
+
+    border: 1px solid black;
+
+    box-shadow: 15px 15px #333;
+
+    margin-top: calc(var(--box-size)*2);
+
+    text-align: center;
+    justify-items: center;
+
+}
+
+.prev_added_transaction *:not(.title) {
+    display: block;
+    height: var(--box-size);
+    margin-top: calc(var(--box-size)*0.5);
 }

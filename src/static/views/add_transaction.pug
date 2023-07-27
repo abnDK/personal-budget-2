@@ -11,7 +11,18 @@ html
                 input(name='amount', value='', type='number', placeholder='Amount')
                 input(name='name', value='', type='text', placeholder='Description')
                 input(name='date', value='', type='date')
-                input(name='category_id', valie='', type='number', placeholder='Category')
+                select(name='category_id')
+                    each category in categories
+                        option(value=category.id) #{category.id}: #{category.name}
                 input(value='Submit', type='submit').submit
+
+        if prev_added_transaction
+          .prev_added_transaction
+            .title Latest added
+            .amount Kr: #{prev_added_transaction.amount} 
+            .name=prev_added_transaction.name
+            .category Cat: #{prev_added_transaction.category_id}
+            //.date=prev_added_transaction.date 
+
 
     include footer.pug

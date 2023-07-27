@@ -2,6 +2,7 @@
 //const express = require('express')
 const router = require('@root/async-router').Router();
 const TransactionService = require('../../services/transactionService')
+const CategoryService = require('../../services/categoryService')
 
 // VIEWS
 router.get('/show', async (req, res) => {
@@ -12,7 +13,10 @@ router.get('/show', async (req, res) => {
 })
 
 router.get('/add', async (req, res) => {
-    res.render('add_transaction')
+    const categories = await CategoryService.getCategories();
+    res.render('add_transaction', {
+        "categories": categories
+    })
 })
 
 // CRUD
@@ -29,8 +33,16 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     const { name, amount, date, category_id } = req.body;
-    await TransactionService.createTransaction(name, amount, date, category_id);
-    res.status(200).redirect('/transactions/add')
+    const transaction = await TransactionService.createTransaction(name, amount, date, category_id);
+    const categories = await CategoryService.getCategories();
+    if (res.statusCode === 200) {
+        res.render('add_transaction', {
+            "categories": categories,
+            "prev_added_transaction": transaction
+        })
+    } else {
+        res.status(res.statuseCode)
+    }
 })
 
 
