@@ -1,5 +1,8 @@
+import { toASCII } from "punycode";
 import { Budget } from "../models/1.3/budget";
 const pool = require('../configs/queries')
+
+"use strict"
 
 class BudgetService {
     
@@ -8,18 +11,22 @@ class BudgetService {
         let data = await pool.query('SELECT * FROM budget ORDER BY id ASC')
         
         // make budgets array
-        let budgets = data.rows.map(res => new Budget(res.name, res.date_start, res.date_end, parseInt(res.id)))
+        let budgets = data.rows.map(function(res:any) {
+            return new Budget(res.name, res.date_start, res.date_end, parseInt(res.id))
+        })
 
         return budgets;
     }
 
-    static async getBudgetById(id): Promise<Budget> {
+    static async getBudgetById(id: number): Promise<Budget> {
         // get Budget in database
         let data = await pool.query('SELECT * FROM budget WHERE id = $1', [id])
 
-
         // init budget as Budget object
-        let budget_in_array = data.rows.map(res => new Budget(res.name, res.date_start, res.date_end, parseInt(res.id)))
+        let budget_in_array = data.rows.map(function(res:any) {
+          return new Budget(res.name, res.date_start, res.date_end, parseInt(res.id)) 
+        })
+        
         let budget = budget_in_array[0]
 
         // if budget unknown / id not known
@@ -52,7 +59,7 @@ class BudgetService {
 
     }
 
-    static async deleteBudget(delete_id): Promise<Budget> {
+    static async deleteBudget(delete_id: string): Promise<Budget> {
         // TODO
         // - What to do if category fkeys to to_be_deleted budget?
         // --- deleted all

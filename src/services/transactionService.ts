@@ -32,7 +32,6 @@ class TransactionService {
     static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
         let data = await pool.query('SELECT * FROM transaction ORDER BY id ASC')
-        
         // build array of transactions
         let transactions = data.rows.map(res => new Transaction(parseInt(res.id), res.name, res.amount, res.date, res.category_id))
 
@@ -90,7 +89,7 @@ class TransactionService {
 
     }
 
-    static async deleteTransaction(delete_id): Promise<Transaction> {
+    static async deleteTransaction(delete_id: string): Promise<Transaction> {
         // parse id
         const id : number = parseInt(delete_id);
 
