@@ -5,9 +5,9 @@ export class Transaction {
     name: string;
     amount: number;
     date: Date;
-    category_id: number;
+    category_id: number | undefined;
 
-    constructor(id, name, amount, date, category_id?) {
+    constructor(id: number, name: string, amount: number, date: Date, category_id?: number | undefined) {
         this.id = id;
         this.name = name;
         this.amount = amount;

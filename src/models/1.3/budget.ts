@@ -1,5 +1,5 @@
 export class Budget {
-    id: number;
+    id: number | undefined;
     name: string;
     date_start: Date;
     date_end: Date;

@@ -1,9 +1,9 @@
 export class Category {
     name: string;
     amount: number;
-    id: number;
-    parent_id: any;
-    budget_id: any;
+    id: number | undefined;
+    parent_id: number | undefined;
+    budget_id: any | undefined;
 
 
 
