@@ -1,0 +1,159 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: #eaeaea;
+}
+
+header {
+    background-color: #4E8279;
+    font-size: 18px;
+    color: #333
+}
+
+.content {
+    padding:100px;
+
+}
+
+.transactions {
+    background-color: white;
+    border-radius: 10px;
+    width: 1200px;
+    height: 800px;
+    padding: 20px;
+
+}
+
+
+
+.header {
+    border-bottom: 1px solid black;
+}
+
+.header * {
+    display: inline-block;
+}
+
+.header .title {
+    margin: 0px 0px 0px 20px;
+    width: 746px;
+    font-size: 36px;
+    line-height: 0px;;
+
+}
+
+.header .buttons * {
+    border-radius: 2px;
+    border: 1px darkgrey solid;
+    background-color: #eaeaea;
+    padding: 3px;
+    width: 95px;
+    text-align: center;
+
+}
+
+#add-trans-button {
+    background-color: #4E8279;
+    border: 1px solid #414279;
+    width: 190px;
+
+}
+
+#add-trans-button:hover {
+    cursor: pointer;
+}
+
+.sort-by-button {
+
+}
+
+.asc-dsc-button {
+
+}
+
+.row-header, .row {
+    display: block;
+    padding: 10px 0px 10px 0px;
+}
+
+.row-header {
+    background-color: #EAEAEA;
+}
+
+.row:nth-child(even) {
+    background-color: white;
+}
+
+.row {
+    background-color: #F7F7F7;
+    padding: 5px 0px 5px 0px;
+
+}
+
+.row:hover {
+    background-color: #CFCFCF;
+}
+
+.row-header *, .row * {
+    display: inline-block; 
+    text-align: center;
+    height: 24px;
+
+}
+
+.date {
+    width: 150px;
+}
+
+.amount {
+    width: 200px;
+}
+
+.category {
+    width: 100px;
+}
+
+.description {
+    width: 550px;
+}
+
+.delete-button {
+    background-color: rgb(237, 110, 90);
+    color: white;
+    border: 1px solid darkgrey;
+    border-radius: 3px;
+    margin-left: 20px;
+    
+}
+
+.delete-button:hover {
+    cursor: pointer;
+
+}
+
+.save-button {
+    margin-left: 20px;
+    background-color: rgb(151, 209, 146);
+    color: rgba(255, 255, 255, 0.944);
+    border: 1px solid darkgrey;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+
+.save-button:hover {
+    cursor: pointer;
+
+}
+
+
+#editable {
+    background-color: rgba(82, 204, 220, 0.513);
+}
+
+#editable:hover {
+    background-color: rgba(70, 169, 182, 0.513);
+    cursor: pointer;
+}
