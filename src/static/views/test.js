@@ -1,17 +1,17 @@
 
 console.log('script loaded')
 
-
 const createRowElement = function() {
     let newRow = document.createElement('div');
     newRow.className = 'row';
+
     
     let newDate = document.createElement('div');
-    newDate.className = 'date';
+    newDate.name = 'date';
     let date = new Date();
     let month = date.getMonth().toString().length == 1 ? "0" + date.getMonth() : date.getMonth();
     let day = date.getDay().toString().length == 1 ? "0" + date.getDay() : date.getDay();
-    newDate.innerText = date.getFullYear() + "-" + month + "-" + day;
+    newDate.value = date.getFullYear() + "-" + month + "-" + day;
     newRow.appendChild(newDate);
 
     let newAmount = document.createElement('div');
@@ -28,12 +28,57 @@ const createRowElement = function() {
     newCategory.className = 'category';
     newCategory.innerHTML = 'No cat yet';
     newRow.appendChild(newCategory);
+}
+const createRowFormElement = function() {
+    let newRow = document.createElement('form');
+    newRow.className = 'row';
+
+    
+    let newDate = document.createElement('input');
+    newDate.name = 'date';
+    newDate.type = 'date';
+    newDate.className = 'date';
+    let date = new Date();
+    let month = date.getMonth().toString().length == 1 ? "0" + date.getMonth() : date.getMonth();
+    let day = date.getDay().toString().length == 1 ? "0" + date.getDay() : date.getDay();
+    newDate.placeholder = date.getFullYear() + "-" + month + "-" + day;
+    newRow.appendChild(newDate);
+
+    let newAmount = document.createElement('input');
+    newAmount.name = 'amount';
+    newAmount.type = 'number';
+    newAmount.className = 'amount';
+    newAmount.placeholder = "0";
+    newRow.appendChild(newAmount);
+
+    let newDescription = document.createElement('input');
+    newDescription.name = 'description'
+    newDescription.type = 'text';
+    newDescription.className = 'description';
+    newDescription.placeholder = 'Please add some description';
+    newRow.appendChild(newDescription);
+
+    let newCategorySelect = document.createElement('select');
+    newCategorySelect.name = 'category';
+    
+    newCategorySelect.className = 'category';
+    let newCategory1 = document.createElement('option')
+    newCategory1.value = 'No cat yet';
+    newCategory1.innerText = 'No cat yet';
+    newCategorySelect.appendChild(newCategory1);
+    let newCategory2 = document.createElement('option')
+    newCategory2.value = 'bolig';
+    newCategory2.innerText = 'Bolig';
+    newCategorySelect.appendChild(newCategory2);
+    newRow.appendChild(newCategorySelect);
+
+    // ADD SUBMIT etc...
 
     return newRow;
 }
 
 const addRowHandler = function(event) {
-    let newRow = createRowElement();
+    let newRow = createRowFormElement();
     newRow.addEventListener('click', editRow);
 
     let rows = document.getElementsByClassName('rows')[0];
