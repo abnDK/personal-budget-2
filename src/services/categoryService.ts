@@ -20,10 +20,9 @@ class CategoryService {
         return categories;
     }
 
-    static async getCategoryById(id): Promise<Category> {
+    static async getCategoryById(id: number): Promise<Category> {
         // get Budget in database
         let data = await pool.query('SELECT * FROM category WHERE id = $1', [id])
-
 
         // init budget as Budget object
         let category_in_array = data.rows.map(res => new Category(

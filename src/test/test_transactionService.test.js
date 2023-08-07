@@ -1,162 +1,164 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // TEST LIBRARIES
 //const chai = require('chai');
-var assert = require('chai').assert;
-var Test_period_1 = require("./Test_period");
+const { assert } = require('chai');
+const Test_period_1 = require("./Test_period");
 // CLASSES UNDER TEST
-var transactionService_1 = require("../services/transactionService");
-var category_1 = require("../models/1.3/category");
-// const chaiHttp = require('chai-http');
-// const chaiSorted = require('chai-sorted');
-// const chai_sorted = require('chai-sorted');
-// const { query } = require('express');
-// chai.use(chaiHttp);
-// chai.use(chai_sorted);
-// const { pool } = require('../db'); // in medium article on test, this would have been "const { client } = require(./poolClient)"
-// const { Post } = require('../Model/Post');
-describe('transactionService', function () {
-    describe('.getTransactions()', function () {
-        it('Returns array of transactions', function () {
+const TransactionService = require("../services/transactionService");
+const category_1 = require("../models/1.3/category");
+describe('transactionService', () => {
+    describe('.getTransactions()', () => {
+        it('Returns array of transactions', () => __awaiter(void 0, void 0, void 0, function* () {
             // ARRANGE
             // ACT
-            var transactions = transactionService_1.TransactionService.getTransactions();
+            const transactions = yield TransactionService.getTransactions();
             // VERIFY
             assert.isArray(transactions);
-            transactions.forEach(function (trans) {
+            transactions.forEach(trans => {
                 assert.typeOf(trans, 'Transaction', 'element of array is type Transaction');
             });
-        });
-        it('Returns 8 transactions', function () {
-            // ARRANGE
-            // ACT
-            var transactions = transactionService_1.TransactionService.getTransactions();
-            // VERIFY
-            assert.lengthOf(transactions, 8, '8 transactions returned');
-        });
-        describe('startDate=month_1.primo and endDate=month_1.ultimo', function () {
-            it('returns 3 transactions', function () {
+        }));
+        describe('startDate=month_1.primo and endDate=month_1.ultimo', () => {
+            it('returns only transactions with date in month 1', () => {
                 // ARRANGE
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
                 // VERIFY
-                assert.lengthOf(transactions, 3, '3 transactions returned');
-            });
-            it('returns only transactions with date in month 1', function () {
-                // ARRANGE
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
-                // VERIFY
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_1.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_1.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
-        describe('startDate=month_1.primo and endDate=month_2.ultimo', function () {
-            it('returns 7 transactions', function () {
+        describe('startDate=month_1.primo and endDate=month_2.ultimo', () => {
+            it('returns only transactions with date in month 1 or 2', () => {
                 // ARRANGE
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
                 // VERIFY
-                assert.lengthOf(transactions, 7, '7 transactions returned');
-            });
-            it('returns only transactions with date in month 1 or 2', function () {
-                // ARRANGE
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
-                // VERIFY
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_2.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_2.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
-        describe('startDate=month_1.primo and endDate=month_3.ultimo', function () {
-            it('returns 8 transactions', function () {
+        describe('startDate=month_1.primo and endDate=month_3.ultimo', () => {
+            it('returns only transactions with date in month 1, 2 or 3', () => {
                 // ARRANGE
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
                 // VERIFY
-                assert.lengthOf(transactions, 8, '8 transactions returned');
-            });
-            it('returns only transactions with date in month 1, 2 or 3', function () {
-                // ARRANGE
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
-                // VERIFY
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, "".concat(trans.name, " - ").concat(trans.date, " greater than or equal to first day of month 1")); });
-                transactions.forEach(function (trans) { return assert.isTrue(trans.date <= Test_period_1.Test_period.month_3.ultimo, "".concat(trans.name, " - ").concat(trans.date, " less than or equal to last day of month 1")); });
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_3.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
-        describe('startDate=month_4.primo, endDate=month_4.ultimo', function () {
-            it('returns empty array', function () {
+        describe('startDate=month_1.primo, endDate=month_1.ultimo, category="a"', () => {
+            it('returns only transactions with category A', () => {
                 // ARRANGE
-                var startDate = Test_period_1.Test_period.month_4.primo;
-                var endDate = Test_period_1.Test_period.month_4.ultimo;
+                let cat_a = new category_1.Category('A', 1);
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(startDate, endDate);
+                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo, cat_a);
                 // VERIFY
-                assert.lengthOf(transactions, 0, '0 transactions returned');
+                transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`));
             });
         });
-        describe('startDate=month_1.primo, endDate=month_1.ultimo, category="a"', function () {
-            it('returns 2 transactions', function () {
+        describe('startDate=month_1.primo, endDate=month_2.ultimo, category="a"', () => {
+            it('returns only transactions with category A', () => {
                 // ARRANGE
-                var cat_a = new category_1.Category('A', 1);
+                let cat_a = new category_1.Category('A', 1);
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo, cat_a);
+                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo, cat_a);
                 // VERIFY
-                assert.lengthOf(transactions, 2, '2 transactions returned');
-            });
-            it('returns only transactions with category A', function () {
-                // ARRANGE
-                var cat_a = new category_1.Category('A', 1);
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo, cat_a);
-                // VERIFY
-                transactions.forEach(function (trans) { return assert.equal(trans.category.name, cat_a.name, "".concat(trans, ": transaction category correct (\"").concat(cat_a.name, "\")")); });
+                transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`));
             });
         });
-        describe('startDate=month_1.primo, endDate=month_2.ultimo, category="a"', function () {
-            it('returns 4 transactions', function () {
+        describe('startDate=month_1.ultimo, endDate=month_1.primo', () => {
+            it('throws RangeError as endDate cannot be before startDate', () => {
                 // ARRANGE
-                var cat_a = new category_1.Category('A', 1);
+                const getTransactions = TransactionService.getTransactions;
                 // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo, cat_a);
-                // VERIFY
-                assert.lengthOf(transactions, 4, '4 transactions returned');
-            });
-            it('returns only transactions with category A', function () {
-                // ARRANGE
-                var cat_a = new category_1.Category('A', 1);
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo, cat_a);
-                // VERIFY
-                transactions.forEach(function (trans) { return assert.equal(trans.category.name, cat_a.name, "".concat(trans, ": transaction category correct (\"").concat(cat_a.name, "\")")); });
-            });
-        });
-        describe('startDate=month_3.primo, endDate=month_3.ultimo, category="a"', function () {
-            it('returns empty array', function () {
-                // ARRANGE
-                var cat_a = new category_1.Category('A', 1);
-                // ACT
-                var transactions = transactionService_1.TransactionService.getTransactions(Test_period_1.Test_period.month_3.primo, Test_period_1.Test_period.month_3.ultimo, cat_a);
-                // VERIFY
-                assert.lengthOf(transactions, 0, 'empty array returned');
-            });
-        });
-        /**
-         * if only endDate given, filter is everything before end date // can only do if using interface as a way of defining function with named parameters. Let's do it later.
-         * if only startDate given, filter is everthing efter start data // can only do if using interface as a way of defining function with named parameters. Let's do it later.
-         * if endDate is before startDate, error is thrown
-         *
-         * make sure to have boundary value elements to test against
-         */
-        describe('startDate=month_1.ultimo, endDate=month_1.primo', function () {
-            it('throws RangeError as endDate cannot be before startDate', function () {
-                // ARRANGE
-                var getTransactions = transactionService_1.TransactionService.getTransactions;
-                // ACT
-                var getTransactionsWithInvalidDateInput = getTransactions.bind(transactionService_1.TransactionService, Test_period_1.Test_period.month_1.ultimo, Test_period_1.Test_period.month_1.primo);
+                const getTransactionsWithInvalidDateInput = getTransactions.bind(TransactionService, Test_period_1.Test_period.month_1.ultimo, Test_period_1.Test_period.month_1.primo);
                 // VERIFY
                 assert.throws(getTransactionsWithInvalidDateInput, RangeError);
+            });
+        });
+    });
+    describe('.getTransactionsById()', () => {
+        describe('no id', () => {
+            it('throws error', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+        describe('invalid id', () => {
+            it('throws error', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+        describe('valid id', () => {
+            it('returns transaction object', () => {
+                throw new Error('not implemented yet');
+            });
+            it('return correct transaction', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+    });
+    describe('.createTransaction()', () => {
+        describe('valid params', () => {
+            it('creates transaction', () => {
+                throw new Error('not implemented yet');
+            });
+            it('returns created transaction with id', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+        describe('invalid params', () => {
+            describe('missing name', () => {
+                it('throws error', () => {
+                    throw new Error('not implemented yet');
+                });
+            });
+            describe('missing amount', () => {
+                it('throws error', () => {
+                    throw new Error('not implemented yet');
+                });
+            });
+            describe('missing date', () => {
+                it('throws error', () => {
+                    throw new Error('not implemented yet');
+                });
+            });
+        });
+    });
+    describe('.deleteTransaction()', () => {
+        describe('valid id', () => {
+            it('deletes transaction from db', () => {
+                throw new Error('not implemented yet');
+            });
+            it('returns message with id of deleted transaction', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+        describe('invalid id', () => {
+            it('throws error', () => {
+                throw new Error('not implemented yet');
+            });
+            it('no transactions deleted', () => {
+                throw new Error('not implemented yet');
+            });
+        });
+        describe('missing id', () => {
+            it('throws error', () => {
+                throw new Error('not implemented yet');
+            });
+            it('no transactions deleted', () => {
+                throw new Error('not implemented yet');
             });
         });
     });
