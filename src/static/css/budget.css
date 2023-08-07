@@ -1,0 +1,17 @@
+* {
+    background: transparent;
+    border: 1px #4E8279 solid;
+    color: #990000
+}
+
+.category-row {
+    padding-left:30px;
+}
+
+.category-name {
+    display: inline-block;
+}
+
+.category-amount {
+    display: inline-block;
+}

@@ -1,5 +1,27 @@
 const router = require('@root/async-router').Router();
 const BudgetService = require('../../services/budgetService')
+const CategoryService = require('../../services/categoryService')
+
+
+// VIEWS
+router.get('/show', async (req, res) => {
+    let budget_id = 3;
+    let budget = await BudgetService.getBudgetById(budget_id);
+    let categories = await CategoryService.getCategories();
+    //console.log(categories)
+
+    let filteredCategories = categories.filter((category) => {
+        if (parseInt(category['budget_id']) == budget_id) 
+        {
+            return category
+        }
+    })
+    console.log(filteredCategories)
+    res.render('budget', {
+        "budget": budget,
+        "categories": filteredCategories
+    })
+})
 
 
 router.get('/', async (req, res) => {

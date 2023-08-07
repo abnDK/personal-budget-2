@@ -1,0 +1,18 @@
+html 
+  head
+    title='Budget'
+  body
+    link(rel="stylesheet" href="/css/budget.css")
+    include header.pug
+    .content
+        h1 Budget!
+
+    
+        h2.title= budget.name
+
+        each category of categories
+            .category-row
+                p.category-name= category.name
+                p.category-amount= category.amount
+
+    include footer.pug
