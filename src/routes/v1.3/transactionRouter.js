@@ -27,13 +27,22 @@ router.get('/', async (req, res) => {
 
 })
 router.get('/:id', async (req, res) => {
+    console.log('req by id')
     let transaction = await TransactionService.getTransactionById(req.params.id)
     res.status(200).json(transaction)
 })
 
 router.post('/', async (req, res) => {
-    const { name, amount, date, category_id } = req.body;
-    const transaction = await TransactionService.createTransaction(name, amount, date, category_id);
+    console.log('.')
+    const { name, amount, date, category_id, recipient, comment } = req.body;
+    console.log(category_id)
+    const transaction = await TransactionService.createTransaction(name, amount, date, category_id, recipient, comment);
+    console.log(transaction)
+    //res.status(res.statusCode).json(transaction);
+    
+    res.status(res.statusCode).send(transaction);
+    
+    /*
     const categories = await CategoryService.getCategories();
     if (res.statusCode === 200) {
         res.render('add_transaction', {
@@ -43,6 +52,7 @@ router.post('/', async (req, res) => {
     } else {
         res.status(res.statuseCode)
     }
+    */
 })
 
 
@@ -52,11 +62,18 @@ router.delete('/:id', async (req, res) => {
 })
 
 
-/**
-router.put('/:id', db.updateExpense)
+
+router.put('/:id', async (req, res) => {
+
+    const { name, amount, date, category_id, recipient, comment, id } = req.body;
+    const transaction = await TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment);
 
 
- */
+    res.status(200).json(transaction);
+})
+
+
+ 
 
 
 

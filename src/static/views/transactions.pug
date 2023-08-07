@@ -5,22 +5,33 @@ html
     link(rel="stylesheet" href="/css/transactions.css")
     include header.pug
     
-    div.transactions_title Transactions
-    ul
-        each trans in transactions
-            li
-                div.transaction    
-                    p.trans_name= trans.name
-                    p -
-                    p.trans_amount Kr: #{trans.amount}
-                    p -
-                
-                    if trans.category_id 
-                        p.categorized Category id: #{trans.category_id}
-                    else
-                        p.uncategorized Transaction has yet to be categorized
-                    br
-                    p.trans_date= trans.date
+    
+    .content
+        .transactions
+            .header 
+                .title 
+                    p Transactions
+                .buttons 
 
+                    #add-trans-button Add new transaction 
+                    .sort-by-button Sort by 
+                    .asc-dsc-button ASC 
+            .row-header
+                .date Date
+                .amount Amount
+                .name Name
+                .category Category
+            .rows 
+                
+                
+                
+                
+                        
+
+        
+    
 
     include footer.pug
+
+
+    script(src="/logic/transactions.js" type="text/javascript")

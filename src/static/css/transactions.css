@@ -1,55 +1,197 @@
-
-
 * {
-    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: #eaeaea;
+}
+
+header {
+    background-color: #4E8279;
+    font-size: 18px;
+    color: #333
+}
+
+.content {
+    padding:100px;
     
+    background-size: 10px 10px;
+    background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);
+      
 
 }
 
-ul {
-    list-style-type: none; /* Remove bullets */
-    padding: 0; /* Remove padding */
-    margin: 0; /* Remove margins */
+.transactions {
+    background-color: white;
+    border-radius: 10px;
+    width: 1200px;
+    height: 70x vh;
+    padding: 20px;
+
+    background-size: 10px 10px;
+    background-image:
+    linear-gradient(to right, grey 1px, transparent 1px),
+    linear-gradient(to bottom, grey 1px, transparent 1px);
+
 }
 
-.transactions_title {
-    font-size: 2em;
+
+
+.header {
+    border-bottom: 1px solid black;
 }
 
-.transaction {
-    white-space: nowrap;
-}
-
-.transaction * {
+.header * {
     display: inline-block;
-    margin-right: 10px;
-    font-size: 1em;
-    margin-bottom: 0px;
+}
+
+.header .title {
+    margin: 0px 0px 0px 20px;
+    width: 746px;
+    font-size: 36px;
+    line-height: 0px;;
 
 }
 
-.trans_name {
-
-
-}
-
-.trans_amount {
-
-}
-
-.trans_category {
+.header .buttons * {
+    border-radius: 2px;
+    border: 1px darkgrey solid;
+    background-color: #eaeaea;
+    padding: 3px;
+    width: 95px;
+    text-align: center;
 
 }
 
-.trans_date {
-    font-size: .5em;
-    margin-top: 5px;
+#add-trans-button {
+    background-color: #4E8279;
+    border: 1px solid #414279;
+    width: 190px;
+
 }
 
-.categorized {
+#add-trans-button:hover {
+    cursor: pointer;
+}
+
+.sort-by-button {
+
+}
+
+.asc-dsc-button {
+
+}
+
+.row-header, .row {
+    display: block;
+    padding: 10px 0px 10px 0px;
+}
+
+.row-header {
+    background-color: #EAEAEA;
+}
+
+.rows {
+    overflow: scroll;
+    height: 40vh;
+
+}
+
+
+.row:nth-child(even) {
+    background-color: white;
+}
+
+.row {
+    background-color: #F7F7F7;
+    padding: 5px 0px 5px 0px;
+
+}
+
+.row:hover {
+    background-color: #CFCFCF;
+}
+
+.row-header *, .row * {
+    display: inline-block; 
+    text-align: center;
+    height: 24px;
+
+}
+
+.date {
+    width: 150px;
+}
+
+.amount {
+    width: 200px;
+}
+
+.category {
+    width: 100px;
+}
+
+.name {
+    width: 550px;
+}
+
+.delete-button {
+    background-color: rgb(237, 110, 90);
+    color: white;
+    border: 1px solid darkgrey;
+    border-radius: 3px;
+    margin-left: 20px;
+    
+}
+
+.delete-button:hover {
+    cursor: pointer;
+
+}
+
+.save-button {
+    margin-left: 20px;
+    background-color: rgb(151, 209, 146);
+    color: rgba(255, 255, 255, 0.944);
+    border: 1px solid darkgrey;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+
+.save-button:hover {
+    cursor: pointer;
+
+}
+
+
+#editable {
+    background-color: rgba(82, 204, 220, 0.513);
+}
+
+#editable:hover {
+    background-color: rgba(70, 169, 182, 0.513);
+    cursor: pointer;
+}
+
+
+#test-me {
+    border: 3px solid rgba(0, 0, 0, 0.544);
+    border-radius: 10px;
+    color: yellowgreen;
+    box-shadow:inset;
+    width: 200px;
+}
+
+#test-me:hover{
+    cursor: pointer;
+}
+
+#test-output {
+    background-color: white;
     color: green;
 }
 
-.uncategorized {
-    color: red;
+.row form {
+    align-items: center;
 }
