@@ -3,16 +3,42 @@ html
     title='Budget'
   body
     link(rel="stylesheet" href="/css/budget.css")
-    include header.pug
-    .content
-        h1 Budget!
-
+    link(rel="stylesheet" href="/css/normalize.css")
     
-        h2.title= budget.name
 
-        each category of categories
-            .category-row
-                p.category-name= category.name
-                p.category-amount= category.amount
+    .grid-container
+        .grid-header="Header"
 
-    include footer.pug
+            
+
+        .transactions-container
+            .transaction-header
+                .transaction-title="Transactions May 2023"
+            .transaction-rows
+                .transaction-row.header
+                    .transaction-date="DATE"
+                    .transaction-amount="AMOUNT"
+                    .transaction-description="DESCRIPTION"
+                    .transaction-category="CATEGORY"
+                
+
+        .budget-container
+            .budget-header
+                .budget-title="Budget May 2023"
+            .budget-subheader
+                .start-date= "Start date: dd-mm-yyyy"
+                .budget-sum= "Budget sum: <Sum>"
+                .button-edit= "Edit"
+
+            .budget-rows
+                each category of categories
+                    .budget-row.category-parent
+                            .category-name= category.name
+                            .category-amount= category.amount
+                            
+                    
+                    
+        .grid-footer="Footer"
+
+script(src="/logic/budget.js" type="text/javascript") 
+
