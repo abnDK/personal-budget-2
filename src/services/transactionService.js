@@ -19,9 +19,9 @@ class TransactionService {
             // get Transactions in database
             let data = yield pool.query('SELECT * FROM transaction ORDER BY id ASC');
             // build array of transactions
-            let transactions = data.rows.map(resTransaction => {
+            let transactions = data.rows.map((resTransaction) => {
                 let date = resTransaction.date ? new Date(resTransaction.date) : new Date();
-                return new transaction_1.Transaction(parseInt(resTransaction.id), resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
+                return new transaction_1.Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
             });
             return transactions;
         });
@@ -31,9 +31,9 @@ class TransactionService {
             // get Transaction in database
             let data = yield pool.query('SELECT * FROM transaction WHERE id = $1', [id]);
             // init transaction as Transaction object
-            let transaction_in_array = data.rows.map(resTransaction => {
+            let transaction_in_array = data.rows.map((resTransaction) => {
                 let date = resTransaction.date ? new Date(resTransaction.date) : new Date();
-                return new transaction_1.Transaction(parseInt(resTransaction.id), resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
+                return new transaction_1.Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
             });
             let transaction = transaction_in_array[0];
             // if transaction unknown / id not known

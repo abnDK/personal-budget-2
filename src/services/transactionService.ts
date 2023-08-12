@@ -5,6 +5,14 @@ import { Transaction } from "../models/1.3/transaction";
 import { Mock_data } from "../test/Mock_data";
 const pool = require('../configs/queries')
 
+interface resTransaction {
+    id: number,
+    name: string,
+    amount: number,
+    category_id: number,
+    date: Date
+}
+
 class TransactionService {
     
 
@@ -12,11 +20,11 @@ class TransactionService {
         // get Transactions in database
         let data = await pool.query('SELECT * FROM transaction ORDER BY id ASC')
         // build array of transactions
-        let transactions = data.rows.map(resTransaction => {
+        let transactions = data.rows.map((resTransaction: resTransaction) => {
           
             let date: Date = resTransaction.date ? new Date(resTransaction.date) : new Date();
 
-            return new Transaction(parseInt(resTransaction.id), resTransaction.name, resTransaction.amount, date, resTransaction.category_id)
+            return new Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id)
         })
 
         return transactions;
@@ -28,10 +36,10 @@ class TransactionService {
 
 
         // init transaction as Transaction object
-        let transaction_in_array = data.rows.map(resTransaction => {
+        let transaction_in_array = data.rows.map((resTransaction: resTransaction) => {
             let date: Date = resTransaction.date ? new Date(resTransaction.date) : new Date();
             
-            return new Transaction(parseInt(resTransaction.id), resTransaction.name, resTransaction.amount, date, resTransaction.category_id)
+            return new Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id)
 
         })
             
