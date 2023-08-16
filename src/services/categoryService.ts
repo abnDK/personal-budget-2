@@ -1,5 +1,6 @@
 import { Category } from "../models/1.3/category";
 const pool = require('../configs/queries')
+import { BuildTree } from '';
 
 class CategoryService {
     
@@ -19,6 +20,8 @@ class CategoryService {
 
         return categories;
     }
+
+    
 
     static async getCategoryById(id: number): Promise<Category> {
         // get Budget in database

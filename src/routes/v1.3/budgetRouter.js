@@ -1,27 +1,12 @@
 const router = require('@root/async-router').Router();
 const BudgetService = require('../../services/budgetService')
 const CategoryService = require('../../services/categoryService')
-const {BuildTree} = require('../../utils/datastructures')
 
 // VIEWS
 router.get('/show/:id', async (req, res) => {
+    console.log('.....')
     let budget_id = req.params.id;
     let budget = await BudgetService.getBudgetById(budget_id);
-    let categories = await CategoryService.getCategories();
-
-    const categoryTree = BuildTree(categories, 'parent_id');
-    console.log(categoryTree)
-
-    let filteredCategories = categories.filter((category) => {
-        if (parseInt(category['budget_id']) == budget_id) 
-        {
-            return category
-        }
-    })
-
-
-
-
     
     /**
      * based on parent_id attribute.
@@ -40,8 +25,7 @@ router.get('/show/:id', async (req, res) => {
 
 
     res.render('budget', {
-        "budget": budget,
-        "categories": filteredCategories
+        "budget": budget
     })
 })
 

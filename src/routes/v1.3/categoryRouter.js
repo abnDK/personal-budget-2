@@ -7,10 +7,15 @@ router.get('/', async (req, res) => {
     res.status(200).json(categories)
 
 })
+
+
+
 router.get('/:id', async (req, res) => {
     let category = await CategoryService.getCategoryById(req.params.id)
     res.status(200).json(category)
 })
+
+
 
 router.post('/', async (req, res) => {
     const { name, amount, parent_id, budget_id } = req.body;

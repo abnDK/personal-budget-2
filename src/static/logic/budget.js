@@ -1,6 +1,123 @@
 
 console.log('script loaded')
 
+//const { createHTMLElement } = require('./htmlTools')
+
+
+/**
+ * EVENTS:
+ * 
+ * Edit budget rows
+ *  [x] make all rows editable
+ *  [ ] set row for deletion (mark it and when saved, it disappears. When marked it is greyed out.)
+ * 
+ * Save budget rows
+ *  [x] calculate sum
+ *  [x] parent sum = children sum = grandchildren sum
+ *  [ ] save to db
+ * 
+ * 
+ * populate budget
+ *  [x] done
+ * 
+ * 
+ * 
+ * 
+ */
+
+const getCategoriesAsTree = function() {
+    return fetch(
+        'http://localhost:3000/categories'
+    ).then((res) => {
+        if (!res.ok) {
+            throw new Error(res.status)
+        }
+        return res.text()
+    }).then((res) => {
+            return BuildTree(JSON.parse(res), 'parent_id');
+        }
+    ).catch(
+        (err) => {
+            throw new Error(err);
+        })
+}
+
+
+// CREATE BUDGET ROWS
+const createBudgetRow = function(budgetObject, level) {
+    /**
+     * budgetObject: {data}
+     * level: Number // indicating parent/child/grandchild. 0 = parent, 1 = child, 2 = grandchild
+     */
+
+    // create budget row element with name and amount children
+    
+    let budgetRowElement = createHTMLElement('div', 'budget-row', '', children = [
+        createHTMLElement('div', 'category-name', budgetObject['name']),
+        createHTMLElement('div', 'category-amount', budgetObject['amount'])
+    ])
+
+    // add class to define what level in the budget hierarchy the category is
+    if (level == 0) {
+        budgetRowElement.className += ' category-parent'
+    } else if (level == 1) {
+        budgetRowElement.className += ' category-child'
+    } else if (level == 2) {
+        budgetRowElement.className += ' category-grandchild'
+    }
+
+    // set id's on budget row element
+    budgetRowElement.dataset.id = budgetObject['id'];
+    budgetRowElement.dataset.parent_id = budgetObject['parent_id']
+
+    return budgetRowElement;
+}
+
+// POPULATE BUDGET ROWS
+document.addEventListener('DOMContentLoaded', () => {
+    let budgetRows = document.querySelector('.budget-rows');
+
+    
+    
+    // fetch data
+    getCategoriesAsTree().then((categories) => {
+
+        
+        // filter categories by budget_id
+        // by grapping last :id part of url (after "/" in .../budgets/show/:id)
+        const budget_id = parseInt(window.location.href.split("/").at(-1));
+        categories = categories.filter((cat) => cat.budget_id == budget_id)
+
+
+        for (let category of categories) {
+            budgetRows.appendChild(
+                createBudgetRow(category, 0)
+            );
+            if (category.children) {
+                for (let child of category.children) {
+                    budgetRows.appendChild(
+                        createBudgetRow(child, 1)
+                    )
+                    if (child.children) {
+                        for (let grandchild of child.children) {
+                            budgetRows.appendChild(
+                                createBudgetRow(grandchild, 2)
+                            )
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+        
+    )
+
+
+})
+
+
+// POPULATE TRANSACTIONS (WITH PLACEHOLDER DATA)
 document.addEventListener('DOMContentLoaded', () => {
     let rows = document.querySelector('.transaction-rows');
     const ROWS_AMOUNT = 100;
@@ -42,16 +159,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Eventlistener on budget sum, calculating sum of all budget rows
 document.querySelector('.budget-sum').addEventListener('budgetUpdate', (event) => {
-    console.log('calculating sum....')
-    let budgetRows = document.querySelectorAll('.budget-row.category-parent');
-    let sum = 0;
-    for (let budgetRow of budgetRows) {
-        sum += parseInt(budgetRow.querySelector('.category-amount').innerText)
+    // budget sum is calculated as parent = sum(children) = sum(grandchildren)
+    // values in children and parents are updated as sum of their child
+    // and will be set before the row is saved to db
+    
+
+    // calculating sum of all .category-child elements
+    let grandChildren = Array.from(document.querySelectorAll('.category-grandchild'))
+    let uniqueParentIdOfGrandChildren = new Set(grandChildren.map((grandChild) => grandChild.dataset.parent_id));
+
+    let sumsOfChildElements = {};
+
+    for (const uniqueParentId of uniqueParentIdOfGrandChildren) {
+        sumsOfChildElements[uniqueParentId] = (() => {
+            return grandChildren.map((grandChild) => {
+                if (grandChild.dataset.parent_id === uniqueParentId) {
+                    return parseInt(grandChild.querySelector('.category-amount').innerText)
+                }
+                return 0
+            }).reduce((a, b) => a+b)
+        })();
+    }
+
+    // set sum of all child-elements (sum of grandchildren)
+    
+    // update all child elements with sum of their (grand-)children
+
+    let children = Array.from(document.querySelectorAll('.category-child'))
+    
+    for (const child of children) {
+        child.querySelector('.category-amount').innerText = sumsOfChildElements[child.dataset.id];
+    }
+    
+    // calculating sum of all .category-parent elements
+
+    let uniqueParentIdOfChildren = new Set(children.map((child) => child.dataset.parent_id));
+
+    let sumsOfParentElements = {};
+
+    for (const uniqueParentId of uniqueParentIdOfChildren) {
+        sumsOfParentElements[uniqueParentId] = (() => {
+            return children.map((child) => {
+                if (child.dataset.parent_id === uniqueParentId) {
+                    return parseInt(child.querySelector('.category-amount').innerText)
+                }
+                return 0
+            }).reduce((a, b) => a+b)
+        })();
+    }
+    console.log(sumsOfChildElements)
+    console.log(sumsOfParentElements)
+
+    // update all parent elements with sum of their children and calc sum of all parents
+    let parents = Array.from(document.querySelectorAll('.category-parent'));
+
+    let totalSum = 0;
+
+    for (const parent of parents) {
+        let parentSum = sumsOfParentElements[parent.dataset.id];
+        parent.querySelector('.category-amount').innerText = parentSum;
+        totalSum += parentSum;
     }
 
     // set sum on the budget-sum dom element
-    console.log(this.currentTarget);
-    document.querySelector('.budget-sum').innerText = `Budget sum: ${sum}`;
+    document.querySelector('.budget-sum').innerText = `Budget sum: ${totalSum}`;
 })
 
 
@@ -142,11 +313,3 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
 
 })
 
-
-/**
- * .transaction-row
-                    .transaction-date="04/07/2017"
-                    .transaction-amount="5000"
-                    .transaction-description="Last post"
-                    .transaction-category="Diverse"
- */

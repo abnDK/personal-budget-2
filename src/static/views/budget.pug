@@ -24,21 +24,20 @@ html
 
         .budget-container
             .budget-header
-                .budget-title="Budget May 2023"
+                .budget-title#budget_id(data-budget_id=4)="Budget May 2023"
             .budget-subheader
                 .start-date= "Start date: dd-mm-yyyy"
                 .budget-sum= "Budget sum: <Sum>"
                 .button-edit= "Edit"
 
             .budget-rows
-                each category of categories
-                    .budget-row.category-parent
-                            .category-name= category.name
-                            .category-amount= category.amount
+                
                             
                     
                     
         .grid-footer="Footer"
 
 script(src="/logic/budget.js" type="text/javascript") 
+script(src="/logic/datastructures.js" type="text/javascript") 
+script(src="/logic/htmlTools.js" type="text/javascript") 
 
