@@ -1,6 +1,5 @@
 import { Category } from "../models/1.3/category";
 const pool = require('../configs/queries')
-import { BuildTree } from '';
 
 class CategoryService {
     
@@ -74,7 +73,7 @@ class CategoryService {
 
     }
 
-    static async deleteCategory(delete_id): Promise<Category> {
+    static async deleteCategory(delete_id: string): Promise<Category> {
         // TODO
         // - What to do if category fkeys to to_be_deleted category?
         // --- deleted children as well?
@@ -111,6 +110,41 @@ class CategoryService {
 
         // send response
         return deleted_category
+
+    }
+
+    static async updateCategory(id: number, name: string, amount: number, parent_id?: string, budget_id?: string): Promise<Category> {
+        console.log('category router:')
+        console.log(id, name, amount, parent_id, budget_id)
+        console.log(typeof parent_id)
+
+        parent_id = parent_id === 'null' ? undefined : parent_id;
+
+        // update category
+        let updated_category = await pool.query('UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *',
+            [id, name, amount, (parent_id || undefined), (budget_id || undefined)]
+         );
+
+        // verify only 1 category has been returned and returned from db
+        if (!updated_category.rows.length) {
+            throw new Error('no new category has been created, for some reason. Maybe id was unknown?')
+        } else if (updated_category.rows.length > 1) {
+            console.log(updated_category.rows)
+            throw new Error('more than one category has been created in db. Something is not right...')
+        }
+
+        // init category object
+        let category = new Category(
+            updated_category.rows[0].id, 
+            updated_category.rows[0].name, 
+            updated_category.rows[0].amount, 
+            updated_category.rows[0].parent_id, 
+            updated_category.rows[0].budget_id
+        )
+
+        // return transaction object
+        return category
+
 
     }
 

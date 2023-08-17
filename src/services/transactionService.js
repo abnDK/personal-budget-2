@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//import { CategoryService } from "./categoryService";
 const CategoryService = require('./categoryService');
 const transaction_1 = require("../models/1.3/transaction");
 const pool = require('../configs/queries');

@@ -1,8 +1,5 @@
-import { Category } from "../models/1.3/category";
-//import { CategoryService } from "./categoryService";
 const CategoryService = require('./categoryService')
 import { Transaction } from "../models/1.3/transaction";
-import { Mock_data } from "../test/Mock_data";
 const pool = require('../configs/queries')
 
 interface resTransaction {

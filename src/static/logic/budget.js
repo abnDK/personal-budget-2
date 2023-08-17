@@ -1,14 +1,13 @@
 
 console.log('script loaded')
 
-//const { createHTMLElement } = require('./htmlTools')
 
 
 /**
  * EVENTS:
  * 
  * Edit budget rows
- *  [x] make all rows editable
+ *  [x] Toggle edit/save for all rows
  *  [ ] set row for deletion (mark it and when saved, it disappears. When marked it is greyed out.)
  * 
  * Save budget rows
@@ -18,7 +17,7 @@ console.log('script loaded')
  * 
  * 
  * populate budget
- *  [x] done
+ *  [x] get data from db and create budget rows and add to .budget-rows element
  * 
  * 
  * 
@@ -109,9 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         }
+
+        // send an event to calculate sum of all children, parents and the total sum of the budget.
+        document.querySelector('.budget-sum').dispatchEvent(new Event('budgetUpdate'))
+
+
+
     }
         
     )
+
 
 
 })
@@ -157,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 })
 
-// Eventlistener on budget sum, calculating sum of all budget rows
+// CALCULATE TOTAL SUM OF BUDGET
 document.querySelector('.budget-sum').addEventListener('budgetUpdate', (event) => {
     // budget sum is calculated as parent = sum(children) = sum(grandchildren)
     // values in children and parents are updated as sum of their child
@@ -207,8 +213,7 @@ document.querySelector('.budget-sum').addEventListener('budgetUpdate', (event) =
             }).reduce((a, b) => a+b)
         })();
     }
-    console.log(sumsOfChildElements)
-    console.log(sumsOfParentElements)
+
 
     // update all parent elements with sum of their children and calc sum of all parents
     let parents = Array.from(document.querySelectorAll('.category-parent'));
@@ -223,8 +228,11 @@ document.querySelector('.budget-sum').addEventListener('budgetUpdate', (event) =
 
     // set sum on the budget-sum dom element
     document.querySelector('.budget-sum').innerText = `Budget sum: ${totalSum}`;
-})
 
+    // after all sums are calculated, rows can be written to db.
+    document.querySelector('.budget-sum').dispatchEvent(new Event('budgetUpdateDone'));
+
+})
 
 
 // toggle edit/save button
@@ -313,3 +321,59 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
 
 })
 
+// SAVE ALL BUDGET ROWS TO BUDGET
+document.querySelector('.budget-sum').addEventListener('budgetUpdateDone', (event) => {
+    console.log('budget ready to be written to db')
+    let budgetRows = document.querySelectorAll('.budget-row');
+    for (const budgetRow of budgetRows) {
+        const id = budgetRow.dataset.id;
+        const name = budgetRow.querySelector('.category-name').innerText;
+        const amount = budgetRow.querySelector('.category-amount').innerText;
+        const parent_id = budgetRow.dataset.parent_id;
+        const budget_id = parseInt(window.location.href.split("/").at(-1));
+
+        let updatedCategoryObject = {
+            "name": name,
+            "amount": amount,
+            "parent_id": parent_id,
+            "budget_id": budget_id
+        }
+        console.log('"#"#"')
+        console.log(updatedCategoryObject)
+
+        updateCategory(updatedCategoryObject, id).then((res) => {
+            console.log(Date.now())
+            console.log(res)
+        }
+        ).catch((err)=> {
+            console.log(err)
+        })
+
+    }
+    // for each row in budget, 
+    // put data to db
+    // except if class "toBeDeleted"
+    // then delete request is sent
+    // and row is deleted from dom
+
+
+    // as a test: make function that sends multiple puts requests and logs exact time when promise is resolved 
+    // just to see the tiny differences in time from start - end of making the request
+})
+
+const updateCategory = function(data, id) {
+    return fetch(`http://localhost:3000/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then((res)=>{
+        if (!res.ok) {
+            throw new Error(res.status)
+        }
+        return res.json()
+    })
+    .catch((err)=> {throw new Error(err)}) 
+}

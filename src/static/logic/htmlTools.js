@@ -9,6 +9,8 @@ function createHTMLElement(tag, className, innerText, children) {
     }
     if (children) {
         for (const child of children) {
+            console.log(child);
+            console.log(child.outerHTML);
             element.appendChild(child);
         }
     }
