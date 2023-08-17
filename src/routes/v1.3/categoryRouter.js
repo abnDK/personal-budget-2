@@ -32,7 +32,6 @@ router.delete('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
 
     const { name, amount, parent_id, budget_id } = req.body;
-    console.log(budget_id, parent_id, name)
     const id = req.params.id;
     const category = await CategoryService.updateCategory(id, name, amount, parent_id, budget_id);
 

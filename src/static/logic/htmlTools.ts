@@ -12,8 +12,7 @@ function createHTMLElement(tag: string, className?: string, innerText?: string |
 
     if (children) {
         for (const child of children) {
-            console.log(child)
-            console.log(child.outerHTML)
+
             element.appendChild(child)
         }
     }
