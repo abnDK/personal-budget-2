@@ -4,7 +4,6 @@ const CategoryService = require('../../services/categoryService')
 
 // VIEWS
 router.get('/show/:id', async (req, res) => {
-    console.log('.....')
     let budget_id = req.params.id;
     let budget = await BudgetService.getBudgetById(budget_id);
     

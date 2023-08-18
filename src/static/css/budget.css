@@ -274,7 +274,7 @@ input.category-amount, input.category-name {
     all: unset;
     background-color: #ffd1e0;
     border-bottom: 1px solid #3d321f;
-    height: 9px;
+    height: 8px;
     justify-self: stretch;
 }
 
@@ -285,7 +285,7 @@ input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[typ
 }
 
 .category-delete > * {
-    height: 9px;
+    height: 8px;
     align-items: center;
 
 }

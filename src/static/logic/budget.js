@@ -490,8 +490,6 @@ const deleteCategories = function(ids) {
 
 }
 
-
-
 const disableToBeDeletedRow = function(budgetRow) {
     budgetRow.className += ' deleteable'
 
@@ -529,7 +527,6 @@ const updateCategory = function(data, id) {
     })
     .catch((err)=> {throw new Error(err)}) 
 }
-
 
 const updateBudgetSums = function() {
     // budget sum is calculated as parent = sum(children) = sum(grandchildren)
