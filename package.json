@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --timeout 5000 --exit ./src/test/*.test.js",
-    "comp-run-server": "tsc; node index.js"
+    "comp-run-server": "tsc; node index.js",
+    "go": "tsc; nodemon comp-run-server"
   },
   "author": "",
   "license": "ISC",
