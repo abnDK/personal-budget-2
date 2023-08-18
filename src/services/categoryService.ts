@@ -8,7 +8,7 @@ class CategoryService {
         let data = await pool.query('SELECT * FROM category ORDER BY id ASC')
         
         // make categories array
-        let categories = data.rows.map(res => new Category(
+        let categories = data.rows.map((res: {name:string, amount:number, id:string, parent_id:string, budget_id:string}) => new Category(
                     res.name, 
                     res.amount, 
                     parseInt(res.id), 
@@ -27,12 +27,12 @@ class CategoryService {
         let data = await pool.query('SELECT * FROM category WHERE id = $1', [id])
 
         // init budget as Budget object
-        let category_in_array = data.rows.map(res => new Category(
+        let category_in_array = data.rows.map((res: {name:string, amount:number, id:string, parent_id:string, budget_id:string}) => new Category(
                     res.name, 
                     res.amount, 
-                    res.id, 
-                    res.parent_id,
-                    res.budget_id
+                    parseInt(res.id), 
+                    parseInt(res.parent_id), 
+                    parseInt(res.budget_id)
                 )
             )
         let category = category_in_array[0]
@@ -84,7 +84,7 @@ class CategoryService {
         const id : number = parseInt(delete_id);
 
         // query db
-        const to_be_deleted_category_sql_object : Object = await pool.query('SELECT * FROM category WHERE id = $1', [id])
+        const to_be_deleted_category_sql_object : {rows: Array<{name:string, amount:number, id:number, parent_id:number, budget_id:number}>} = await pool.query('SELECT * FROM category WHERE id = $1', [id])
 
         
         // verify id only equals 1 category 
@@ -96,7 +96,7 @@ class CategoryService {
         }
 
         // delete category in db
-        const deleted_category_sql_object : Object = await pool.query('DELETE FROM category WHERE id = $1 RETURNING *', [id])
+        const deleted_category_sql_object : {rows: Array<{name:string, amount:number, id:number, parent_id:number, budget_id:number}>} = await pool.query('DELETE FROM category WHERE id = $1 RETURNING *', [id])
 
         // create category object
         const deleted_category : Category = new Category(

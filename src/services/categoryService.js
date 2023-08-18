@@ -17,7 +17,7 @@ class CategoryService {
             // get Budgets in database
             let data = yield pool.query('SELECT * FROM category ORDER BY id ASC');
             // make categories array
-            let categories = data.rows.map(res => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
+            let categories = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
             return categories;
         });
     }
@@ -26,7 +26,7 @@ class CategoryService {
             // get Budget in database
             let data = yield pool.query('SELECT * FROM category WHERE id = $1', [id]);
             // init budget as Budget object
-            let category_in_array = data.rows.map(res => new category_1.Category(res.name, res.amount, res.id, res.parent_id, res.budget_id));
+            let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
             let category = category_in_array[0];
             // if budget unknown / id not known
             if (category == undefined) {
