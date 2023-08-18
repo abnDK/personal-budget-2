@@ -81,9 +81,6 @@ class CategoryService {
     }
     static updateCategory(id, name, amount, parent_id, budget_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('category router:');
-            console.log(id, name, amount, parent_id, budget_id);
-            console.log(typeof parent_id);
             parent_id = parent_id === 'null' ? undefined : parent_id;
             // update category
             let updated_category = yield pool.query('UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *', [id, name, amount, (parent_id || undefined), (budget_id || undefined)]);

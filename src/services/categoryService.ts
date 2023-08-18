@@ -114,10 +114,7 @@ class CategoryService {
     }
 
     static async updateCategory(id: number, name: string, amount: number, parent_id?: string, budget_id?: string): Promise<Category> {
-        console.log('category router:')
-        console.log(id, name, amount, parent_id, budget_id)
-        console.log(typeof parent_id)
-
+        
         parent_id = parent_id === 'null' ? undefined : parent_id;
 
         // update category

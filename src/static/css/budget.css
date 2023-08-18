@@ -278,9 +278,22 @@ input.category-amount, input.category-name {
     justify-self: stretch;
 }
 
+input::-webkit-outer-spin-button, 
+input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[type=number] field */
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .category-delete > * {
     height: 9px;
     align-items: center;
+
+}
+
+
+.deleteable > input {
+    background-color:darkgrey;
+    color: grey;
 }
 
 

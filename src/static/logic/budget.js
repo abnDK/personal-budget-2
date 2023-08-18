@@ -295,6 +295,13 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
             let newDeleteInput = createHTMLElement('input');
             newDeleteInput.type = 'checkbox'
             newDeleteInput.id = 'delete_' + rowId;
+            newDeleteInput.addEventListener('change', (event) => {
+                if (event.currentTarget.checked) {
+                    disableToBeDeletedRow(event.currentTarget.parentElement.parentElement)
+                } else {
+                    enableBudgetRowInput(event.currentTarget.parentElement.parentElement)
+                }
+            })
             let newDeleteLabel = createHTMLElement('label', false, innerText='Delete');
             newDeleteLabel.htmlFor = newDeleteInput.id;
             newDeleteElement.appendChild(newDeleteInput);
@@ -444,25 +451,8 @@ document.querySelector('.budget-sum').addEventListener('updateDatabaseStart', (e
         
 
 
-const updateCategory = function(data, id) {
 
-
-    return fetch(`http://localhost:3000/categories/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then((res)=>{
-        if (!res.ok) {
-            throw new Error(res.status)
-        }
-        return res.json()
-    })
-    .catch((err)=> {throw new Error(err)}) 
-}
-
+// DELETE CATEGORIES / BUDGET ROWS
 const deleteCategory = function(id) {
 
     console.log('Deleting category id: ' + id)
@@ -499,6 +489,47 @@ const deleteCategories = function(ids) {
 
 
 }
+
+
+
+const disableToBeDeletedRow = function(budgetRow) {
+    budgetRow.className += ' deleteable'
+
+    // disable amount and name input field
+    Array.from(budgetRow.querySelectorAll('input.category-amount')).forEach(input => {input.disabled = true})
+    Array.from(budgetRow.querySelectorAll('input.category-name')).forEach(input => {input.disabled = true})
+}
+
+const enableBudgetRowInput = function(budgetRow) {
+    budgetRow.className = budgetRow.className.replace(' deleteable', '')
+
+    // enable amount and name input field
+    Array.from(budgetRow.querySelectorAll('input.category-amount')).forEach(input => {input.disabled = false})
+    Array.from(budgetRow.querySelectorAll('input.category-name')).forEach(input => {input.disabled = false})
+}
+
+
+// UPDATE CATEGORIES / BUDGET ROW SUMS
+
+const updateCategory = function(data, id) {
+
+
+    return fetch(`http://localhost:3000/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then((res)=>{
+        if (!res.ok) {
+            throw new Error(res.status)
+        }
+        return res.json()
+    })
+    .catch((err)=> {throw new Error(err)}) 
+}
+
 
 const updateBudgetSums = function() {
     // budget sum is calculated as parent = sum(children) = sum(grandchildren)
