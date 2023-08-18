@@ -13,13 +13,12 @@
  *  [x] parent sum = children sum = grandchildren sum
  *  [x] save to db
  * 
- * 
- * populate budget
+ * Populate budget
  *  [x] get data from db and create budget rows and add to .budget-rows element
  * 
- * 
- * 
- * 
+ * Add budget row
+ *  [ ] Add new row on all 3 levels (parent, child, grandchild - and not grand-grandchild)
+ *  [ ] Save row to db on save. (might already happen if we just add row like when we populate budget)
  */
 
 const getCategoriesAsTree = function() {
@@ -67,6 +66,9 @@ const createBudgetRow = function(budgetObject, level) {
     // set id's on budget row element
     budgetRowElement.dataset.id = budgetObject['id'];
     budgetRowElement.dataset.parent_id = budgetObject['parent_id']
+
+    
+
 
     return budgetRowElement;
 }
@@ -238,7 +240,7 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
     let button = event.currentTarget
 
     // get all budget-rows
-    let rows = document.querySelectorAll('.budget-row');
+    let oldRows = document.querySelectorAll('.budget-row');
 
 
     if (button.innerText == 'Edit') {
@@ -246,9 +248,56 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
         button.style.backgroundColor = "#ffd1e0"
 
         // make all rows editable if 'edit' was clicked
-        for (let row of rows) {
+        for (let oldRow of oldRows) {
+
+
+            // read values of oldRow
+            const rowTag = oldRow.tagName;
+            
+            const rowClassName = oldRow.className;
+            const oldNameElement = oldRow.querySelector('.category-name')
+            const oldAmountElement = oldRow.querySelector('.category-amount')
+            const rowName = oldNameElement.innerText;
+            const rowAmount = oldAmountElement.innerText;
+            const rowId = oldRow.dataset.id;
+            const parentId = oldRow.dataset.parent_id
+
+            // create newRow element
+            let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
+            let newNameElement = createHTMLElement('input', oldNameElement.className);
+            newNameElement.type = 'text';
+            let newAmountElement = createHTMLElement('input', oldAmountElement.className);
+            newAmountElement.type = 'number';
+            
+            // create delete div with <input> and <label> element
+            let newDeleteElement = createHTMLElement('div', '.category-delete');
+            let newDeleteInput = createHTMLElement('input');
+            newDeleteInput.type = 'checkbox'
+            newDeleteInput.id = 'delete_' + rowId;
+            let newDeleteLabel = createHTMLElement('label', false, innerText='Delete');
+            newDeleteLabel.htmlFor = newDeleteInput.id;
+            newDeleteElement.appendChild(newDeleteInput);
+            newDeleteElement.appendChild(newDeleteLabel);
+
+            // insert data in newRow
+            newNameElement.value = rowName
+            newAmountElement.value = rowAmount
+            newRowElement.dataset.id = rowId;
+            newRowElement.dataset.parent_id = parentId;
+
+
+            // append children to newRow
+            newRowElement.appendChild(newNameElement);
+            newRowElement.appendChild(newDeleteElement);
+            newRowElement.appendChild(newAmountElement);
+
+            // replace oldRow with newRow
+            oldRow.parentElement.replaceChild(newRowElement, oldRow)
+
+            /*
             // set class "editable" on row
             row.className += ' editable'
+            let newRow = createHTMLElement('div', row.className+' editable')
 
 
             // get values of nameDiv and amountDiv
@@ -271,6 +320,21 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
 
             row.replaceChild(nameInput, nameDiv);
             row.replaceChild(amountInput, amountDiv);
+            
+            // add delete checkbox
+            // add checkbox to assign if row is to be deleted
+            let deleteInputCheckbox = createHTMLElement('input');
+            deleteInputCheckbox.type = 'checkbox'
+            deleteInputCheckbox.id = 'delete_' + row.dataset.id;
+            
+            let deleteInputLabel = createHTMLElement('label', false, innerText='Delete row')
+            deleteInputLabel.htmlFor = inputElement.id
+
+            let deleteDiv = createHTMLElement('div', 'category-delete')
+            deleteDiv.appendChild(deleteInputCheckbox)
+            deleteDiv.appendChild(deleteInputLabel)
+            row.appendChild(deleteDiv);
+            */
 
         }
     } else {
@@ -278,14 +342,14 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
         button.style.backgroundColor = "#FFD182"
 
         // freeze all rows if 'save' was clicked
-        for (let row of rows) {
+        for (let oldRow of oldRows) {
             // remove class "editable" on row
-            row.className = row.className.replace(' editable', '')
+            oldRow.className = oldRow.className.replace(' editable', '')
 
 
             // get values of nameDiv and amountDiv
-            let nameInput = row.querySelector('.category-name');
-            let amountInput = row.querySelector('.category-amount');
+            let nameInput = oldRow.querySelector('.category-name');
+            let amountInput = oldRow.querySelector('.category-amount');
 
             let nameValue = nameInput.value;
             let amountValue = amountInput.value;
@@ -300,8 +364,11 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
             nameDiv.className = nameInput.className;
             amountDiv.className = amountInput.className;
 
-            row.replaceChild(nameDiv, nameInput);     
-            row.replaceChild(amountDiv, amountInput);
+            
+
+            oldRow.replaceChild(nameDiv, nameInput);     
+            oldRow.replaceChild(amountDiv, amountInput);
+
 
 
         }

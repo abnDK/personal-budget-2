@@ -5,7 +5,9 @@ function createHTMLElement(tag, className, innerText, children) {
         element.className = className;
     }
     if (innerText) {
+        console.log(element);
         element.innerText = innerText;
+        console.log(element);
     }
     if (children) {
         for (const child of children) {

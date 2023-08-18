@@ -5,18 +5,23 @@ function createHTMLElement(tag: string, className?: string, innerText?: string |
     if (className) {
         element.className = className;
     }
-
+    
     if (innerText) {
+        console.log(element)
         element.innerText = innerText;
+        console.log(element)
     }
+    
 
     if (children) {
+        
         for (const child of children) {
-
+            
             element.appendChild(child)
         }
+        
     }
-
+    
     return element
 
 }
