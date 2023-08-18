@@ -7,9 +7,7 @@ function createHTMLElement(tag: string, className?: string, innerText?: string |
     }
     
     if (innerText) {
-        console.log(element)
         element.innerText = innerText;
-        console.log(element)
     }
     
 
@@ -26,3 +24,9 @@ function createHTMLElement(tag: string, className?: string, innerText?: string |
 
 }
 
+
+function deleteBudgetRow(row: HTMLElement): void {
+    console.log(row)
+    console.log(row.parentElement)
+    row.parentElement?.removeChild(row) // ?. returns undefined if either object accessed or function called is not available.
+}

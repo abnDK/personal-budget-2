@@ -89,7 +89,7 @@ class CategoryService {
             let updated_category = yield pool.query('UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *', [id, name, amount, (parent_id || undefined), (budget_id || undefined)]);
             // verify only 1 category has been returned and returned from db
             if (!updated_category.rows.length) {
-                throw new Error('no new category has been created, for some reason. Maybe id was unknown?');
+                throw new Error('no new category has been created, for some reason. Maybe id was unknown?' + ' id: ' + id);
             }
             else if (updated_category.rows.length > 1) {
                 console.log(updated_category.rows);

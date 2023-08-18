@@ -283,9 +283,7 @@ input.category-amount, input.category-name {
     align-items: center;
 }
 
-input.category-delete {
-    height: 9px;
-}
+
 
 input.category-amount {
     text-align: right;

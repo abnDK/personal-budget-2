@@ -127,7 +127,7 @@ class CategoryService {
 
         // verify only 1 category has been returned and returned from db
         if (!updated_category.rows.length) {
-            throw new Error('no new category has been created, for some reason. Maybe id was unknown?')
+            throw new Error('no new category has been created, for some reason. Maybe id was unknown?' + ' id: ' + id)
         } else if (updated_category.rows.length > 1) {
             console.log(updated_category.rows)
             throw new Error('more than one category has been created in db. Something is not right...')

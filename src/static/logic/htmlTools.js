@@ -5,9 +5,7 @@ function createHTMLElement(tag, className, innerText, children) {
         element.className = className;
     }
     if (innerText) {
-        console.log(element);
         element.innerText = innerText;
-        console.log(element);
     }
     if (children) {
         for (const child of children) {
@@ -15,4 +13,10 @@ function createHTMLElement(tag, className, innerText, children) {
         }
     }
     return element;
+}
+function deleteBudgetRow(row) {
+    var _a;
+    console.log(row);
+    console.log(row.parentElement);
+    (_a = row.parentElement) === null || _a === void 0 ? void 0 : _a.removeChild(row); // ?. returns undefined if either object accessed or function called is not available.
 }
