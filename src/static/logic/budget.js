@@ -24,7 +24,7 @@
  * 
  * Edit budget rows
  *  [x] Toggle edit/save for all rows
- *  [ ] set row for deletion (mark it and when saved, it disappears. When marked it is greyed out.)
+ *  [x] set row for deletion (mark it and when saved, it disappears. When marked it is greyed out.)
  * 
  * Save budget rows
  *  [x] calculate sum
@@ -296,11 +296,48 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
             newDeleteInput.type = 'checkbox'
             newDeleteInput.id = 'delete_' + rowId;
             newDeleteInput.addEventListener('change', (event) => {
-                if (event.currentTarget.checked) {
-                    disableToBeDeletedRow(event.currentTarget.parentElement.parentElement)
+                if (!event.currentTarget.checked) {
+                    unmakeDeleteable(event.currentTarget.parentElement.parentElement)
+
+                    
+
                 } else {
-                    enableBudgetRowInput(event.currentTarget.parentElement.parentElement)
+                    makeDeleteable(event.currentTarget.parentElement.parentElement)
+                    if (event.currentTarget.parentElement.parentElement.className.includes('category-parent') || event.currentTarget.parentElement.parentElement.className.includes('category-child')) {
+                        
+                        
+                        let toBeDeletedRows = new Array();
+                        const childrenOfCurrentTargetRow = Array.from(document.querySelectorAll('.budget-row')).filter(row => row.dataset.parent_id === rowId);
+                        if (childrenOfCurrentTargetRow) {
+                            // add row to be deleted rows
+                            //toBeDeletedRows.push(child)
+    
+                            toBeDeletedRows = [...toBeDeletedRows, ...childrenOfCurrentTargetRow]
+                        }
+
+                        // if the eventTarget is a parent, we potentially also have grandchildren in the tree
+                        if (event.currentTarget.parentElement.parentElement.className.includes('category-parent')) {
+
+                            const childrenIds = childrenOfCurrentTargetRow.map(row=>row.dataset.id);
+                            for (let childId of childrenIds) {
+                                const grandChildren = Array.from(document.querySelectorAll('.budget-row')).filter(row => row.dataset.parent_id === childId)
+                                toBeDeletedRows = [...toBeDeletedRows, ...grandChildren]
+                            }
+                        }                      
+    
+                        // when finished, all children should be marked as "to_be_deleted" and greyed out.
+                        toBeDeletedRows.map(row => makeDeleteable(row))
+
+                    }
+
+                    
                 }
+
+                    // add current target to list of "to be deleted"
+                    // look for children or grandchildren nodes (with parent_id == this.id)
+                    // add those to the list of "to be deleted."
+                    // run the disabelToBeDeletedRow on each instance
+                
             })
             let newDeleteLabel = createHTMLElement('label', false, innerText='Delete');
             newDeleteLabel.htmlFor = newDeleteInput.id;
@@ -346,7 +383,7 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
             let nameDiv = document.createElement('div');
             let amountDiv = document.createElement('div');
             
-            // change div into input
+            // change input into div
             nameDiv.innerText = nameValue;
             amountDiv.innerText = amountValue;
             nameDiv.className = nameInput.className;
@@ -490,15 +527,24 @@ const deleteCategories = function(ids) {
 
 }
 
-const disableToBeDeletedRow = function(budgetRow) {
-    budgetRow.className += ' deleteable'
+
+
+
+const makeDeleteable = function(budgetRow) {
+    // should check if deleteable already in classname (when disabling childnodes of a category row, that can be checked already)
+    if (!budgetRow.className.includes('deleteable')) {
+        budgetRow.className += ' deleteable'
+    }
 
     // disable amount and name input field
     Array.from(budgetRow.querySelectorAll('input.category-amount')).forEach(input => {input.disabled = true})
     Array.from(budgetRow.querySelectorAll('input.category-name')).forEach(input => {input.disabled = true})
+
+    // check off delete checkbox if not already checked (if "makeDeleteable" is initialized by a parent node)
+    budgetRow.querySelector('input[type=checkbox]').checked = true;
 }
 
-const enableBudgetRowInput = function(budgetRow) {
+const unmakeDeleteable = function(budgetRow) {
     budgetRow.className = budgetRow.className.replace(' deleteable', '')
 
     // enable amount and name input field
