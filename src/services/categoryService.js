@@ -62,7 +62,7 @@ class CategoryService {
             // --- throw error, and delete parent category first (CURRENT CHOICE)
             // parse id
             const id = parseInt(delete_id);
-            // query db
+            // query db - verify category exists, and only returns one unique row from db
             const to_be_deleted_category_sql_object = yield pool.query('SELECT * FROM category WHERE id = $1', [id]);
             // verify id only equals 1 category 
             if (to_be_deleted_category_sql_object['rows'].length === 0) {
@@ -80,7 +80,8 @@ class CategoryService {
         });
     }
     static updateCategory(id, name, amount, parent_id, budget_id) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, arguments, void 0, function* () {
+            console.log('updateCategory called with: ', arguments);
             parent_id = parent_id === 'null' ? undefined : parent_id;
             // update category
             let updated_category = yield pool.query('UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *', [id, name, amount, (parent_id || undefined), (budget_id || undefined)]);
@@ -94,6 +95,7 @@ class CategoryService {
             }
             // init category object
             let category = new category_1.Category(updated_category.rows[0].id, updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
+            console.log('new category after put: ', category);
             // return transaction object
             return category;
         });

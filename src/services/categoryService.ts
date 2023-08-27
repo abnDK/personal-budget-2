@@ -83,7 +83,7 @@ class CategoryService {
         // parse id
         const id : number = parseInt(delete_id);
 
-        // query db
+        // query db - verify category exists, and only returns one unique row from db
         const to_be_deleted_category_sql_object : {rows: Array<{name:string, amount:number, id:number, parent_id:number, budget_id:number}>} = await pool.query('SELECT * FROM category WHERE id = $1', [id])
 
         
@@ -114,7 +114,7 @@ class CategoryService {
     }
 
     static async updateCategory(id: number, name: string, amount: number, parent_id?: string, budget_id?: string): Promise<Category> {
-        
+        console.log('updateCategory called with: ', arguments)
         parent_id = parent_id === 'null' ? undefined : parent_id;
 
         // update category
@@ -138,6 +138,8 @@ class CategoryService {
             updated_category.rows[0].parent_id, 
             updated_category.rows[0].budget_id
         )
+
+        console.log('new category after put: ', category)
 
         // return transaction object
         return category

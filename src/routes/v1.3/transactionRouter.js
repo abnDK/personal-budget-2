@@ -33,11 +33,8 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-    console.log('.')
     const { name, amount, date, category_id, recipient, comment } = req.body;
-    console.log(category_id)
     const transaction = await TransactionService.createTransaction(name, amount, date, category_id, recipient, comment);
-    console.log(transaction)
     //res.status(res.statusCode).json(transaction);
     
     res.status(res.statusCode).send(transaction);
@@ -64,8 +61,10 @@ router.delete('/:id', async (req, res) => {
 
 
 router.put('/:id', async (req, res) => {
-
-    const { name, amount, date, category_id, recipient, comment, id } = req.body;
+    
+    const id = req.params.id;
+    const { name, amount, date, category_id, recipient, comment } = req.body;
+    
     const transaction = await TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment);
 
 

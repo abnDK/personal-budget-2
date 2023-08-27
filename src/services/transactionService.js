@@ -92,6 +92,16 @@ class TransactionService {
     }
     static updateTransaction(id, name, amount, date, category_id, recipient, comment) {
         return __awaiter(this, void 0, void 0, function* () {
+            let pre_updated_trans_response = yield pool.query('SELECT * FROM transaction WHERE id = $1', [id]);
+            const pre_updated_trans = pre_updated_trans_response['rows'][0];
+            // setting previous values, if no new is given.
+            name = name ? name : pre_updated_trans.name;
+            amount = amount ? amount : pre_updated_trans.amount;
+            date = date ? date : pre_updated_trans.date;
+            console.log('new cateogry id for transaction (if null, prev. will be preserved)', category_id);
+            category_id = category_id ? category_id : null; //pre_updated_trans.category_id;
+            recipient = recipient ? recipient : pre_updated_trans.recipient;
+            comment = comment ? comment : pre_updated_trans.comment;
             // update transaction
             let updated_trans = yield pool.query('UPDATE transaction SET name = $2, amount = $3, date = $4, category_id = $5, recipient = $6, comment = $7 WHERE id = $1 RETURNING *', [id, name, amount, date, category_id, recipient, comment]);
             // verify only 1 transaction has been returned and returned from db

@@ -24,9 +24,26 @@ router.post('/', async (req, res) => {
 })
 
 
-router.delete('/:id', async (req, res) => {
-    let budget = await CategoryService.deleteCategory(req.params.id)
-    res.status(200).send(budget)
+router.delete('/:id', async (req, res, next) => {
+    /*
+    let category = await CategoryService.deleteCategory(req.params.id)
+    res.status(200).send(category)
+    */
+    
+    /*
+    try {
+        let category = await CategoryService.deleteCategory(req.params.id)
+        res.status(200).send(category)
+    } catch (err) {
+        return next(err)
+    }
+    */
+
+    let category = CategoryService.deleteCategory(req.params.id)
+    category
+        .then((category) => res.status(200).send(category))
+        .catch((error) => next(error))
+            
 })
 
 router.put('/:id', async (req, res) => {

@@ -1,10 +1,11 @@
 // entrypoint for Personal Budget 2 @ Codecademy
 
-const path = require('path')
-const express = require('express')
-const bodyParser = require('body-parser')
-const app = express()
-const port = 3000
+const path = require('path');
+const express = require('express');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const app = express();
+const port = 3000;
  
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded(
@@ -12,6 +13,7 @@ app.use(bodyParser.urlencoded(
         extended: true
     }
 ))
+app.use(morgan('common'));
 
 
 // setting env-variable.

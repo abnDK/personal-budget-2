@@ -16,7 +16,5 @@ function createHTMLElement(tag, className, innerText, children) {
 }
 function deleteBudgetRow(row) {
     var _a;
-    console.log(row);
-    console.log(row.parentElement);
     (_a = row.parentElement) === null || _a === void 0 ? void 0 : _a.removeChild(row); // ?. returns undefined if either object accessed or function called is not available.
 }
