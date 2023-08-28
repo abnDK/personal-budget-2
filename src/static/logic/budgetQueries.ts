@@ -1,3 +1,20 @@
+interface Transaction {
+    id:number, 
+    name:string, 
+    amount:number, 
+    date:Date, 
+    category_id:string
+}
+
+interface Category {
+    name:string,
+    amount:number, 
+    id:number, 
+    parent_id:number, 
+    budget_id:number
+}
+
+
 
 const getCategoriesAsTree = function() {
     return fetch(
@@ -17,7 +34,7 @@ const getCategoriesAsTree = function() {
 }
 
 // GET TRANSACTIONS
-const getTransactions = function(): Promise<Array<object>> {
+const getTransactions = function(): Promise<Array<Transaction>> {
     return fetch(`http://localhost:3000/transactions`, {
         method: 'GET'
     }).then((res) => {
@@ -28,8 +45,10 @@ const getTransactions = function(): Promise<Array<object>> {
     }).catch((err) => {throw new Error(err)})
 }
 
-const getTransactionsByCategoryId = function(category_id: string): Promise<Array<object>> { 
-    return getTransactions().then(transactions => {return transactions.filter(transaction => transaction.category_id == category_id)})
+const getTransactionsByCategoryId = async function(category_id: string): Promise<Transaction[]> { 
+    const transactions = await getTransactions();
+    const filteredTransactions: Transaction[] = transactions.filter(transaction => transaction.category_id == category_id);
+    return filteredTransactions
 };
 
 const deleteCategory = function(category_id: string) {
@@ -42,7 +61,7 @@ const deleteCategory = function(category_id: string) {
     })
     .then((res)=>{
         if (!res.ok) {
-            throw new Error(res.status)
+            throw new Error(String(res.status))
         }
 
         return res.json()
@@ -51,7 +70,7 @@ const deleteCategory = function(category_id: string) {
 }
 
 // DELETE CATEGORIES / BUDGET ROWS
-const deleteCategoryAndHandleTransactionForeignKeyConstraint = function(category_id: string): Promise<Array<object>> {
+const deleteCategoryAndHandleTransactionForeignKeyConstraint = async function(category_id: string): Promise<Array<object>> {
     
     // CHANGING ID OF ANY RELATED TRANSACTIONS
     // get transactions with category_id
@@ -59,40 +78,27 @@ const deleteCategoryAndHandleTransactionForeignKeyConstraint = function(category
     // should return true, if delete is successful...
 
 
-    const transactions: Promise<Array<Object>> = getTransactionsByCategoryId(category_id)
+    const transactionsPromise: Promise<Transaction[]> = getTransactionsByCategoryId(category_id)
     
-    const category = categoryById(category_id);
-
-    const transactionsAndCategoriesByCategoryId: Promise<Array<object>> = Promise.all([transactions, category]);
+    const categoryPromise: Promise<Category> = categoryById(category_id);
     
+    const transactionsAndCategory: [Transaction[], Category] = await Promise.all([transactionsPromise, categoryPromise]);
+ 
+    const transactions: Transaction[] = transactionsAndCategory[0];
+    const category: Category = transactionsAndCategory[1];
 
-    return transactionsAndCategoriesByCategoryId
-        .then(transactionAndCategory => {
+    // if no transactions has relation to category, category can just be deleted
+    if (!transactions.length) {
+        return await deleteCategory(category_id)
+    }
 
-            const transactions: Array<{id:number}> = transactionAndCategory[0];
-            const category: object = transactionAndCategory[1];
-            
-            
-            if (!transactions.length) {
-                return deleteCategory(category_id)
-            }
-            
-            
-            const changedCategoryIdOfTransactionsPromises: Array<Promise<object>> = transactions.map(
-                (transaction) => {
-                        return updateCategoryIdOfTransaction(transaction.id, category.parent_id)
-                }
-            )
-            
-            return Promise.all(changedCategoryIdOfTransactionsPromises)
-                .then(() => {
-                    return deleteCategory(category_id); // if return category object, that has been deleted
-                }).catch((err) => {
-                    throw new Error(err)
-                })
-        })
+    // All transactions with relation to category_id has it changed to parent of category
+    for (const transaction of transactions) {
+        await updateCategoryIdOfTransaction(String(transaction.id), String(category.parent_id))
+    }
 
-        
+    // Delete category after all relations from transaction has been removed.
+    return await deleteCategory(category_id);
     
 
    
@@ -110,7 +116,7 @@ const deleteCategories = async function(ids:number[]) {
     //const promisesToResolve = ids.map((id) => deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
     const deletedCategyObjects = [];
     for (let id of ids) {
-        deletedCategyObjects.push(await deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
+        deletedCategyObjects.push(await deleteCategoryAndHandleTransactionForeignKeyConstraint(String(id)));
     }
 
     return deletedCategyObjects
@@ -123,7 +129,7 @@ const deleteCategories = async function(ids:number[]) {
 
 // GET CATEGORY BY ID
 
-const categoryById = function(categoryId:string): Promise<Array<object>> {
+const categoryById = function(categoryId:string): Promise<Category> {
     return fetch(`http://localhost:3000/categories/${categoryId}`, {
         method: 'GET'
     }).then((res) => {

@@ -32,7 +32,11 @@ const getTransactions = function () {
     }).catch((err) => { throw new Error(err); });
 };
 const getTransactionsByCategoryId = function (category_id) {
-    return getTransactions().then(transactions => { return transactions.filter(transaction => transaction.category_id == category_id); });
+    return __awaiter(this, void 0, void 0, function* () {
+        const transactions = yield getTransactions();
+        const filteredTransactions = transactions.filter(transaction => transaction.category_id == category_id);
+        return filteredTransactions;
+    });
 };
 const deleteCategory = function (category_id) {
     return fetch(`http://localhost:3000/categories/${category_id}`, {
@@ -43,7 +47,7 @@ const deleteCategory = function (category_id) {
     })
         .then((res) => {
         if (!res.ok) {
-            throw new Error(res.status);
+            throw new Error(String(res.status));
         }
         return res.json();
     })
@@ -51,28 +55,25 @@ const deleteCategory = function (category_id) {
 };
 // DELETE CATEGORIES / BUDGET ROWS
 const deleteCategoryAndHandleTransactionForeignKeyConstraint = function (category_id) {
-    // CHANGING ID OF ANY RELATED TRANSACTIONS
-    // get transactions with category_id
-    // should return true, if delete is successful...
-    const transactions = getTransactionsByCategoryId(category_id);
-    const category = categoryById(category_id);
-    const transactionsAndCategoriesByCategoryId = Promise.all([transactions, category]);
-    return transactionsAndCategoriesByCategoryId
-        .then(transactionAndCategory => {
-        const transactions = transactionAndCategory[0];
-        const category = transactionAndCategory[1];
+    return __awaiter(this, void 0, void 0, function* () {
+        // CHANGING ID OF ANY RELATED TRANSACTIONS
+        // get transactions with category_id
+        // should return true, if delete is successful...
+        const transactionsPromise = getTransactionsByCategoryId(category_id);
+        const categoryPromise = categoryById(category_id);
+        const transactionsAndCategory = yield Promise.all([transactionsPromise, categoryPromise]);
+        const transactions = transactionsAndCategory[0];
+        const category = transactionsAndCategory[1];
+        // if no transactions has relation to category, category can just be deleted
         if (!transactions.length) {
-            return deleteCategory(category_id);
+            return yield deleteCategory(category_id);
         }
-        const changedCategoryIdOfTransactionsPromises = transactions.map((transaction) => {
-            return updateCategoryIdOfTransaction(transaction.id, category.parent_id);
-        });
-        return Promise.all(changedCategoryIdOfTransactionsPromises)
-            .then(() => {
-            return deleteCategory(category_id); // if return category object, that has been deleted
-        }).catch((err) => {
-            throw new Error(err);
-        });
+        // All transactions with relation to category_id has it changed to parent of category
+        for (const transaction of transactions) {
+            yield updateCategoryIdOfTransaction(String(transaction.id), String(category.parent_id));
+        }
+        // Delete category after all relations from transaction has been removed.
+        return yield deleteCategory(category_id);
     });
 };
 const deleteCategories = function (ids) {
@@ -84,7 +85,7 @@ const deleteCategories = function (ids) {
         //const promisesToResolve = ids.map((id) => deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
         const deletedCategyObjects = [];
         for (let id of ids) {
-            deletedCategyObjects.push(yield deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
+            deletedCategyObjects.push(yield deleteCategoryAndHandleTransactionForeignKeyConstraint(String(id)));
         }
         return deletedCategyObjects;
         //return Promise.all(promisesToResolve)
