@@ -92,17 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 // POPULATE TRANSACTIONS (WITH PLACEHOLDER DATA)
-document.addEventListener('DOMContentLoaded', () => {
+
+
+const populateTransactions = async () => {
     let rows = document.querySelector('.transaction-rows');
+
+    let res = await fetch('http://localhost:3000/transactions')
+    let transactions = Array.from(await res.json())
+
+    for (let trans of transactions) {
+        const row = createTransactionRow(trans.name, trans.amount, trans.date, trans.category_id);
+
+        rows.appendChild(row);
+    }
+    return 
+
     const ROWS_AMOUNT = 100;
 
     for (let i = 0; i < ROWS_AMOUNT; i++) {
-        const row = createPlaceholderTransactionRow();
-
+        const row = createTransactionRow();
+        console.log(row)
+        console.log(typeof row)
         rows.appendChild(row);
 
     }
-})
+}
+
+
+document.addEventListener('DOMContentLoaded', populateTransactions)
 
 
 
@@ -335,6 +352,14 @@ document.querySelector('.budget-sum').addEventListener('updateDatabaseStart', (e
 
 
         }
+
+        // re-render transactions
+        transactionRows = Array.from(document.querySelectorAll('transaction-row'))
+        for (let trans of transactionRows) {
+            deleteBudgetRow(trans);
+        }
+        populateTransactions()
+
     }).catch((err) => {throw new Error(err)})
 
 })

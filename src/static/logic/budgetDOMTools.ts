@@ -67,6 +67,29 @@ const createPlaceholderTransactionRow = function() {
     return row
 }
 
+const createTransactionRow = function(description='default desc', amount="def amount", date="def date", category="def category") {
+    const transactionRowClass = 'transaction-row'
+    const transactionDateClass = 'transaction-date'
+    const transactionDescriptionClass = 'transaction-description'
+    const transactionAmountClass = 'transaction-amount'
+    const transactionCategoryClass = 'transaction-category'
+
+    
+    
+    const element = document.createElement('div')
+    element.className = transactionRowClass
+    element.innerHTML = `
+        
+            <div class="${transactionDateClass}">${iso8601dateToInputValue(date)}</div>
+            <div class="${transactionAmountClass}">${amount}</div>
+            <div class="${transactionDescriptionClass}">${description}</div>
+            <div class="${transactionCategoryClass}">${category}</div>
+
+    `
+
+    return element
+}
+
 
 const makeDeleteable = function(budgetRow: HTMLElement) {
     // should check if deleteable already in classname (when disabling childnodes of a category row, that can be checked already)
