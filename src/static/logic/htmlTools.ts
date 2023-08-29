@@ -1,4 +1,4 @@
-function createHTMLElement(tag: string, className?: string, innerText?: string | undefined, children?: HTMLElement[] | undefined): HTMLElement {
+function createHTMLElement(tag: string, className?: string | undefined, innerText?: string | undefined, children?: HTMLElement[] | undefined): HTMLElement {
     let element: HTMLElement = document.createElement(tag);
 
 
@@ -27,5 +27,17 @@ function createHTMLElement(tag: string, className?: string, innerText?: string |
 
 function deleteBudgetRow(row: HTMLElement): void {
 
-    row.parentElement?.removeChild(row) // ?. returns undefined if either object accessed or function called is not available.
+    const parent: HTMLElement | null = row.parentElement;
+    if (parent.tag == 'body') {
+        // we've gone to far without finding the budget row to delete
+        return
+    }
+
+    if (row.className.includes('budget-row')) {
+        row.parentElement?.removeChild(row)
+        return
+    }
+
+    deleteBudgetRow(row);
+    return 
 }

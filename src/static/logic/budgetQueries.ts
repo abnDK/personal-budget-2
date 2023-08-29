@@ -1,27 +1,10 @@
-interface Transaction {
-    id:number, 
-    name:string, 
-    amount:number, 
-    date:Date, 
-    category_id:string
-}
-
-interface Category {
-    name:string,
-    amount:number, 
-    id:number, 
-    parent_id:number, 
-    budget_id:number
-}
-
-
-
+/* IS THIS EVER CALLED?*/
 const getCategoriesAsTree = function() {
     return fetch(
         'http://localhost:3000/categories'
     ).then((res) => {
         if (!res.ok) {
-            throw new Error(res.status)
+            throw new Error(String(res.status))
         }
         return res.text()
     }).then((res) => {
@@ -51,7 +34,7 @@ const getTransactionsByCategoryId = async function(category_id: string): Promise
     return filteredTransactions
 };
 
-const deleteCategory = function(category_id: string) {
+const deleteCategory = function(category_id: string): Promise<Category> {
 
     return fetch(`http://localhost:3000/categories/${category_id}`, {
         method: 'DELETE',
@@ -70,7 +53,7 @@ const deleteCategory = function(category_id: string) {
 }
 
 // DELETE CATEGORIES / BUDGET ROWS
-const deleteCategoryAndHandleTransactionForeignKeyConstraint = async function(category_id: string): Promise<Array<object>> {
+const deleteCategoryAndHandleTransactionForeignKeyConstraint = async function(category_id: string): Promise<Category> {
     
     // CHANGING ID OF ANY RELATED TRANSACTIONS
     // get transactions with category_id

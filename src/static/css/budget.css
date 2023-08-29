@@ -233,7 +233,7 @@
     grid-row: span 1;
 
     display: grid;
-    grid-template-columns: [row-start category-start] auto [category-end] 40px [amount-start] 80px [amont-end row-end];
+    grid-template-columns: [row-start category-start] auto [category-end add-btn-start] 30px [add-btn-end del-btn-start] 30px [del-btn-end amount-start] 80px [amont-end row-end];
 
 }
 
@@ -258,6 +258,8 @@
 
 .category-row > .category-parent {
 }
+
+
 
 .budget-row.category-child {
     grid-column: child-row-start / row-end;
@@ -284,10 +286,44 @@ input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[typ
     margin: 0;
 }
 
+.category-add {
+    grid-column: add-btn-start / add-btn-end;
+    align-self: center;
+    justify-self: center;
+}
+
+.add-category-btn {
+    background-color: #6D8764;
+    color: white;
+    border: 1px #3A5431 solid;
+    border-radius: 2px;
+    font-size: inherit;
+    height: 8px;
+    width: 20px;
+    
+}
+
 .category-delete > * {
     height: 8px;
     align-items: center;
 
+}
+
+.category-delete {
+    grid-column: del-btn-start / del-btn-end;
+    align-self: center;
+    justify-self: center;
+    text-align: center;text-justify: center;
+}
+
+.delete-category-btn {
+    background-color: #A0522D;
+    color: white;
+    border: 1px #6D1F00 solid;
+    border-radius: 2px;
+    font-size: inherit;
+    height: 8px;
+    width: 20px;
 }
 
 

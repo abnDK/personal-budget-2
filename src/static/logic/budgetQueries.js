@@ -8,10 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/* IS THIS EVER CALLED?*/
 const getCategoriesAsTree = function () {
     return fetch('http://localhost:3000/categories').then((res) => {
         if (!res.ok) {
-            throw new Error(res.status);
+            throw new Error(String(res.status));
         }
         return res.text();
     }).then((res) => {

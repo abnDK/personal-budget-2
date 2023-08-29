@@ -107,15 +107,6 @@ const populateTransactions = async () => {
     }
     return 
 
-    const ROWS_AMOUNT = 100;
-
-    for (let i = 0; i < ROWS_AMOUNT; i++) {
-        const row = createTransactionRow();
-        console.log(row)
-        console.log(typeof row)
-        rows.appendChild(row);
-
-    }
 }
 
 
@@ -142,54 +133,7 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
         // make all rows editable if 'edit' was clicked
         for (let oldRow of oldRows) {
 
-
-            // read values of oldRow
-            const rowTag = oldRow.tagName;
-            
-            const rowClassName = oldRow.className;
-            const oldNameElement = oldRow.querySelector('.category-name')
-            const oldAmountElement = oldRow.querySelector('.category-amount')
-            const rowName = oldNameElement.innerText;
-            const rowAmount = oldAmountElement.innerText;
-            const rowId = oldRow.dataset.id;
-            const parentId = oldRow.dataset.parent_id
-
-            // create newRow element
-            let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
-            let newNameElement = createHTMLElement('input', oldNameElement.className);
-            newNameElement.type = 'text';
-            let newAmountElement = createHTMLElement('input', oldAmountElement.className);
-            newAmountElement.type = 'number';
-            
-            // create delete div with <input> and <label> element
-            let newDeleteElement = createHTMLElement('div', 'category-delete');
-            
-            let newDeleteInput = createHTMLElement('input');
-            newDeleteInput.type = 'checkbox'
-            newDeleteInput.id = 'delete_' + rowId;
-            newDeleteInput.addEventListener('change', deleteCheckboxChange)
-            
-            let newDeleteLabel = createHTMLElement('label', false, innerText='Delete');
-            newDeleteLabel.htmlFor = newDeleteInput.id;
-            
-            newDeleteElement.appendChild(newDeleteInput);
-            newDeleteElement.appendChild(newDeleteLabel);
-
-            // insert data in newRow
-            newNameElement.value = rowName
-            newAmountElement.value = rowAmount
-            newRowElement.dataset.id = rowId;
-            newRowElement.dataset.parent_id = parentId;
-
-
-            // append children to newRow
-            newRowElement.appendChild(newNameElement);
-            newRowElement.appendChild(newDeleteElement);
-            newRowElement.appendChild(newAmountElement);
-
-            // replace oldRow with newRow
-            oldRow.parentElement.replaceChild(newRowElement, oldRow)
-
+            toggleEditableBudgetRow(oldRow)
             
 
         }
@@ -199,42 +143,8 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
 
         // freeze all rows if 'save' was clicked
         for (let oldRow of oldRows) {
-            // remove class "editable" on row
-            oldRow.className = oldRow.className.replace(' editable', '')
-
-
-            // get values of nameDiv and amountDiv
-            let nameInput = oldRow.querySelector('.category-name');
-            let amountInput = oldRow.querySelector('.category-amount');
-
-            let nameValue = nameInput.value;
-            let amountValue = amountInput.value;
             
-            // create new div
-            let nameDiv = document.createElement('div');
-            let amountDiv = document.createElement('div');
-            
-            // change input into div
-            nameDiv.innerText = nameValue;
-            amountDiv.innerText = amountValue;
-            nameDiv.className = nameInput.className;
-            amountDiv.className = amountInput.className;
-
-            
-
-            oldRow.replaceChild(nameDiv, nameInput);     
-            oldRow.replaceChild(amountDiv, amountInput);
-
-            // if delete checkbox is checked, set data-delete = true
-            const toBeDeleted = oldRow.querySelector('.category-delete').querySelector('input').checked
-            if (toBeDeleted) {
-                oldRow.dataset.to_be_deleted = 'true';
-            }
-
-            // remove delete checkbox
-            oldRow.removeChild(oldRow.querySelector('.category-delete'));
-
-
+            toggleFreezeBudgetRow(oldRow);
 
         }
 

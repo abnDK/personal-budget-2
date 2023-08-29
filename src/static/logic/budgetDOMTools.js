@@ -1,5 +1,5 @@
 "use strict";
-// CREATE BUDGET ROWS
+// CREATE BUDGET ROW
 const createBudgetRow = function (budgetObject, level) {
     /**
      * budgetObject: {data}
@@ -25,6 +25,99 @@ const createBudgetRow = function (budgetObject, level) {
     budgetRowElement.dataset.parent_id = budgetObject['parent_id'];
     return budgetRowElement;
 };
+const toggleEditableBudgetRow = function (budgetRow) {
+    // read values of oldRow
+    const rowTag = budgetRow.tagName;
+    const rowClassName = budgetRow.className;
+    const oldNameElement = budgetRow.querySelector('.category-name');
+    const oldAmountElement = budgetRow.querySelector('.category-amount');
+    const rowName = oldNameElement.innerText;
+    const rowAmount = oldAmountElement.innerText;
+    const rowId = budgetRow.dataset.id;
+    const parentId = budgetRow.dataset.parent_id;
+    // create newRow element
+    let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
+    let newNameElement = createHTMLElement('input', oldNameElement.className);
+    newNameElement.type = 'text';
+    let newAmountElement = createHTMLElement('input', oldAmountElement.className);
+    newAmountElement.type = 'number';
+    // create add row <div> with a button inside
+    let newAddRowElement = createHTMLElement('div', 'category-add');
+    let newAddRowButtonElement = createHTMLElement('div', 'add-category-btn');
+    newAddRowButtonElement.innerText = '+';
+    newAddRowButtonElement.addEventListener('click', addBudgetRow);
+    newAddRowElement.appendChild(newAddRowButtonElement);
+    // create delete div with <input> and <label> element
+    let newDeleteElement = createHTMLElement('div', 'category-delete');
+    let newDeleteRowButtonElement = createHTMLElement('div', 'delete-category-btn');
+    newDeleteRowButtonElement.innerText = '-';
+    newDeleteRowButtonElement.id = 'delete_' + rowId;
+    newDeleteRowButtonElement.addEventListener('click', deleteBudgetRow);
+    newDeleteElement.appendChild(newDeleteRowButtonElement);
+    /*
+    let newDeleteInput = createHTMLElement('input');
+    newDeleteInput.type = 'checkbox'
+    newDeleteInput.id = 'delete_' + rowId;
+    newDeleteInput.addEventListener('change', deleteCheckboxChange)
+    
+    let newDeleteLabel = createHTMLElement('label', undefined, 'Delete');
+    newDeleteLabel.htmlFor = newDeleteInput.id;
+    
+    newDeleteElement.appendChild(newDeleteInput);
+    newDeleteElement.appendChild(newDeleteLabel);
+    */
+    // insert data in newRow
+    newNameElement.value = rowName;
+    newAmountElement.value = rowAmount;
+    newRowElement.dataset.id = rowId;
+    newRowElement.dataset.parent_id = parentId;
+    // append children to newRow
+    newRowElement.appendChild(newNameElement);
+    newRowElement.appendChild(newAddRowElement);
+    newRowElement.appendChild(newDeleteElement);
+    newRowElement.appendChild(newAmountElement);
+    // replace oldRow with newRow
+    budgetRow.parentElement.replaceChild(newRowElement, budgetRow);
+};
+const toggleFreezeBudgetRow = function (editableBudgetRow) {
+    // remove class "editable" on row
+    editableBudgetRow.className = editableBudgetRow.className.replace(' editable', '');
+    // get values of nameDiv and amountDiv
+    let nameInput = editableBudgetRow.querySelector('.category-name');
+    let amountInput = editableBudgetRow.querySelector('.category-amount');
+    let nameValue = nameInput.value;
+    let amountValue = amountInput.value;
+    // create new div
+    let nameDiv = document.createElement('div');
+    let amountDiv = document.createElement('div');
+    // change input into div
+    nameDiv.innerText = nameValue;
+    amountDiv.innerText = amountValue;
+    nameDiv.className = nameInput.className;
+    amountDiv.className = amountInput.className;
+    editableBudgetRow.replaceChild(nameDiv, nameInput);
+    editableBudgetRow.replaceChild(amountDiv, amountInput);
+    // if delete checkbox is checked, set data-delete = true
+    const toBeDeleted = editableBudgetRow.querySelector('.category-delete').querySelector('input').checked;
+    if (toBeDeleted) {
+        editableBudgetRow.dataset.to_be_deleted = 'true';
+    }
+    // remove delete checkbox
+    editableBudgetRow.removeChild(editableBudgetRow.querySelector('.category-delete'));
+};
+// ADD BUDGET ROW TO BUDGET
+const addBudgetRow = function (event) {
+    // call createBudgetRow function...
+    console.log(event.currentTarget);
+    // logic that places the row
+    // can we use the same for root row as well as parent, child and grandchild rows?
+};
+/*
+// DELETE BUDGET ROW
+const deleteBudgetRow = function(event: Event) {
+    console.log(event.currentTarget)
+}
+*/
 // CREATE PLACEHOLDER TRANSACTION ROW
 const createPlaceholderTransactionRow = function () {
     let row = document.createElement('div');
