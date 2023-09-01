@@ -297,10 +297,20 @@ input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[typ
     color: white;
     border: 1px #3A5431 solid;
     border-radius: 2px;
-    font-size: inherit;
-    height: 8px;
+    font-size: 7px;
+    height: 9px;
     width: 20px;
+
+    text-align: center;
+    user-select: none; /* User cannot select text when clicking button */
+
     
+}
+
+.add-category-btn-greyed-out {
+    background-color: #707070;
+    color: rgb(215, 215, 215);
+    border: 1px #3a3a3a solid;
 }
 
 .category-delete > * {
@@ -313,7 +323,7 @@ input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[typ
     grid-column: del-btn-start / del-btn-end;
     align-self: center;
     justify-self: center;
-    text-align: center;text-justify: center;
+
 }
 
 .delete-category-btn {
@@ -321,9 +331,20 @@ input::-webkit-inner-spin-button { /* removes the up/down arrow of the input[typ
     color: white;
     border: 1px #6D1F00 solid;
     border-radius: 2px;
-    font-size: inherit;
-    height: 8px;
+    font-size: 7px;
+    height: 9px;
     width: 20px;
+    
+
+    text-align: center;
+    user-select: none; /* User cannot select text when clicking button */
+
+}
+
+.delete-category-btn.greyed-out, .add-category-btn.greyed-out {
+    background-color: #707070;
+    color: rgb(215, 215, 215);
+    border: 1px #3a3a3a solid;
 }
 
 

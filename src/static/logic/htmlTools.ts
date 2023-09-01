@@ -25,19 +25,3 @@ function createHTMLElement(tag: string, className?: string | undefined, innerTex
 }
 
 
-function deleteBudgetRow(row: HTMLElement): void {
-
-    const parent: HTMLElement | null = row.parentElement;
-    if (parent.tag == 'body') {
-        // we've gone to far without finding the budget row to delete
-        return
-    }
-
-    if (row.className.includes('budget-row')) {
-        row.parentElement?.removeChild(row)
-        return
-    }
-
-    deleteBudgetRow(row);
-    return 
-}
