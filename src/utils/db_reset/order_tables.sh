@@ -14,7 +14,7 @@
 #!/bin/bash
 
 # extract foreign key relationships
-psql -d personal_budget_2_old -f $(pwd)/db_reset/foreign_key_constraints.sql > $(pwd)/db_reset/foreign_key_constraints.csv
+psql -d pb2_old -f $(pwd)/db_reset/foreign_key_constraints.sql > $(pwd)/db_reset/foreign_key_constraints.csv
 
 cat $(pwd)/db_reset/foreign_key_constraints.csv
 

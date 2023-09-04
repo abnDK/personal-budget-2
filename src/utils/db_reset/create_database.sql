@@ -1,1 +1,1 @@
-CREATE DATABASE personal_budget_2;
+CREATE DATABASE pb2;

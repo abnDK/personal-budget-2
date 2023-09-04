@@ -55,30 +55,89 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 // POPULATE BUDGET ROWS
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
     let budgetRows = document.querySelector('.budget-rows');
+    if (budgetRows == null) {
+        throw new Error('Could not find budget rows element');
+    }
+    let categories = yield getCategories();
+    const budget_id = parseInt(window.location.href.split("/").at(-1));
+    categories = categories === null || categories === void 0 ? void 0 : categories.filter(cat => cat.budget_id === budget_id);
+    if (categories !== undefined) {
+        const categoryRows = categories.map(cat => {
+            let category = {
+                name: cat['name'],
+                amount: cat['amount'],
+                id: cat['id'],
+                parent_id: cat['parent_id'],
+                budget_id: cat['budget_id'],
+            };
+            return category;
+        });
+        const categoryRowsTree = BuildTree(categoryRows, 'parent_id');
+        const categoryRowsTreeAsArray = dfsTree(categoryRowsTree);
+        console.log(categoryRowsTree);
+        console.log(categoryRowsTreeAsArray);
+        for (let category of categoryRowsTreeAsArray) {
+            budgetRows.appendChild(createBudgetRow(category));
+        }
+    }
+    /*
     // fetch data
     getCategoriesAsTree().then((categories) => {
+        
+        
         // filter categories by budget_id
         // by grapping last :id part of url (after "/" in .../budgets/show/:id)
         const budget_id = parseInt(window.location.href.split("/").at(-1));
-        categories = categories.filter((cat) => cat.budget_id == budget_id);
-        for (let category of categories) {
-            let parent = createBudgetRow(category, 0);
-            budgetRows.appendChild(createBudgetRow(category, 0));
+        categories = categories.filter((cat) => cat.budget_id == budget_id)
+
+        const categoryRows = categories.map(category => {
+            let categoryRow: CategoryRow = {
+                name: category['name'],
+                amount: category['amount'],
+                id: category['id'],
+                parent_id: category['parent_id'],
+                budget_id: category['budget_id'],
+
+            }
+            return categoryRow
+        })
+        
+        console.log(categoryRows)
+        console.log(categories)
+        
+        for (let category of categoryRows) {
+
+            // let parent = createBudgetRow(category, 0)
+            budgetRows.appendChild(
+                createBudgetRow(category, 0)
+            );
+
             if (category.children) {
+
                 for (let child of category.children) {
-                    budgetRows.appendChild(createBudgetRow(child, 1));
+
+                    budgetRows.appendChild(
+                        createBudgetRow(child, 1)
+                    )
+
                     if (child.children) {
+
                         for (let grandchild of child.children) {
-                            budgetRows.appendChild(createBudgetRow(grandchild, 2));
+
+                            budgetRows.appendChild(
+                                createBudgetRow(grandchild, 2)
+                            )
+                            }
                         }
                     }
                 }
             }
-        }
-    });
-});
+        })
+
+    console.log(budgetRows) */
+}));
 // POPULATE TRANSACTIONS (WITH PLACEHOLDER DATA)
 const populateTransactions = () => __awaiter(void 0, void 0, void 0, function* () {
     let rows = document.querySelector('.transaction-rows');
@@ -117,7 +176,7 @@ document.querySelector('.button-edit').addEventListener('click', (event) => {
     }
 });
 // SAVE ALL BUDGET ROWS TO BUDGET
-document.querySelector('.budget-sum').addEventListener('updateDatabaseStart', (event) => {
+document.querySelector('.budget-sum').addEventListener('updateDatabaseStart', (event) => __awaiter(void 0, void 0, void 0, function* () {
     /**
      * When saving all budget rows, the following steps apply:
      * - all rows marked with "to_be_deleted" are deleted from database
@@ -127,101 +186,71 @@ document.querySelector('.budget-sum').addEventListener('updateDatabaseStart', (e
      * --- delete category dom elements
      * - all other rows are saved to db
      */
-    // get all rows to keep and all rows to delete from the dom
+    /*
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! README !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    principle: never update UI before confirmed change in db
+    principle: deleting category: constraining transactions and categories will get the parent_id. If no parent_id, then no id.
+    
+    
+    when clicking 'save':
+    - filter rows in 2 arrays:
+      - keep
+      - delete
+    
+    - deletes:
+      - delete in db
+        - take care of foreign key constraints. "Take a step up in the tree"
+      - delete in ui
+    - keepers:
+      - calc new sums (dont write to db yet)
+      - update categories (only name and value) - entire object with potential new category_id/parent_id
+      - update row in UI (as frozen) with parent_id from db, as this can have been changed
+    
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+
+    
+    */
+    // FILTER ROWS: TO KEEP / TO DELETE
     const budgetRows = Array.from(document.querySelectorAll('.budget-row'));
-    const toKeepRows = [];
-    let toDeleteRows = [];
-    for (let budgetRow of budgetRows) {
-        if (budgetRow.dataset.to_be_deleted === 'true') {
-            toDeleteRows.push(budgetRow);
-        }
-        else {
-            toKeepRows.push(budgetRow);
-        }
-    }
-    // in order not to violate foreign_key constraints in db, we need to delete categories
-    // in the order of: grandchildren, children, parents. Thus we now sort it by classname
-    const toDeleteParents = toDeleteRows.filter(row => row.className.includes('category-parent'));
-    const toDeleteChildren = toDeleteRows.filter(row => row.className.includes('category-child'));
-    const toDeleteGrandchildren = toDeleteRows.filter(row => row.className.includes('category-grandchild'));
-    toDeleteRows = [...toDeleteGrandchildren, ...toDeleteChildren, ...toDeleteParents];
-    const toDeleteIds = toDeleteRows.map(row => row.dataset.id);
-    console.log('all', budgetRows);
-    console.log('keep', toKeepRows);
-    console.log('all delete', toDeleteRows);
-    console.log('all parents delete', toDeleteParents);
-    console.log('all children delete', toDeleteChildren);
-    console.log('all grandchildren delete', toDeleteGrandchildren);
-    console.log(toDeleteIds);
-    deleteCategories(toDeleteIds)
-        .then((deletedCategories) => {
-        const idsOfDeletedCategories = deletedCategories.map(cat => cat.id);
-        // after category is deleted in db, budget-row is deleted in DOM
-        return Promise.all(toDeleteRows.map((toDeleteRow) => {
-            if (idsOfDeletedCategories.includes(parseInt(toDeleteRow.dataset.id))) {
-                return deleteBudgetRow(toDeleteRow);
-            }
-            else {
-                throw new Error('row could not be deleted');
+    const toKeepRows = budgetRows.filter(row => row.dataset.to_be_deleted != 'true');
+    let toDeleteRows = budgetRows.filter(row => row.dataset.to_be_deleted == 'true');
+    console.log('to keep: ', toKeepRows);
+    console.log('to delete: ', toDeleteRows);
+    // DELETE CATEGORIES IN DB
+    const deletedCategories = yield deleteCategories(toDeleteRows.map(row => Number(row.dataset.id)));
+    console.log('deleted in db: ', deletedCategories);
+    // DELETE CATEGORES IN UI
+    for (const deletedRow of deletedCategories) {
+        toDeleteRows.forEach((row => {
+            console.log('deleted in db: ', deletedRow);
+            console.log('forEach toDelete: ', row);
+            if (Number(row.dataset.id) == Number(deletedRow.id)) {
+                deleteBudgetRow(row);
             }
         }));
-    })
-        .then(() => {
-        /**
-         * CALCULATE AND UPDATE BUDGET ROW SUMS
-         *
-         * 1. Calculate new sums, but dont update front end
-         * 2. Update rows in the db with new values (not parent_id)
-         * 3. Set new values for sum, and parent_id from db on the rows
-         *
-         */
-        // after rows to be deleted has been removed from dom, we update sums of remaing budget rows
-        console.log('check');
-        try {
-            updateBudgetSums();
-        }
-        catch (error) {
-            console.error(error);
-        }
-        // and then we write budget-rows with updated sums to db
-        /*
-        for (const budgetRow of toKeepRows) {
-            const id = budgetRow.dataset.id;
-            const name = budgetRow.querySelector('.category-name').innerText;
-            const amount = parseInt(budgetRow.querySelector('.category-amount').innerText);
-            const parent_id = budgetRow.dataset.parent_id;
-            const budget_id = parseInt(window.location.href.split("/").at(-1));
-            
-            let updatedCategoryObject = {
-                "id": id,
-                "name": name,
-                "amount": amount,
-                "parent_id": parent_id,
-                "budget_id": budget_id
-            }
-    
-            
-    
-            updateCategoryRequest(updatedCategoryObject).then((res) => {
-                if (res.ok) {
-                    console.log(res)
-                }
-            }).catch((err)=> {
-                throw new Error(err)
-            })
-
-
-        }
-
-        // re-render transactions
-        transactionRows = Array.from(document.querySelectorAll('transaction-row'))
-        for (let trans of transactionRows) {
-            deleteBudgetRow(trans);
-        }
-        populateTransactions()
-         */
-    }).catch((err) => { throw new Error(err); });
-});
+    }
+    // CALC SUMS
+    // UPDATE CATEGORIES IN DB
+    // RENDER FROZEN ROWS
+    /*
+    **
+        * CALCULATE AND UPDATE BUDGET ROW SUMS
+        *
+        * 1. Calculate new sums, but dont update front end
+        * 2. Update rows in the db with new values (not parent_id)
+        * 3. Set new values for sum, and parent_id from db on the rows
+        *
+        */
+    // after rows to be deleted has been removed from dom, we update sums of remaing budget rows
+    console.log('check');
+    try {
+        updateBudgetSums();
+    }
+    catch (error) {
+        console.error(error);
+    }
+}));
 // TOGGLING CATEGORY ROW TO BE DELETED
 const deleteCheckboxChange = function (event) {
     console.log('is this used?');
@@ -288,7 +317,7 @@ const makeCategoryTreeFromBudget = () => {
 const tmp = () => {
     let tree = makeCategoryTreeFromBudget();
     for (let row of tree.rows) {
-        console.log(row);
+        // console.log(row)
         let _ = createEditableBudgetRow(row);
         console.log(_);
     }
@@ -298,6 +327,7 @@ const tmp = () => {
 };
 // UPDATE BUDGET SUM AND ALL PARTSUMS OF CHILDREN AND PARENT CATEGORIES
 const updateBudgetSums = function () {
+    // INSTEAD OF ALL THE CODE BELOW: Use makeCategoryTreeFromBudget() - it has handy functions for calculating sums.
     // budget sum is calculated as parent = sum(children) = sum(grandchildren)
     // values in children and parents are updated as sum of their child
     // and will be set before the row is saved to db

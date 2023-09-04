@@ -1,9 +1,9 @@
 ////**** BUDGET SIDE  ****////
 
 // CREATE BUDGET ROW
-const createBudgetRow = function(category: CategoryRow): HTMLElement {
+const createBudgetRow = function(category: Category): HTMLElement {
     /**
-     * Takes CategoryRow as input. 
+     * Takes Category as input. 
      * Besides obligatory fields, 
      * optional field 'level' must
      * be provided.
@@ -34,7 +34,7 @@ const createBudgetRow = function(category: CategoryRow): HTMLElement {
     return budgetRowElement;
 }
 
-const createEditableBudgetRow = function(category: CategoryRow) {
+const createEditableBudgetRow = function(category: Category): CategoryRow {
     `
     Structure of editable budget row
 
@@ -58,13 +58,24 @@ const createEditableBudgetRow = function(category: CategoryRow) {
     Returns budget-row element editable
 
     /*
-     * Takes CategoryRow as input. 
+     * Takes Category as input. 
      * Besides obligatory fields, 
      * optional field 'level' must
      * be provided.
      * 
      */
     
+    let CategoryRowObject: CategoryRow = {};
+
+
+    console.log('source', category)
+
+    for (const [key, value] of Object.entries(category)) {
+        console.log(`Copying ${key}: ${value} to new object`)
+        CategoryRowObject[key] = value;
+    }
+
+    console.log('target', CategoryRowObject)
 
 
     let editableBudgetRowElement = createHTMLElement('div', 'budget-row editable')
@@ -92,6 +103,7 @@ const createEditableBudgetRow = function(category: CategoryRow) {
     let categoryDelete = createHTMLElement('div', 'category-delete');
     let categoryDeleteBtn = createHTMLElement('div', 'delete-category-btn', 'x');
     categoryDeleteBtn.id = 'delete_' + String(category.id);
+    categoryDeleteBtn.addEventListener('click', deleteBudgetRowHandler);
     categoryDelete.appendChild(categoryDeleteBtn);
     editableBudgetRowElement.appendChild(categoryDelete);
 
@@ -100,7 +112,9 @@ const createEditableBudgetRow = function(category: CategoryRow) {
     amountInput.value = category['amount'];
     editableBudgetRowElement.appendChild(amountInput);
 
-    return editableBudgetRowElement
+    CategoryRowObject.element = editableBudgetRowElement;
+
+    return CategoryRowObject
 
 }
 
@@ -115,8 +129,33 @@ const toggleEditableBudgetRow = function(budgetRow: HTMLElementBudgetRow): void 
     const oldAmountElement: HTMLElement | null = budgetRow.querySelector('.category-amount')
     const rowName: string | null = oldNameElement.innerText;
     const rowAmount: string | null = oldAmountElement.innerText;
-    const rowId: string = budgetRow.dataset.id;
-    const parentId: string = budgetRow.dataset.parent_id
+    const rowId: number = parseInt(budgetRow.dataset.id);
+    const parentId: number = parseInt(budgetRow.dataset.parent_id)
+    
+    
+    // const level = LevelClassMap.get(rowClassName.includes('parent') ? "0" : rowClassName.includes('grandchild') ? "2" : "1")
+
+    let level: string | undefined;
+
+    if (rowClassName.includes('parent')) {
+        level = LevelClassMap.get('parent');
+    } else if (rowClassName.includes('grandchild')) {
+        level = LevelClassMap.get('grandchild');
+    } else {
+        level = LevelClassMap.get('child')
+    }
+
+    
+    const editableBudgetRow = createEditableBudgetRow({
+        name: rowName,
+        amount: parseInt(rowAmount),
+        id: rowId,
+        parent_id: parentId,
+        level: parseInt(level),
+    });
+
+
+    /* 
 
     // create newRow element
     let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
@@ -124,6 +163,7 @@ const toggleEditableBudgetRow = function(budgetRow: HTMLElementBudgetRow): void 
     newNameElement.type = 'text';
     let newAmountElement = createHTMLElement('input', oldAmountElement.className);
     newAmountElement.type = 'number';
+    
     
     // create add row <div> with a button inside
     let newAddRowElement = createHTMLElement('div', 'category-add');
@@ -144,7 +184,8 @@ const toggleEditableBudgetRow = function(budgetRow: HTMLElementBudgetRow): void 
 
     newDeleteElement.appendChild(newDeleteRowButtonElement)
 
-    
+
+
 
     // insert data in newRow
     newNameElement.value = rowName
@@ -158,9 +199,10 @@ const toggleEditableBudgetRow = function(budgetRow: HTMLElementBudgetRow): void 
     newRowElement.appendChild(newAddRowElement);
     newRowElement.appendChild(newDeleteElement);
     newRowElement.appendChild(newAmountElement);
+    */
 
     // replace oldRow with newRow
-    budgetRow.parentElement.replaceChild(newRowElement, budgetRow)
+    budgetRow.parentElement.replaceChild(editableBudgetRow.element, budgetRow)
 
 
 }

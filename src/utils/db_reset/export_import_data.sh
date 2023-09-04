@@ -32,7 +32,7 @@ echo "====> copying from $tablename <===="
 # export data from each table in _old database
 copy_to_statement="COPY (SELECT * FROM $tablename) TO STDOUT WITH (FORMAT 
 csv, DELIMITER ';')"
-psql -d personal_budget_2_old -c "$copy_to_statement" > $(pwd)/db_reset/tabledata
+psql -d pb2_old -c "$copy_to_statement" > $(pwd)/db_reset/tabledata
 
 echo "following data written to tabledata"
 cat $(pwd)/db_reset/tabledata
@@ -41,7 +41,7 @@ cat $(pwd)/db_reset/tabledata
 # import each file into equivalent table in new db
 copy_from_statement="COPY $tablename FROM STDIN WITH (FORMAT csv, 
 DELIMITER ';')"
-psql -d personal_budget_2 -c "$copy_from_statement" < $(pwd)/db_reset/tabledata
+psql -d pb2 -c "$copy_from_statement" < $(pwd)/db_reset/tabledata
 
 
 

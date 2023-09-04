@@ -1,5 +1,13 @@
 /* IS THIS EVER CALLED?*/
-const getCategoriesAsTree = function() {
+const getCategoriesAsTree = async function() {
+    
+    const categoriesRandomData = await fetch('http://localhost:3000/categories')
+    const categoriesRandomJson = await categoriesRandomData.json()
+    
+    return BuildTree(categoriesRandomJson, 'parent_id');
+
+    return 
+
     return fetch(
         'http://localhost:3000/categories'
     ).then((res) => {
@@ -151,7 +159,7 @@ const getCategoryChildren = async function(category_id: number): Promise<Categor
 
 } 
 
-const deleteCategories = async function(ids:number[]) {
+const deleteCategories = async function(ids:number[]): Promise<Category[]> {
     // array of id's (string)
     // create multiple promises (from deleteCategory) and
     // await all promises to resolve.

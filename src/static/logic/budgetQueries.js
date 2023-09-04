@@ -10,15 +10,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 /* IS THIS EVER CALLED?*/
 const getCategoriesAsTree = function () {
-    return fetch('http://localhost:3000/categories').then((res) => {
-        if (!res.ok) {
-            throw new Error(String(res.status));
-        }
-        return res.text();
-    }).then((res) => {
-        return BuildTree(JSON.parse(res), 'parent_id');
-    }).catch((err) => {
-        throw new Error(err);
+    return __awaiter(this, void 0, void 0, function* () {
+        const categoriesRandomData = yield fetch('http://localhost:3000/categories');
+        const categoriesRandomJson = yield categoriesRandomData.json();
+        return BuildTree(categoriesRandomJson, 'parent_id');
+        return;
+        return fetch('http://localhost:3000/categories').then((res) => {
+            if (!res.ok) {
+                throw new Error(String(res.status));
+            }
+            return res.text();
+        }).then((res) => {
+            return BuildTree(JSON.parse(res), 'parent_id');
+        }).catch((err) => {
+            throw new Error(err);
+        });
     });
 };
 // TRANSACTION REQUESTS

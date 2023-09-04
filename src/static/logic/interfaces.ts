@@ -12,16 +12,26 @@ interface Category {
     amount:number, 
     id:number, 
     parent_id:number, 
-    budget_id:number
+    budget_id?:number
+    level?: number,
+    children?: Category[]
+
 }
 
 // for use when handling budget-row elements in the dom
 interface CategoryRow extends Category {
-    level?: number,
-    to_be_deleted?: boolean,
-    element?: HTMLElement
+    to_be_deleted: boolean,
+    element: HTMLElement
 }
 
+const LevelClassMap = new Map([
+    ["0", 'parent'],
+    ["1", 'child'],
+    ["2", 'grandchild'],
+    ['parent', '0'],
+    ['child', '1'],
+    ['grandchild', '2']
+])
 
 /* 
 class CategoryRow {

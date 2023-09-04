@@ -32,7 +32,7 @@ if [[ -z $found ]]
     then
         echo "No testdata found for current version ($($version_number))"
     else
-        psql -d personal_budget_2 -a -f "$current_version_test_data_path"
+        psql -d pb2 -a -f "$current_version_test_data_path"
         echo "Test data written for db version $($version_number)"
     fi
 

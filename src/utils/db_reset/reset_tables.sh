@@ -8,7 +8,7 @@ $(pwd)/db_reset/reset_database.sh
 $(pwd)/migration/write_version.sh 0-0
 
 # create tables again
-psql -d personal_budget_2 -U abndk -a -f "$(pwd)/../models/migration/db_1-0.sql"
+psql -d pb2 -U pb2_app -a -f "$(pwd)/../models/migration/db_1-0.sql"
 
 # update to newest version (user should be able to specify)
 $(pwd)/migration/up.sh

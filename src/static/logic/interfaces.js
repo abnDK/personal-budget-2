@@ -1,4 +1,12 @@
 "use strict";
+const LevelClassMap = new Map([
+    ["0", 'parent'],
+    ["1", 'child'],
+    ["2", 'grandchild'],
+    ['parent', '0'],
+    ['child', '1'],
+    ['grandchild', '2']
+]);
 class CategoryTree {
     constructor() {
         this.addRow = (row) => {

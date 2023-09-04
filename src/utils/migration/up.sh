@@ -63,7 +63,7 @@ if [[ $next_major -gt $current_major ]]
 then
 
   # write migration to db tables
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
+  psql -d pb2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 
@@ -74,7 +74,7 @@ then
 
   # write migration to db tables
 
-  psql -d personal_budget_2 -U "$postgresuser" -a -f "$filename_full_path"
+  psql -d pb2 -U "$postgresuser" -a -f "$filename_full_path"
 
 fi
 

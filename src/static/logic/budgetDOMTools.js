@@ -3,7 +3,7 @@
 // CREATE BUDGET ROW
 const createBudgetRow = function (category) {
     /**
-     * Takes CategoryRow as input.
+     * Takes Category as input.
      * Besides obligatory fields,
      * optional field 'level' must
      * be provided.
@@ -53,12 +53,19 @@ const createEditableBudgetRow = function (category) {
     Returns budget-row element editable
 
     /*
-     * Takes CategoryRow as input.
+     * Takes Category as input.
      * Besides obligatory fields,
      * optional field 'level' must
      * be provided.
      *
      */
+    let CategoryRowObject = {};
+    console.log('source', category);
+    for (const [key, value] of Object.entries(category)) {
+        console.log(`Copying ${key}: ${value} to new object`);
+        CategoryRowObject[key] = value;
+    }
+    console.log('target', CategoryRowObject);
     let editableBudgetRowElement = createHTMLElement('div', 'budget-row editable');
     editableBudgetRowElement.dataset.id = String(category.id);
     editableBudgetRowElement.dataset.parent_id = String(category.parent_id);
@@ -83,13 +90,15 @@ const createEditableBudgetRow = function (category) {
     let categoryDelete = createHTMLElement('div', 'category-delete');
     let categoryDeleteBtn = createHTMLElement('div', 'delete-category-btn', 'x');
     categoryDeleteBtn.id = 'delete_' + String(category.id);
+    categoryDeleteBtn.addEventListener('click', deleteBudgetRowHandler);
     categoryDelete.appendChild(categoryDeleteBtn);
     editableBudgetRowElement.appendChild(categoryDelete);
     let amountInput = createHTMLElement('input', 'category-amount');
     amountInput.type = 'number';
     amountInput.value = category['amount'];
     editableBudgetRowElement.appendChild(amountInput);
-    return editableBudgetRowElement;
+    CategoryRowObject.element = editableBudgetRowElement;
+    return CategoryRowObject;
 };
 // TOGGLE BUDGET ROW (onclick 'edit'); EDITABLE OR FREEZE
 const toggleEditableBudgetRow = function (budgetRow) {
@@ -100,39 +109,73 @@ const toggleEditableBudgetRow = function (budgetRow) {
     const oldAmountElement = budgetRow.querySelector('.category-amount');
     const rowName = oldNameElement.innerText;
     const rowAmount = oldAmountElement.innerText;
-    const rowId = budgetRow.dataset.id;
-    const parentId = budgetRow.dataset.parent_id;
+    const rowId = parseInt(budgetRow.dataset.id);
+    const parentId = parseInt(budgetRow.dataset.parent_id);
+    // const level = LevelClassMap.get(rowClassName.includes('parent') ? "0" : rowClassName.includes('grandchild') ? "2" : "1")
+    let level;
+    if (rowClassName.includes('parent')) {
+        level = LevelClassMap.get('parent');
+    }
+    else if (rowClassName.includes('grandchild')) {
+        level = LevelClassMap.get('grandchild');
+    }
+    else {
+        level = LevelClassMap.get('child');
+    }
+    const editableBudgetRow = createEditableBudgetRow({
+        name: rowName,
+        amount: parseInt(rowAmount),
+        id: rowId,
+        parent_id: parentId,
+        level: parseInt(level),
+    });
+    /*
+
     // create newRow element
     let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
     let newNameElement = createHTMLElement('input', oldNameElement.className);
     newNameElement.type = 'text';
     let newAmountElement = createHTMLElement('input', oldAmountElement.className);
     newAmountElement.type = 'number';
+    
+    
     // create add row <div> with a button inside
     let newAddRowElement = createHTMLElement('div', 'category-add');
+
     let newAddRowButtonElement = createHTMLElement('div', 'add-category-btn');
     newAddRowButtonElement.innerText = '+';
     newAddRowButtonElement.addEventListener('click', addBudgetRow);
-    newAddRowElement.appendChild(newAddRowButtonElement);
+
+    newAddRowElement.appendChild(newAddRowButtonElement)
+    
     // create delete div with <input> and <label> element
     let newDeleteElement = createHTMLElement('div', 'category-delete');
+    
     let newDeleteRowButtonElement = createHTMLElement('div', 'delete-category-btn');
     newDeleteRowButtonElement.innerText = 'x';
     newDeleteRowButtonElement.id = 'delete_' + rowId;
     newDeleteRowButtonElement.addEventListener('click', deleteBudgetRowHandler);
-    newDeleteElement.appendChild(newDeleteRowButtonElement);
+
+    newDeleteElement.appendChild(newDeleteRowButtonElement)
+
+
+
+
     // insert data in newRow
-    newNameElement.value = rowName;
-    newAmountElement.value = rowAmount;
+    newNameElement.value = rowName
+    newAmountElement.value = rowAmount
     newRowElement.dataset.id = rowId;
     newRowElement.dataset.parent_id = parentId;
+
+
     // append children to newRow
     newRowElement.appendChild(newNameElement);
     newRowElement.appendChild(newAddRowElement);
     newRowElement.appendChild(newDeleteElement);
     newRowElement.appendChild(newAmountElement);
+    */
     // replace oldRow with newRow
-    budgetRow.parentElement.replaceChild(newRowElement, budgetRow);
+    budgetRow.parentElement.replaceChild(editableBudgetRow.element, budgetRow);
 };
 const toggleFreezeBudgetRow = function (editableBudgetRow) {
     // remove class "editable" on row
