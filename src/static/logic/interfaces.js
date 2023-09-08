@@ -74,12 +74,12 @@ class CategoryRow {
     }
 }
 const LevelClassMap = new Map([
-    ["0", 'category-parent'],
-    ["1", 'category-child'],
-    ["2", 'category-grandchild'],
-    ['category-parent', '0'],
-    ['category-child', '1'],
-    ['category-grandchild', '2']
+    ["1", 'category-parent'],
+    ["2", 'category-child'],
+    ["3", 'category-grandchild'],
+    ['category-parent', '1'],
+    ['category-child', '2'],
+    ['category-grandchild', '3']
 ]);
 class Budget {
     constructor(rows, budgetRowsRoot) {
@@ -225,6 +225,12 @@ class Budget {
         }
         this._editable = state;
     }
+    set rows(rows) {
+        this._rows = rows;
+    }
+    get rows() {
+        return this._rows.filter(row => row.name != 'root');
+    }
     get toKeep() {
         return this.rows.filter(row => !row.to_be_deleted);
     }
@@ -232,16 +238,17 @@ class Budget {
         return this.rows.filter(row => row.to_be_deleted);
     }
     get roots() {
+        // return elements closest to the root and not having any children
         const parentIdsOfChildren = Array.from(new Set(this.children.map(child => child.parent_id)));
         return this.parents.filter(row => !parentIdsOfChildren.includes(row.id));
     }
     get parents() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === 0);
+        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-parent')));
     }
     get children() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === 1);
+        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-child')));
     }
     get grandChildren() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === 2);
+        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-grandchild')));
     }
 }

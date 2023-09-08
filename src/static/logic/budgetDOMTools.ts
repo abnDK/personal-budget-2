@@ -96,7 +96,7 @@ const createCategoryRowFromElement = function(element: Element): CategoryRow {
         to_be_deleted: element.dataset.to_be_deleted ?? false,
         element: element
     }
-    console.log(catRow)
+
     return catRow;
 }
 
@@ -157,21 +157,27 @@ function deleteBudgetRowHandler(event: Event): void {
      * Row isn't deleted until 'save' is clicked
      * and budget sums and all rows are to be written to db
      */
+    
     const budgetRow = getBudgetRow(event.currentTarget);
+    
     const budgetObject = BUDGET.rowById(budgetRow.dataset.id);
-    console.log(budgetRow)
-    console.log(budgetRow.dataset.id)
-    console.log(BUDGET)
-    console.log(budgetObject)
+    
     if (budgetRow.dataset.to_be_deleted == "true") {
+    
         budgetRow.dataset.to_be_deleted = "false"
+    
         budgetObject.to_be_deleted = false;
+    
         unmakeDeleteable(budgetRow);
 
     } else {
+    
         budgetRow.dataset.to_be_deleted = "true"
+    
         budgetObject.to_be_deleted = true;
+    
         makeDeleteable(budgetRow)
+    
     }
     
     

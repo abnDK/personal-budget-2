@@ -62,12 +62,14 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
         throw new Error('Could not find budget rows element');
     }
     let categories = yield getCategories();
+    console.log(categories);
     if (categories == undefined) {
         throw new Error('Categories returned undefined!');
     }
     const budget_id = parseInt(window.location.href.split("/").at(-1));
-    categories = categories.filter(cat => cat.budget_id === budget_id);
-    BUDGET = new Budget(categories, budgetRowsRoot);
+    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id); //.filter(cat => cat.name != 'root');
+    console.log(filteredCategories);
+    BUDGET = new Budget(filteredCategories, budgetRowsRoot);
     /*
     console.log('###', BUDGET)
 
@@ -105,11 +107,7 @@ document.querySelector('.button-edit').addEventListener('click', (event) => __aw
         button.innerText = 'Edit';
         button.style.backgroundColor = "#FFD182";
         // DELETE CATEGORIES IN DB
-        const idsToDelete = BUDGET.toDelete.sort(row => row.level).reverse().map(row => row.id);
-        const rowByLevel = BUDGET.toDelete.sort(row => row.level);
-        console.log(idsToDelete);
-        console.log(rowByLevel);
-        return;
+        const idsToDelete = BUDGET.toDelete.toSorted((a, b) => a.level - b.level).reverse().map(row => row.id);
         yield deleteCategories(idsToDelete);
         BUDGET.removeDeletable();
         // GET DATA FROM DOM ELEMENTS TO OBJECT

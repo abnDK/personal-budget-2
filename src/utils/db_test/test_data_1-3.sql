@@ -9,17 +9,17 @@ VALUES
 
 -- insert categories
 
-INSERT INTO category ("name", "amount", "budget_id") VALUES
-('test_a', 0, 1),
-('test_b', 0, 1),
-('Fakta', 300, 2),
-('Bilka', 100, 2),
-('Vand', 200, 3),
-('Varme', 500, 3),
-('Forsikring', 900, 3),
-('Offentlig transport', 300, 4),        -- id 8
-('Egen kørsel', 350, 4),                -- id 9
-('Flyvende transport', 400, 4);         -- id 10
+INSERT INTO category ("name", "amount", "budget_id", "parent_id") VALUES
+('test_a', 0, 1, null),
+('test_b', 0, 1, null),
+('root', 0, 4, null),
+('Bilka', 100, 2, null),
+('Vand', 200, 3, null),
+('Varme', 500, 3, null),
+('Forsikring', 900, 3, null),
+('Offentlig transport', 300, 4, 3),        -- id 8
+('Egen kørsel', 350, 4, 3),                -- id 9
+('Flyvende transport', 400, 4, 3);         -- id 10
 
 -- insert children categories
 

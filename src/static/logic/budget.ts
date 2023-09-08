@@ -67,14 +67,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     let categories = await getCategories();
-
+    console.log(categories)
     if (categories == undefined) {
         throw new Error('Categories returned undefined!')
     }
 
     const budget_id = parseInt(window.location.href.split("/").at(-1));
-    categories = categories.filter(cat => cat.budget_id === budget_id);
-    BUDGET = new Budget(categories, budgetRowsRoot);
+
+    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id)//.filter(cat => cat.name != 'root');
+    console.log(filteredCategories)
+    
+    BUDGET = new Budget(filteredCategories, budgetRowsRoot);
+    
+    
     /* 
     console.log('###', BUDGET)
 
@@ -135,30 +140,29 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
 
 
         // DELETE CATEGORIES IN DB
-        const idsToDelete = BUDGET.toDelete.sort(row=>row.level).reverse().map(row => row.id)
-        const rowByLevel = BUDGET.toDelete.toSorted(row=>row.level)
-
-        console.log(idsToDelete)
-        console.log(rowByLevel)
-        return
+        const idsToDelete = BUDGET.toDelete.toSorted((a, b) => a.level - b.level).reverse().map(row => row.id)
+        
         await deleteCategories(idsToDelete);
+        
         BUDGET.removeDeletable();
+
         
         // GET DATA FROM DOM ELEMENTS TO OBJECT
         BUDGET.syncFromDomElementToObject()
 
         // CALC SUMS (but don't write them)
-        BUDGET.calcSums();
+        BUDGET.calcSums(); // ERROR LIES HERE SOME WHERE. DO WE TEMPORARILY STORE CATORIES IN DB WIHT NULL PARENT_ID AND BUDGET ID - IT SHOULD JUST USE OLD VALUE THEN..
 
-
+        
         // UPDATE CATEGORIES IN DB (and get updated parent_ids)
         BUDGET.syncDB()
 
         // after getting parent ids back, run through category rows and update parent_id (and maybe level???)
 
         // RENDER FROZEN AGAIN
-        BUDGET.editable = !BUDGET.editable;
         
+        BUDGET.editable = !BUDGET.editable;
+
     }
 
 

@@ -87,11 +87,13 @@ const handleCategoryTransactionForeignKeyConstraint = function (category_id) {
          * the category. I.e child => parent and grandchild => child.
          */
         const transactions = yield getTransactionsByCategoryId(category_id);
-        let newCategoryId = null;
-        const category = categoryById(category_id);
-        if (category.parent_id) {
-            newCategoryId = parseInt(category.parent_id);
-        }
+        const category = yield categoryById(category_id);
+        let newCategoryId = (category.parent_id || null);
+        console.log("cat id: ", category_id);
+        console.log("category: ", category);
+        console.log("cat parent id (true, type): ", category.parent_id, "(", (category.parent_id), typeof category.parent_id, ")");
+        console.log((category.parent_id || "parent id not truthy"));
+        // const newCategoryId = (category.parent_id || null)
         if (transactions.length) {
             for (const transaction of transactions) {
                 yield updateCategoryIdOfTransaction(transaction.id, newCategoryId);
@@ -125,13 +127,17 @@ const deleteCategory = function (category_id) {
          *
          */
         const category = yield categoryById(category_id);
-        const childrenCategories = yield getCategoryChildren(category_id);
+        if (!category) {
+            throw new Error(`cannot deleted category not existing in db. Id = ${category_id}`);
+        }
         // All transactions with relation to category_id has it changed to parent of category, or null if category is parent/root element
         yield handleCategoryTransactionForeignKeyConstraint(category_id);
+        const childrenCategories = yield getCategoryChildren(category_id);
+        console.log("children of ", category_id, " is ", childrenCategories);
         // handle foreign key relation to other categories (parent_id)
         for (let child of childrenCategories) {
             child.parent_id = category.parent_id;
-            updateCategoryRequest(child);
+            yield updateCategoryRequest(child);
         }
         // Delete category after all relations from transactions and categories has been removed.
         return yield deleteCategoryRequest(category_id);
@@ -151,6 +157,7 @@ const deleteCategories = function (ids) {
         // returning true means every delete request came back with status 200
         //const promisesToResolve = ids.map((id) => deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
         const deletedCategoryObjects = [];
+        console.log(ids);
         for (let id of ids) {
             deletedCategoryObjects.push(yield deleteCategory(id));
         }
@@ -171,12 +178,16 @@ const categoryById = function (categoryId) {
 };
 // UPDATE CATEGORIES / BUDGET ROW SUMS
 const updateCategoryRequest = function (category) {
+    if (category.id == 17) {
+        console.log("is this parent_id == null? ", category);
+    }
     const categoryRequestObject = {
         name: category.name,
         amount: category.amount,
         parent_id: category.parent_id,
         budget_id: category.budget_id
     };
+    console.log('now putting this: ', categoryRequestObject);
     return fetch(`http://localhost:3000/categories/${category.id}`, {
         method: 'PUT',
         headers: {
@@ -216,6 +227,7 @@ const updateCategoryNameAmountRequest = function (category) {
 };
 // GET TRANSACTIONS BY ID
 const updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
+    // WHY? WE DO THIS IN PREV FUNC.
     newCategoryId = newCategoryId ? newCategoryId : null;
     return fetch(`http://localhost:3000/transactions/${transactionId}`, {
         method: 'PUT',

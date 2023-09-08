@@ -78,7 +78,6 @@ const createCategoryRowFromElement = function (element) {
         to_be_deleted: (_g = element.dataset.to_be_deleted) !== null && _g !== void 0 ? _g : false,
         element: element
     };
-    console.log(catRow);
     return catRow;
 };
 const toggleFreezeBudgetRow = function (editableBudgetRow) {
@@ -119,10 +118,6 @@ function deleteBudgetRowHandler(event) {
      */
     const budgetRow = getBudgetRow(event.currentTarget);
     const budgetObject = BUDGET.rowById(budgetRow.dataset.id);
-    console.log(budgetRow);
-    console.log(budgetRow.dataset.id);
-    console.log(BUDGET);
-    console.log(budgetObject);
     if (budgetRow.dataset.to_be_deleted == "true") {
         budgetRow.dataset.to_be_deleted = "false";
         budgetObject.to_be_deleted = false;

@@ -88,18 +88,25 @@ const handleCategoryTransactionForeignKeyConstraint = async function(category_id
     
     const transactions: Transaction[] = await getTransactionsByCategoryId(category_id)
 
-    let newCategoryId: number | null = null;
+    const category: Category = await categoryById(category_id);
 
-    const category: Category = categoryById(category_id);
+    let newCategoryId: number | null = (category.parent_id || null);
 
-    if (category.parent_id) {
-        newCategoryId = parseInt(category.parent_id);
-    }
+
+    console.log("cat id: ", category_id)
+    console.log("category: ", category)
+    console.log("cat parent id (true, type): ", category.parent_id, "(", (category.parent_id), typeof category.parent_id, ")")
+    console.log((category.parent_id || "parent id not truthy"))
+    // const newCategoryId = (category.parent_id || null)
 
     if (transactions.length) {
+
         for (const transaction of transactions) {
+
             await updateCategoryIdOfTransaction(transaction.id, newCategoryId);
+
         }
+
     }
 
 
@@ -133,18 +140,29 @@ const deleteCategory = async function(category_id: number): Promise<Category> {
      */
 
     const category: Category = await categoryById(category_id);
-    const childrenCategories: Category[] = await getCategoryChildren(category_id);
-    
+
+    if (!category) {
+        throw new Error(`cannot deleted category not existing in db. Id = ${category_id}`)
+    }
+        
     // All transactions with relation to category_id has it changed to parent of category, or null if category is parent/root element
     await handleCategoryTransactionForeignKeyConstraint(category_id);
 
+    const childrenCategories: Category[] = await getCategoryChildren(category_id);
+    console.log("children of ", category_id, " is ", childrenCategories)
+
     // handle foreign key relation to other categories (parent_id)
     for (let child of childrenCategories) {
+
         child.parent_id = category.parent_id;
-        updateCategoryRequest(child);
+        
+        await updateCategoryRequest(child);
+    
     }
 
     // Delete category after all relations from transactions and categories has been removed.
+    
+    
     return await deleteCategoryRequest(category_id);
     
 
@@ -167,7 +185,9 @@ const deleteCategories = async function(ids:number[]): Promise<Category[]> {
         
     //const promisesToResolve = ids.map((id) => deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
     const deletedCategoryObjects = [];
-    
+
+    console.log(ids)
+
     for (let id of ids) {
 
         deletedCategoryObjects.push(await deleteCategory(id));
@@ -185,6 +205,7 @@ const deleteCategories = async function(ids:number[]): Promise<Category[]> {
 // GET CATEGORY BY ID
 
 const categoryById = function(categoryId: number): Promise<Category> {
+    
     return fetch(`http://localhost:3000/categories/${categoryId}`, {
         method: 'GET'
     }).then((res) => {
@@ -202,12 +223,18 @@ const categoryById = function(categoryId: number): Promise<Category> {
 
 const updateCategoryRequest = function(category: Category) {
 
+    if (category.id == 17) {
+        console.log("is this parent_id == null? ", category)
+    }
+
     const categoryRequestObject: Object = {
         name: category.name,
         amount: category.amount,
         parent_id: category.parent_id,
         budget_id: category.budget_id
     }
+
+    console.log('now putting this: ', categoryRequestObject)
 
 
     return fetch(`http://localhost:3000/categories/${category.id}`, {
@@ -259,6 +286,7 @@ const updateCategoryNameAmountRequest = function(category: CategoryRow): Promise
 
 const updateCategoryIdOfTransaction = function (transactionId: number, newCategoryId: number | null) {
 
+    // WHY? WE DO THIS IN PREV FUNC.
     newCategoryId = newCategoryId ? newCategoryId : null
 
     return fetch(`http://localhost:3000/transactions/${transactionId}`, {
@@ -274,6 +302,10 @@ const updateCategoryIdOfTransaction = function (transactionId: number, newCatego
         return res.json()
     }).catch((err) => {throw new Error(err)})
 }
+
+
+
+
 
 
 

@@ -119,23 +119,19 @@ class CategoryService {
         
         let previous_category = await pool.query('SELECT * FROM category WHERE id = $1', [id])
         previous_category = previous_category.rows[0]
-        console.log('Updating category')
-        console.log("arguments: ", arguments)
-        console.log("prev: ", previous_category)
-        
-        console.log('name: ', typeof name, name, (name || 'name was not true'), (name || previous_category.name), previous_category.name)
-        console.log('amount: ', typeof amount, amount, (amount || 'amount was not true'), (amount || previous_category.amount), previous_category.amount)
-        console.log('parent_id: ', typeof parent_id, parent_id, (parent_id || 'parent_id was not true'), (parent_id || previous_category.parent_id), previous_category.parent_id)
-        console.log('budget_id: ', typeof budget_id, budget_id, (budget_id || 'budget_id was not true'), (budget_id || previous_category.budget_id), previous_category.budget_id)
-
-
         
         // update category
         let updated_category = await pool.query('UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *',
+            // we need to keep checking parent_id for truthy or falsy, as updating categories name and value will be sent with parent_id == null and keep previous parent_id
             [id, (name || previous_category.name), (amount || previous_category.amount), (parent_id || previous_category.parent_id), (budget_id || previous_category.budget_id)]
+        
         );
-         
 
+        console.log(arguments)
+        console.log((name || previous_category.name), (amount || previous_category.amount), (parent_id || previous_category.parent_id), (budget_id || previous_category.budget_id));
+        console.log('PUT category before ', previous_category)
+        console.log('PUT category after ', updated_category.rows[0])
+        
         // verify only 1 category has been returned and returned from db
         if (!updated_category.rows.length) {
             throw new Error('no new category has been created, for some reason. Maybe id was unknown?' + ' id: ' + id)
@@ -152,8 +148,6 @@ class CategoryService {
             updated_category.rows[0].parent_id, 
             updated_category.rows[0].budget_id
         )
-
-        console.log('new category after put: ', category)
 
         // return transaction object
         return category

@@ -49,9 +49,10 @@ router.delete('/:id', async (req, res, next) => {
 router.put('/:id', async (req, res) => {
 
     const { name, amount, parent_id, budget_id } = req.body;
-    const id = req.params.id;
-    const category = await CategoryService.updateCategory(id, name, amount, parent_id, budget_id);
 
+    const id = req.params.id;
+
+    const category = await CategoryService.updateCategory(id, name, amount, parent_id, budget_id);
 
     res.status(200).json(category);
 })

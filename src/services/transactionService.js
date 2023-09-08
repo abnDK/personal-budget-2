@@ -98,7 +98,6 @@ class TransactionService {
             name = name ? name : pre_updated_trans.name;
             amount = amount ? amount : pre_updated_trans.amount;
             date = date ? date : pre_updated_trans.date;
-            console.log('new cateogry id for transaction (if null, prev. will be preserved)', category_id);
             category_id = category_id ? category_id : null; //pre_updated_trans.category_id;
             recipient = recipient ? recipient : pre_updated_trans.recipient;
             comment = comment ? comment : pre_updated_trans.comment;
