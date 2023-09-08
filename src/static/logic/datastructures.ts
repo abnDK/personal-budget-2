@@ -107,7 +107,7 @@ const bfsTree = function(objectTree) {
     return bfsTree
 }
 
-const dfsTree = function(objectTree) {
+const dfsTree = function(objectTree: Category[]): Category[] {
     let defTree = new Array();
     let toVisit = Object.values(objectTree);
     

@@ -164,14 +164,14 @@ const deleteCategories = async function(ids:number[]): Promise<Category[]> {
     // create multiple promises (from deleteCategory) and
     // await all promises to resolve.
     // returning true means every delete request came back with status 200
-    
-    
-    console.log('now trying to delete ids: ', ids)
-    
+        
     //const promisesToResolve = ids.map((id) => deleteCategoryAndHandleTransactionForeignKeyConstraint(id));
     const deletedCategoryObjects = [];
+    
     for (let id of ids) {
+
         deletedCategoryObjects.push(await deleteCategory(id));
+    
     }
 
     return deletedCategoryObjects
@@ -226,7 +226,31 @@ const updateCategoryRequest = function(category: Category) {
     .catch((err)=> {throw new Error(err)}) 
 }
 
+const updateCategoryNameAmountRequest = function(category: CategoryRow): Promise<{name: string, amount: number, parent_id: number}> {
 
+    const categoryRequestObject: Object = {
+        name: category.name,
+        amount: category.amount,
+        parent_id: null,
+        budget_id: null
+    }
+
+
+    return fetch(`http://localhost:3000/categories/${category.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(categoryRequestObject)
+    })
+    .then((res)=>{
+        if (!res.ok) {
+            throw new Error(String(res.status))
+        }
+        return res.json()
+    })
+    .catch((err)=> {throw new Error(err)}) 
+}
 
 
 

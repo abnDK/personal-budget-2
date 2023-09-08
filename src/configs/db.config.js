@@ -1,6 +1,6 @@
 // Config for accessing db
 
-DATABASE_NAME = 'personal_budget_2'
+DATABASE_NAME = 'pb2'
 USERNAME = 'pb2_app'
 PASSWORD = 'password'
 

@@ -2,28 +2,10 @@
 ////**** BUDGET SIDE  ****////
 // CREATE BUDGET ROW
 const createBudgetRow = function (category) {
-    /**
-     * Takes Category as input.
-     * Besides obligatory fields,
-     * optional field 'level' must
-     * be provided.
-     *
-     */
-    // create budget row element with name and amount children
-    let budgetRowElement = createHTMLElement('div', 'budget-row', '', [
+    let budgetRowElement = createHTMLElement('div', `budget-row ${LevelClassMap.get(String(category['level']))}`, '', [
         createHTMLElement('div', 'category-name', category['name']),
         createHTMLElement('div', 'category-amount', String(category['amount']))
     ]);
-    // add class to define what level in the budget hierarchy the category is
-    if (category['level'] == 0) {
-        budgetRowElement.className += ' category-parent';
-    }
-    else if (category['level'] == 1) {
-        budgetRowElement.className += ' category-child';
-    }
-    else if (category['level'] == 2) {
-        budgetRowElement.className += ' category-grandchild';
-    }
     // set id's on budget row element
     budgetRowElement.dataset.id = String(category['id']);
     budgetRowElement.dataset.parent_id = String(category['parent_id']);
@@ -59,28 +41,9 @@ const createEditableBudgetRow = function (category) {
      * be provided.
      *
      */
-    let CategoryRowObject = {};
-    console.log('source', category);
-    for (const [key, value] of Object.entries(category)) {
-        console.log(`Copying ${key}: ${value} to new object`);
-        CategoryRowObject[key] = value;
-    }
-    console.log('target', CategoryRowObject);
-    let editableBudgetRowElement = createHTMLElement('div', 'budget-row editable');
+    let editableBudgetRowElement = createHTMLElement('div', `budget-row editable ${LevelClassMap.get(String(category['level']))}`);
     editableBudgetRowElement.dataset.id = String(category.id);
     editableBudgetRowElement.dataset.parent_id = String(category.parent_id);
-    if (category['level'] == 0) {
-        editableBudgetRowElement.className += ' category-parent';
-    }
-    else if (category['level'] == 1) {
-        editableBudgetRowElement.className += ' category-child';
-    }
-    else if (category['level'] == 2) {
-        editableBudgetRowElement.className += ' category-grandchild';
-    }
-    else {
-        console.log('category: ', typeof category['level'], category['level']);
-    }
     let nameInput = createHTMLElement('input', 'category-name');
     nameInput.type = 'text';
     nameInput.value = category['name'];
@@ -97,85 +60,26 @@ const createEditableBudgetRow = function (category) {
     amountInput.type = 'number';
     amountInput.value = category['amount'];
     editableBudgetRowElement.appendChild(amountInput);
-    CategoryRowObject.element = editableBudgetRowElement;
-    return CategoryRowObject;
+    return editableBudgetRowElement;
 };
-// TOGGLE BUDGET ROW (onclick 'edit'); EDITABLE OR FREEZE
-const toggleEditableBudgetRow = function (budgetRow) {
-    // read values of oldRow
-    const rowTag = budgetRow.tagName;
-    const rowClassName = budgetRow.className;
-    const oldNameElement = budgetRow.querySelector('.category-name');
-    const oldAmountElement = budgetRow.querySelector('.category-amount');
-    const rowName = oldNameElement.innerText;
-    const rowAmount = oldAmountElement.innerText;
-    const rowId = parseInt(budgetRow.dataset.id);
-    const parentId = parseInt(budgetRow.dataset.parent_id);
-    // const level = LevelClassMap.get(rowClassName.includes('parent') ? "0" : rowClassName.includes('grandchild') ? "2" : "1")
-    let level;
-    if (rowClassName.includes('parent')) {
-        level = LevelClassMap.get('parent');
-    }
-    else if (rowClassName.includes('grandchild')) {
-        level = LevelClassMap.get('grandchild');
-    }
-    else {
-        level = LevelClassMap.get('child');
-    }
-    const editableBudgetRow = createEditableBudgetRow({
-        name: rowName,
-        amount: parseInt(rowAmount),
-        id: rowId,
-        parent_id: parentId,
-        level: parseInt(level),
-    });
-    /*
-
-    // create newRow element
-    let newRowElement = createHTMLElement(rowTag, rowClassName + ' editable');
-    let newNameElement = createHTMLElement('input', oldNameElement.className);
-    newNameElement.type = 'text';
-    let newAmountElement = createHTMLElement('input', oldAmountElement.className);
-    newAmountElement.type = 'number';
-    
-    
-    // create add row <div> with a button inside
-    let newAddRowElement = createHTMLElement('div', 'category-add');
-
-    let newAddRowButtonElement = createHTMLElement('div', 'add-category-btn');
-    newAddRowButtonElement.innerText = '+';
-    newAddRowButtonElement.addEventListener('click', addBudgetRow);
-
-    newAddRowElement.appendChild(newAddRowButtonElement)
-    
-    // create delete div with <input> and <label> element
-    let newDeleteElement = createHTMLElement('div', 'category-delete');
-    
-    let newDeleteRowButtonElement = createHTMLElement('div', 'delete-category-btn');
-    newDeleteRowButtonElement.innerText = 'x';
-    newDeleteRowButtonElement.id = 'delete_' + rowId;
-    newDeleteRowButtonElement.addEventListener('click', deleteBudgetRowHandler);
-
-    newDeleteElement.appendChild(newDeleteRowButtonElement)
-
-
-
-
-    // insert data in newRow
-    newNameElement.value = rowName
-    newAmountElement.value = rowAmount
-    newRowElement.dataset.id = rowId;
-    newRowElement.dataset.parent_id = parentId;
-
-
-    // append children to newRow
-    newRowElement.appendChild(newNameElement);
-    newRowElement.appendChild(newAddRowElement);
-    newRowElement.appendChild(newDeleteElement);
-    newRowElement.appendChild(newAmountElement);
-    */
-    // replace oldRow with newRow
-    budgetRow.parentElement.replaceChild(editableBudgetRow.element, budgetRow);
+const createCategoryRowFromElement = function (element) {
+    // converts html element into CategoryRow object
+    var _a, _b, _c, _d, _e, _f, _g;
+    // if a childnode of a budget row element is given, we select the budget-row parent element first
+    element = getBudgetRow(element);
+    // creating the CategoryRow object
+    let catRow = {
+        name: (_a = String(element.querySelector('.category-name').value)) !== null && _a !== void 0 ? _a : 'No name found',
+        amount: (_b = Number(element.querySelector('.category-amount').value)) !== null && _b !== void 0 ? _b : 'No amount found',
+        id: (_c = Number(element.dataset.id)) !== null && _c !== void 0 ? _c : 'No id found',
+        parent_id: (_d = Number(element.dataset.parent_id)) !== null && _d !== void 0 ? _d : 'No parent id found',
+        budget_id: (_e = Number(element.querySelector('.category-name').value)) !== null && _e !== void 0 ? _e : 'No budget id found',
+        level: (_f = Number(LevelClassMap.get(element.className))) !== null && _f !== void 0 ? _f : 'No level or class found',
+        to_be_deleted: (_g = element.dataset.to_be_deleted) !== null && _g !== void 0 ? _g : false,
+        element: element
+    };
+    console.log(catRow);
+    return catRow;
 };
 const toggleFreezeBudgetRow = function (editableBudgetRow) {
     // remove class "editable" on row
@@ -214,12 +118,19 @@ function deleteBudgetRowHandler(event) {
      * and budget sums and all rows are to be written to db
      */
     const budgetRow = getBudgetRow(event.currentTarget);
+    const budgetObject = BUDGET.rowById(budgetRow.dataset.id);
+    console.log(budgetRow);
+    console.log(budgetRow.dataset.id);
+    console.log(BUDGET);
+    console.log(budgetObject);
     if (budgetRow.dataset.to_be_deleted == "true") {
         budgetRow.dataset.to_be_deleted = "false";
+        budgetObject.to_be_deleted = false;
         unmakeDeleteable(budgetRow);
     }
     else {
         budgetRow.dataset.to_be_deleted = "true";
+        budgetObject.to_be_deleted = true;
         makeDeleteable(budgetRow);
     }
 }

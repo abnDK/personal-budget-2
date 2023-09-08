@@ -38,8 +38,8 @@ in db.
 
 reset_tables.sh
 - calls reset_database.sh
-  - oldifies current data - naming database = personal_budget_2_old
-  - create new database = personal_budget_2
+  - oldifies current data - naming database = pb2_old
+  - create new database = pb2
 - writes current_version = '0-0'
 - creates tables equivalent to db version 1-0
 - calls up.sh
@@ -49,7 +49,7 @@ reset_tables.sh
     - reads file "tablenames"
     - copies all data from each table in tablenames in _old 
 database to file "tabledata"
-    - imports all data into personal_budget_2 database
+    - imports all data into pb2 database
 
 => TODO: Find place for exporting fkeyCon rel and sorting tables 
 before running reset_tables.sh
