@@ -75,14 +75,15 @@ const bfsTree = function (root) {
     return bfsTree;
 };
 const dfsTree = function (root) {
-    let defTree = new Array();
-    let toVisit = Object.values(root);
+    let catTree = new Array();
+    let toVisit = [root];
+    console.log(root);
     while (toVisit.length > 0) {
         let next = toVisit.pop(); // pop makes it dfs, shift makes it bfs
         for (let c of next.children) {
             toVisit.push(c);
         }
-        defTree.push(next);
+        catTree.push(next);
     }
-    return defTree;
+    return catTree;
 };

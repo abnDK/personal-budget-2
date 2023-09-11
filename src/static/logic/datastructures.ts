@@ -108,8 +108,10 @@ const bfsTree = function(root: Category) {
 }
 
 const dfsTree = function(root: Category): Category[] {
-    let defTree = new Array();
-    let toVisit = Object.values(root);
+    let catTree = new Array();
+    let toVisit = [root];
+
+    console.log(root)
     
     while (toVisit.length > 0) {
  
@@ -119,8 +121,8 @@ const dfsTree = function(root: Category): Category[] {
             toVisit.push(c)
         }
         
-        defTree.push(next)
+        catTree.push(next)
     }
     
-    return defTree
+    return catTree
 }

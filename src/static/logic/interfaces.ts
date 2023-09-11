@@ -80,8 +80,8 @@ class CategoryRow implements Category {
     }
 
     removeDomElement = (): void => {
-
-        this.dom_element_ref.remove(this.dom_element_ref)
+        // why is this moved to the constructor?!
+        this.dom_element_ref.remove(this.dom_element_ref);
 
     }
 
@@ -219,7 +219,7 @@ class Budget {
 
     set rows(rows: Category[]) {
             // # 36: make buildtree run and write it to this.root as well.
-            this._rows = rows;
+            
             this._root = BuildTree(rows, 'parent_id')
         }
     
@@ -228,7 +228,7 @@ class Budget {
 
         const categoryRowsTreeAsArray = dfsTree(this.root)
 
-        this._rows = categoryRowsTreeAsArray.map(category => {
+        return categoryRowsTreeAsArray.map(category => {
             let categoryRow = new CategoryRow(
                 category['name'],
                 category['amount'],
@@ -243,7 +243,7 @@ class Budget {
 
         })
 
-        return this.rows
+        
 
     }
 
@@ -382,8 +382,17 @@ class Budget {
 
             }
             
+
+
             row.dom_element_ref = this.budgetRowsDomElement.lastElementChild // bind dom element ref to row object
-        
+            
+            console.log("&&&&&&&&&&&&&")
+            console.log("&&&&&&&&&&&&&")
+            console.log(this)
+            console.log(row)
+            console.log("&&&&&&&&&&&&&")
+            console.log("&&&&&&&&&&&&&")
+
         });
 
     }
@@ -419,6 +428,10 @@ class Budget {
     /* DOM ELEMENTS */
 
     private clearDOM = (): void => {
+
+        throw "IN ORDER FOR THIS TO RUN - WE CANNOT RECREATE THE TREE EVERY TIME WITH BUILDTREE ETC. Or, At least the DOM reference need to be kept intact."
+        console.log('clearDOM: ', row)
+        
 
         // clears dom
         for (const row of this.rows) {

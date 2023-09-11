@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 class CategoryRow {
     constructor(name, amount, id, parent_id, level, budget_id, children) {
         this.removeDomElement = () => {
+            // why is this moved to the constructor?!
             this.dom_element_ref.remove(this.dom_element_ref);
         };
         this.name = name;
@@ -131,6 +132,12 @@ class Budget {
                     this.budgetRowsDomElement.appendChild(row.renderEditable());
                 }
                 row.dom_element_ref = this.budgetRowsDomElement.lastElementChild; // bind dom element ref to row object
+                console.log("&&&&&&&&&&&&&");
+                console.log("&&&&&&&&&&&&&");
+                console.log(this);
+                console.log(row);
+                console.log("&&&&&&&&&&&&&");
+                console.log("&&&&&&&&&&&&&");
             });
         };
         this.removeDeletable = () => {
@@ -150,6 +157,7 @@ class Budget {
         };
         /* DOM ELEMENTS */
         this.clearDOM = () => {
+            console.log('clearDOM: ', row);
             // clears dom
             for (const row of this.rows) {
                 row.removeDomElement();
@@ -249,17 +257,15 @@ class Budget {
     }
     set rows(rows) {
         // # 36: make buildtree run and write it to this.root as well.
-        this._rows = rows;
         this._root = BuildTree(rows, 'parent_id');
     }
     // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows() {
         const categoryRowsTreeAsArray = dfsTree(this.root);
-        this._rows = categoryRowsTreeAsArray.map(category => {
+        return categoryRowsTreeAsArray.map(category => {
             let categoryRow = new CategoryRow(category['name'], category['amount'], category['id'], category['parent_id'], category['level'], category['budget_id'], category['children']);
             return categoryRow;
         });
-        return this.rows;
     }
     set root(newRoot) {
         this._root = newRoot;
