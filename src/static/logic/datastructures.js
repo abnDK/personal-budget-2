@@ -16,7 +16,7 @@ function BuildTree(array, parent_id_key) {
     for (let root of roots) {
         addChildren(root);
     }
-    return roots;
+    return roots[0];
 }
 function BuildTree_(array, parent_id_key, outputStyle = undefined) {
     /**
@@ -62,9 +62,9 @@ function BuildTree_(array, parent_id_key, outputStyle = undefined) {
     // only need for returning an array of elements
     return Object.values(root);
 }
-const bfsTree = function (objectTree) {
+const bfsTree = function (root) {
     let bfsTree = new Array();
-    let toVisit = Object.values(objectTree);
+    let toVisit = Object.values(root);
     while (toVisit.length > 0) {
         let next = toVisit.shift(); // pop makes it dfs, shift makes it bfs
         for (let c of next.children) {
@@ -74,9 +74,9 @@ const bfsTree = function (objectTree) {
     }
     return bfsTree;
 };
-const dfsTree = function (objectTree) {
+const dfsTree = function (root) {
     let defTree = new Array();
-    let toVisit = Object.values(objectTree);
+    let toVisit = Object.values(root);
     while (toVisit.length > 0) {
         let next = toVisit.pop(); // pop makes it dfs, shift makes it bfs
         for (let c of next.children) {

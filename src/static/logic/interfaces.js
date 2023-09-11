@@ -82,14 +82,17 @@ const LevelClassMap = new Map([
     ['category-grandchild', '3']
 ]);
 class Budget {
-    constructor(rows, budgetRowsRoot) {
+    constructor(rows, budgetRowsDomElement) {
+        this.rowsByLevel = (rootLevel = 0) => {
+            return this.rows.filter(row => row.level >= rootLevel);
+        };
         this.syncDB = () => {
             // write amounts to db
             // get parent_id's from db
             // maybe render elements?
             console.log('rows before syncing: ', this.rows);
             console.log('to keep before syncing: ', this.toKeep);
-            for (const row of this.rows) {
+            for (const row of this.toKeep) {
                 console.log("syncing this row now: ", row);
                 row.syncNameAmountParentIdWithDB();
             }
@@ -100,6 +103,9 @@ class Budget {
         this.rowById = (id) => {
             return this.rows.filter(row => row.id == id)[0];
         };
+        this.rowsByParentId = (parent_id) => {
+            return this.rows.filter(row => row.parent_id == parent_id);
+        };
         this.parseCategoryArray = (categories) => {
             const categoryRowsTree = BuildTree(categories, 'parent_id');
             const categoryRowsTreeAsArray = dfsTree(categoryRowsTree);
@@ -109,17 +115,22 @@ class Budget {
             });
             return this.rows;
         };
-        this.populateRoot = (frozen = true) => {
+        // # 36: when this is run - filter out root.
+        this.renderCategories = (frozen = true) => {
             /* Only for initial population of category rows to the budget */
             // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
-            this.toKeep.forEach(row => {
+            // test "rootLevel" filter on rows:
+            const levelOneTree = this.rowsByLevel(1);
+            console.log(levelOneTree);
+            levelOneTree.forEach(row => {
+                //this.toKeep.forEach(row => {
                 if (frozen) {
-                    this.root.appendChild(row.renderFrozen());
+                    this.budgetRowsDomElement.appendChild(row.renderFrozen());
                 }
                 else {
-                    this.root.appendChild(row.renderEditable());
+                    this.budgetRowsDomElement.appendChild(row.renderEditable());
                 }
-                row.dom_element_ref = this.root.lastElementChild; // bind dom element ref to row object
+                row.dom_element_ref = this.budgetRowsDomElement.lastElementChild; // bind dom element ref to row object
             });
         };
         this.removeDeletable = () => {
@@ -128,12 +139,14 @@ class Budget {
                 console.log("NOW DELETING: ", row);
                 console.log('before delete: ', this.rows);
                 // removing row in BUDGET object
-                const indexOfRow = this.rows.indexOf(row);
-                this.rows.splice(indexOfRow, 1);
+                this.removeById(row.id);
                 console.log('after delete: ', this.rows);
                 // removing row in DOM
                 row.dom_element_ref.remove(row.dom_element_ref);
             }
+        };
+        this.removeById = (id) => {
+            this.rows = this.rows.filter(row => row.id != id);
         };
         /* DOM ELEMENTS */
         this.clearDOM = () => {
@@ -145,18 +158,18 @@ class Budget {
         };
         this.renderFrozenAll = () => {
             this.clearDOM();
-            this.populateRoot(true);
+            this.renderCategories(true);
         };
         this.renderEditableAll = () => {
             this.clearDOM();
-            this.populateRoot(false);
+            this.renderCategories(false);
         };
         this.syncFromDomElementToObject = () => {
             for (let row of this.rows) {
                 row.readValuesFromDomElement();
             }
         };
-        /* CALCULATE SUMS */
+        /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
         this.calcSums = () => {
             this.calcBudgetSumsOfChildren();
             this.calcBudgetSumsOfParents();
@@ -197,7 +210,14 @@ class Budget {
         this.calcBudgetSumsOfParents = () => {
             const parentsSumMap = this.calcBudgetSumsOfParentsMap();
             for (const [id, amount] of parentsSumMap) {
-                this.rowById(id).amount = amount;
+                try {
+                    this.rowById(id).amount = amount;
+                }
+                catch (err) {
+                    console.log("rows: ", this.rows);
+                    console.log('root: ', this.root);
+                    throw `could not recognize id: ${id}`;
+                }
             }
         };
         this.calcBudgetTotalSum = () => {
@@ -207,11 +227,13 @@ class Budget {
             }
             this.sum = budgetTotalSum;
         };
-        this.rows = this.parseCategoryArray(rows);
+        // # 36: just set rows directly..
+        this.rows = rows;
         this.sum = 0;
         this._editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
-        this.root = budgetRowsRoot;
-        this.populateRoot();
+        this.budgetRowsDomElement = budgetRowsDomElement;
+        // # 36: Is this need anymore or should it be run automatically somewhere else?
+        this.renderCategories();
     }
     get editable() {
         return this._editable;
@@ -226,10 +248,24 @@ class Budget {
         this._editable = state;
     }
     set rows(rows) {
+        // # 36: make buildtree run and write it to this.root as well.
         this._rows = rows;
+        this._root = BuildTree(rows, 'parent_id');
     }
+    // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows() {
-        return this._rows.filter(row => row.name != 'root');
+        const categoryRowsTreeAsArray = dfsTree(this.root);
+        this._rows = categoryRowsTreeAsArray.map(category => {
+            let categoryRow = new CategoryRow(category['name'], category['amount'], category['id'], category['parent_id'], category['level'], category['budget_id'], category['children']);
+            return categoryRow;
+        });
+        return this.rows;
+    }
+    set root(newRoot) {
+        this._root = newRoot;
+    }
+    get root() {
+        return this._root;
     }
     get toKeep() {
         return this.rows.filter(row => !row.to_be_deleted);
@@ -237,7 +273,7 @@ class Budget {
     get toDelete() {
         return this.rows.filter(row => row.to_be_deleted);
     }
-    get roots() {
+    get loners() {
         // return elements closest to the root and not having any children
         const parentIdsOfChildren = Array.from(new Set(this.children.map(child => child.parent_id)));
         return this.parents.filter(row => !parentIdsOfChildren.includes(row.id));

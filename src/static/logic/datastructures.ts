@@ -1,4 +1,4 @@
-function BuildTree(array: Category[], parent_id_key: string) {
+function BuildTree(array: Category[], parent_id_key: string): Category {
 
     function addChildren(element: Category) {
         
@@ -23,7 +23,7 @@ function BuildTree(array: Category[], parent_id_key: string) {
         addChildren(root)
     }
 
-    return roots
+    return roots[0]
 
 }
 
@@ -86,9 +86,9 @@ function BuildTree_(array, parent_id_key, outputStyle = undefined) {
     
 }
 
-const bfsTree = function(objectTree) {
+const bfsTree = function(root: Category) {
     let bfsTree = new Array();
-    let toVisit = Object.values(objectTree);
+    let toVisit = Object.values(root);
 
     
     while (toVisit.length > 0) {
@@ -107,9 +107,9 @@ const bfsTree = function(objectTree) {
     return bfsTree
 }
 
-const dfsTree = function(objectTree: Category[]): Category[] {
+const dfsTree = function(root: Category): Category[] {
     let defTree = new Array();
-    let toVisit = Object.values(objectTree);
+    let toVisit = Object.values(root);
     
     while (toVisit.length > 0) {
  

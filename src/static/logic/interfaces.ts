@@ -167,24 +167,27 @@ interface HTMLElementBudgetRowEditable extends HTMLElementBudgetRow {
 
 
 class Budget {
-    rows: CategoryRow[];
-    root: Element;
+    //rows: CategoryRow[];
+    //root: Category
+    budgetRowsDomElement: Element;
     sum: number;
     private _editable: boolean;
 
     
 
-    constructor(rows: Category[], budgetRowsRoot: Element) { 
+    constructor(rows: Category[], budgetRowsDomElement: Element) { 
 
-        this.rows = this.parseCategoryArray(rows);
+        // # 36: just set rows directly..
+        this.rows = rows;
         
         this.sum = 0;
         
         this._editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
 
-        this.root = budgetRowsRoot;
+        this.budgetRowsDomElement = budgetRowsDomElement;
         
-        this.populateRoot();
+        // # 36: Is this need anymore or should it be run automatically somewhere else?
+        this.renderCategories();
 
 
 
@@ -214,14 +217,49 @@ class Budget {
 
     }
 
-    set rows(rows) {
+    set rows(rows: Category[]) {
+            // # 36: make buildtree run and write it to this.root as well.
             this._rows = rows;
+            this._root = BuildTree(rows, 'parent_id')
         }
+    
+    // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
+    get rows(): CategoryRow[] {
 
-    get rows() {
-        return this._rows.filter(row => row.name != 'root');
+        const categoryRowsTreeAsArray = dfsTree(this.root)
+
+        this._rows = categoryRowsTreeAsArray.map(category => {
+            let categoryRow = new CategoryRow(
+                category['name'],
+                category['amount'],
+                category['id'],
+                category['parent_id'],
+                category['level'],
+                category['budget_id'],
+                category['children']
+            )
+
+            return categoryRow
+
+        })
+
+        return this.rows
+
     }
 
+    rowsByLevel = (rootLevel: number = 0) => {
+        return this.rows.filter(row => row.level >= rootLevel)
+    }
+
+    set root(newRoot) {
+        this._root = newRoot
+    }
+
+    get root() {
+
+        return this._root
+
+    }
 
     get toKeep() {
         
@@ -235,7 +273,7 @@ class Budget {
 
     }
 
-    get roots() {
+    get loners() {
         // return elements closest to the root and not having any children
 
         const parentIdsOfChildren = Array.from(new Set(this.children.map(child => child.parent_id)))
@@ -269,7 +307,7 @@ class Budget {
         console.log('rows before syncing: ', this.rows)
         console.log('to keep before syncing: ', this.toKeep)
 
-        for (const row of this.rows) {
+        for (const row of this.toKeep) {
 
             console.log("syncing this row now: ", row)
 
@@ -285,10 +323,16 @@ class Budget {
     
     }
 
-    rowById = (id: number) => {
+    rowById = (id: number): CategoryRow => {
 
         return this.rows.filter(row => row.id == id)[0]
     
+    }
+
+    rowsByParentId = (parent_id: number): CategoryRow[] => {
+
+        return this.rows.filter(row => row.parent_id == parent_id);
+
     }
 
     parseCategoryArray = (categories: Category[]): CategoryRow[] => {
@@ -312,29 +356,33 @@ class Budget {
 
         })
 
-        
-
         return this.rows
         
     }
 
-    populateRoot = (frozen: boolean = true): void => {
+    // # 36: when this is run - filter out root.
+    renderCategories = (frozen: boolean = true): void => {
         /* Only for initial population of category rows to the budget */
         // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
         
-        this.toKeep.forEach(row => {
+        // test "rootLevel" filter on rows:
+        const levelOneTree = this.rowsByLevel(1);
+        console.log(levelOneTree)
+
+        levelOneTree.forEach(row => {
+        //this.toKeep.forEach(row => {
 
             if (frozen) {
 
-                this.root.appendChild(row.renderFrozen());
+                this.budgetRowsDomElement.appendChild(row.renderFrozen());
 
             } else {
 
-                this.root.appendChild(row.renderEditable());
+                this.budgetRowsDomElement.appendChild(row.renderEditable());
 
             }
             
-            row.dom_element_ref = this.root.lastElementChild // bind dom element ref to row object
+            row.dom_element_ref = this.budgetRowsDomElement.lastElementChild // bind dom element ref to row object
         
         });
 
@@ -349,9 +397,7 @@ class Budget {
             console.log('before delete: ', this.rows)
 
             // removing row in BUDGET object
-            const indexOfRow = this.rows.indexOf(row);
-
-            this.rows.splice(indexOfRow, 1);
+            this.removeById(row.id)
 
             console.log('after delete: ', this.rows)
 
@@ -361,6 +407,12 @@ class Budget {
         
 
         }
+
+    }
+
+    removeById = (id:number): void => {
+
+        this.rows = this.rows.filter(row => row.id != id)
 
     }
 
@@ -383,7 +435,7 @@ class Budget {
         
         this.clearDOM();
 
-        this.populateRoot(true) 
+        this.renderCategories(true) 
 
     }
 
@@ -391,7 +443,7 @@ class Budget {
 
         this.clearDOM();
         
-        this.populateRoot(false) 
+        this.renderCategories(false) 
 
     }
 
@@ -405,7 +457,7 @@ class Budget {
 
     }
     
-    /* CALCULATE SUMS */
+    /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
     calcSums = () => {
 
         this.calcBudgetSumsOfChildren();
@@ -470,7 +522,14 @@ class Budget {
         const parentsSumMap = this.calcBudgetSumsOfParentsMap();
 
         for (const [id, amount] of parentsSumMap) {
-            this.rowById(id).amount = amount;
+            try {
+                this.rowById(id).amount = amount;
+
+            } catch(err) {
+                console.log("rows: ", this.rows)
+                console.log('root: ', this.root)
+                throw `could not recognize id: ${id}`
+            }
         }
     }
     
