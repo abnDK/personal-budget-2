@@ -307,6 +307,10 @@ const updateCategoryIdOfTransaction = function (transactionId: number, newCatego
 
 
 class BudgetQueryService {
+
+    constructor() {
+        // nothing here yet
+    }
     
 
     // CATEGORIES
@@ -338,10 +342,7 @@ class BudgetQueryService {
 
     
     // TRANSACTIONS
-    updateCategoryIdOfTransaction = function (transactionId: number, newCategoryId: number | null) {
-
-        // WHY? WE DO THIS IN PREV FUNC.
-        newCategoryId = newCategoryId ? newCategoryId : null
+    updateCategoryIdOfTransaction = function (transactionId: number, newCategoryId: number) {
     
         return fetch(`http://localhost:3000/transactions/${transactionId}`, {
             method: 'PUT',
@@ -356,6 +357,23 @@ class BudgetQueryService {
             return res.json()
         }).catch((err) => {throw new Error(err)})
     }
+
+    getTransactions = function(): Promise<Array<Transaction>> {
+        return fetch(`http://localhost:3000/transactions`, {
+            method: 'GET'
+        }).then((res) => {
+            if (!res.ok) {
+                throw new Error(String(res.status))
+            }
+            return res.json()
+        }).catch((err) => {throw new Error(err)})
+    }
+    
+    getTransactionsByCategoryId = async function(category_id: number): Promise<Transaction[]> { 
+        const transactions = await getTransactions();
+        const filteredTransactions: Transaction[] = transactions.filter(transaction => transaction.category_id == category_id);
+        return filteredTransactions
+    };
 
 
 }

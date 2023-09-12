@@ -221,6 +221,7 @@ class Budget {
             4. writing everything to the dom after db and budget object has been updated
             */
 
+
             // FETCHING DATA FROM DOM
             this.fetchDataFromDOM();
 
@@ -244,7 +245,7 @@ class Budget {
             this.renderFrozenBudget();
 
             console.log('After rendering budget to the DOM: ', this.rows)
-            console.log('Status: AWAITING')
+            console.log('Status: SUCCESS')
 
 
         
@@ -346,6 +347,14 @@ class Budget {
 
     }
 
+    renderFrozenBudget = (): void => {
+
+        this.clearBudget();
+
+        this.renderCategories(true)
+
+    }
+
     clearBudget = (): void => {
 
         for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
@@ -356,10 +365,86 @@ class Budget {
 
     }
 
+    //// BUDGET MANIPULATION \\\\
+
+    deleteCategoryRows = () => {
+
+        console.log('waiting for some code to delete rows')
+
+        for (const deletableRow of this.toDelete) {
+
+            this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id)
+
+            this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
+
+            this.deleteCategoryFromDB(deletableRow.id)
+
+        }
+
+        // either remove deletable rows from budget object, or make sure they will be filtered out
+
+
+
+    }
+
+    updateCategoryRows = () => {
+
+        /* 
+        
+        get potentially updated parentIds
+
+        write parentIds to CategoryRows
+
+        rebuild tree with new parent_ids
+
+        calculate sums
+
+        update amount and value in db
+
+        */
+
+
+        console.log('waiting for some code to update rows')
+
+
+    }
 
     //// DB QUERYING \\\\
 
+    handleTransactionCategoryForeignKeyConstraint = async (categoryId: number) => {
 
+        console.log('handling transaction category foreign key constraint')
+
+        const transactionsWithCategoryId = await this.query.getTransactionsByCategoryId(categoryId);
+
+        for (const transaction of transactionsWithCategoryId) {
+            
+            await this.query.updateCategoryIdOfTransaction(transaction.id, categoryId)
+
+        }
+
+    }
+
+    handleCategoryParentIdForeignKeyConstraint = async (categoryIdToBeDeleted: number, newParentId: number) => {
+
+        console.log('handling category parent_id foreign key constraint')
+
+        const childrenOfDeletedCategory = await this.query.getCategoryChildren(categoryIdToBeDeleted);
+
+        for (const categoryChild of childrenOfDeletedCategory) {
+
+            await this.query.updateCategoryParentId(categoryChild.id, newParentId);
+
+        }
+
+
+    }
+
+    deleteCategoryFromDB = (categoryId: number) => {
+
+        console.log('deleting category from db')
+
+    }
     
 
 

@@ -102,10 +102,21 @@ class Budget {
             this.clearBudget();
             this.renderCategories(false);
         };
+        this.renderFrozenBudget = () => {
+            this.clearBudget();
+            this.renderCategories(true);
+        };
         this.clearBudget = () => {
             for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
                 DOMChild.remove(DOMChild);
             }
+        };
+        //// BUDGET MANIPULATION \\\\
+        this.deleteCategoryRows = () => {
+            console.log('waiting for some code to delete rows');
+        };
+        this.updateCategoryRows = () => {
+            console.log('waiting for some code to update rows');
         };
         //// DB QUERYING \\\\
         this.syncDB = () => {
@@ -283,15 +294,23 @@ class Budget {
             3. updating existing rows with values (while calculating sums as well)
             4. writing everything to the dom after db and budget object has been updated
             */
+            console.log('before anything: ', this.rows);
             // FETCHING DATA FROM DOM
             this.fetchDataFromDOM();
             console.log('After fetching data from DOM: ', this.rows);
+            console.log('Status: SUCCESS');
             // DELETING ROWS
             this.deleteCategoryRows();
+            console.log('After deleting categories in object and db: ', this.rows);
+            console.log('Status: AWAITING');
             // UPDATING EXISTING ROWS
             this.updateCategoryRows();
+            console.log('After updating categories with name, amount and parent_ids: ', this.rows);
+            console.log('Status: AWAITING');
             // RENDER TO DOM
             this.renderFrozenBudget();
+            console.log('After rendering budget to the DOM: ', this.rows);
+            console.log('Status: AWAITING');
         }
         this._editable = state;
     }
