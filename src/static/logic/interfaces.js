@@ -122,16 +122,15 @@ class Budget {
             // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
             // test "rootLevel" filter on rows:
             const levelOneTree = this.rowsByLevel(1);
-            console.log(levelOneTree);
+            console.log("x", levelOneTree);
             levelOneTree.forEach(row => {
                 //this.toKeep.forEach(row => {
                 if (frozen) {
-                    this.budgetRowsDomElement.appendChild(row.renderFrozen());
+                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
                 }
                 else {
-                    this.budgetRowsDomElement.appendChild(row.renderEditable());
+                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
                 }
-                row.dom_element_ref = this.budgetRowsDomElement.lastElementChild; // bind dom element ref to row object
                 console.log("&&&&&&&&&&&&&");
                 console.log("&&&&&&&&&&&&&");
                 console.log(this);
@@ -156,10 +155,14 @@ class Budget {
             this.rows = this.rows.filter(row => row.id != id);
         };
         /* DOM ELEMENTS */
+        this.privateUndrenderDom = () => {
+        };
         this.clearDOM = () => {
-            console.log('clearDOM: ', row);
+            // throw "IN ORDER FOR THIS TO RUN - WE CANNOT RECREATE THE TREE EVERY TIME WITH BUILDTREE ETC. Or, At least the DOM reference need to be kept intact."
+            console.log('clearDOM: ', this.rows);
             // clears dom
             for (const row of this.rows) {
+                console.log('clearDOM: ', row);
                 row.removeDomElement();
             }
             // renderfrozen all + render editable all: clear dom, first.
@@ -261,11 +264,7 @@ class Budget {
     }
     // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows() {
-        const categoryRowsTreeAsArray = dfsTree(this.root);
-        return categoryRowsTreeAsArray.map(category => {
-            let categoryRow = new CategoryRow(category['name'], category['amount'], category['id'], category['parent_id'], category['level'], category['budget_id'], category['children']);
-            return categoryRow;
-        });
+        return dfsTree(this.root);
     }
     set root(newRoot) {
         this._root = newRoot;

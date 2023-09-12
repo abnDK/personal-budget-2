@@ -1,29 +1,52 @@
-function BuildTree(array: Category[], parent_id_key: string): Category {
+function BuildTree(array: Category[], parent_id_key: string): CategoryRow {
 
-    function addChildren(element: Category) {
+    function addChildren(element: CategoryRow) {
         
-        let children = array.filter(child => child[parent_id_key] == element.id)
-        children = children.map(child => {child.level = element.level + 1; return child})
+        let children: Category[] = array.filter(child => child[parent_id_key] == element.id)
+
+        let childrenRows: CategoryRow[] = children.map(child => {
+
+            const childRow = new CategoryRow(
+                child['name'],
+                child['amount'],
+                child['id'],
+                child['parent_id'],
+                child['budget_id'],
+            )
         
-        for (let child of children) {
-            addChildren(child)
+            childRow.level = element.level + 1;
+            
+            return childRow
+        
+        })
+        
+        for (let childRow of childrenRows) {
+            
+            addChildren(childRow)
+
         }
 
-        element.children = children
+        element.children = childrenRows;
 
         return
     }
 
-    // first get all root elements
-    let roots = array.filter(element => !element[parent_id_key])
-    roots = roots.map(root => {root.level = 0; return root})
+    // first get root elements
+    let root = array.filter(element => !element[parent_id_key] && element.name == 'root')[0]
 
-    // recursively look for children of those root elements
-    for (let root of roots) {
-        addChildren(root)
-    }
+    const rootRow = new CategoryRow(
+        category['name'],
+        category['amount'],
+        category['id'],
+        category['parent_id'],
+        category['budget_id'],
+    )
 
-    return roots[0]
+    rootRow.level = 0
+
+    addChildren(rootRow)
+
+    return rootRow;
 
 }
 
@@ -107,7 +130,7 @@ const bfsTree = function(root: Category) {
     return bfsTree
 }
 
-const dfsTree = function(root: Category): Category[] {
+const dfsTree = function(root: CategoryRow): CategoryRow[] {
     let catTree = new Array();
     let toVisit = [root];
 

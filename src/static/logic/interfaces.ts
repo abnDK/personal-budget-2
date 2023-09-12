@@ -27,15 +27,15 @@ class CategoryRow implements Category {
     id: number;
     parent_id: number;
     level: number;
-    budget_id: number | undefined;
-    children: Category[] | undefined;
+    budget_id: number;
+    children: CategoryRow[];
     to_be_deleted: boolean;
     //element: Element;
     dom_element_ref: object | undefined;
     frozen: boolean;
 
 
-    constructor(name: string, amount: number, id: number, parent_id: number, level: number, budget_id?: number, children?: Category[]) {
+    constructor(name: string, amount: number, id: number, parent_id: number, level: number, budget_id: number, children: CategoryRow[]) {
         this.name = name;
         this.amount = amount;
         this.id = id;
@@ -217,7 +217,7 @@ class Budget {
 
     }
 
-    set rows(rows: Category[]) {
+    set rows(rows: CategoryRow[]) {
             // # 36: make buildtree run and write it to this.root as well.
             
             this._root = BuildTree(rows, 'parent_id')
@@ -226,24 +226,7 @@ class Budget {
     // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows(): CategoryRow[] {
 
-        const categoryRowsTreeAsArray = dfsTree(this.root)
-
-        return categoryRowsTreeAsArray.map(category => {
-            let categoryRow = new CategoryRow(
-                category['name'],
-                category['amount'],
-                category['id'],
-                category['parent_id'],
-                category['level'],
-                category['budget_id'],
-                category['children']
-            )
-
-            return categoryRow
-
-        })
-
-        
+        return dfsTree(this.root)
 
     }
 
@@ -367,25 +350,21 @@ class Budget {
         
         // test "rootLevel" filter on rows:
         const levelOneTree = this.rowsByLevel(1);
-        console.log(levelOneTree)
+        console.log("x", levelOneTree)
 
         levelOneTree.forEach(row => {
         //this.toKeep.forEach(row => {
 
             if (frozen) {
 
-                this.budgetRowsDomElement.appendChild(row.renderFrozen());
+                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
 
             } else {
 
-                this.budgetRowsDomElement.appendChild(row.renderEditable());
+                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
 
             }
-            
-
-
-            row.dom_element_ref = this.budgetRowsDomElement.lastElementChild // bind dom element ref to row object
-            
+                        
             console.log("&&&&&&&&&&&&&")
             console.log("&&&&&&&&&&&&&")
             console.log(this)
@@ -427,14 +406,24 @@ class Budget {
 
     /* DOM ELEMENTS */
 
+    privateUndrenderDom = (): void => {
+
+
+
+    }
+
     private clearDOM = (): void => {
 
-        throw "IN ORDER FOR THIS TO RUN - WE CANNOT RECREATE THE TREE EVERY TIME WITH BUILDTREE ETC. Or, At least the DOM reference need to be kept intact."
-        console.log('clearDOM: ', row)
+        // throw "IN ORDER FOR THIS TO RUN - WE CANNOT RECREATE THE TREE EVERY TIME WITH BUILDTREE ETC. Or, At least the DOM reference need to be kept intact."
+        
+        
+        console.log('clearDOM: ', this.rows)
         
 
         // clears dom
         for (const row of this.rows) {
+
+            console.log('clearDOM: ', row)
 
             row.removeDomElement();
 
