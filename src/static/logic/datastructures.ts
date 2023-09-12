@@ -35,11 +35,13 @@ function BuildTree(array: Category[], parent_id_key: string): CategoryRow {
     let root = array.filter(element => !element[parent_id_key] && element.name == 'root')[0]
 
     const rootRow = new CategoryRow(
-        category['name'],
-        category['amount'],
-        category['id'],
-        category['parent_id'],
-        category['budget_id'],
+
+        root['name'],
+        root['amount'],
+        root['id'],
+        root['parent_id'],
+        root['budget_id']
+
     )
 
     rootRow.level = 0
@@ -134,7 +136,7 @@ const dfsTree = function(root: CategoryRow): CategoryRow[] {
     let catTree = new Array();
     let toVisit = [root];
 
-    console.log(root)
+    console.log("before dfs: ", root)
     
     while (toVisit.length > 0) {
  
@@ -147,5 +149,7 @@ const dfsTree = function(root: CategoryRow): CategoryRow[] {
         catTree.push(next)
     }
     
+    console.log("after dfs: ", catTree)
+
     return catTree
 }

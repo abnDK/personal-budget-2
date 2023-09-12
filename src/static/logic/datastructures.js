@@ -2,21 +2,23 @@
 function BuildTree(array, parent_id_key) {
     function addChildren(element) {
         let children = array.filter(child => child[parent_id_key] == element.id);
-        children = children.map(child => { child.level = element.level + 1; return child; });
-        for (let child of children) {
-            addChildren(child);
+        let childrenRows = children.map(child => {
+            const childRow = new CategoryRow(child['name'], child['amount'], child['id'], child['parent_id'], child['budget_id']);
+            childRow.level = element.level + 1;
+            return childRow;
+        });
+        for (let childRow of childrenRows) {
+            addChildren(childRow);
         }
-        element.children = children;
+        element.children = childrenRows;
         return;
     }
-    // first get all root elements
-    let roots = array.filter(element => !element[parent_id_key]);
-    roots = roots.map(root => { root.level = 0; return root; });
-    // recursively look for children of those root elements
-    for (let root of roots) {
-        addChildren(root);
-    }
-    return roots[0];
+    // first get root elements
+    let root = array.filter(element => !element[parent_id_key] && element.name == 'root')[0];
+    const rootRow = new CategoryRow(root['name'], root['amount'], root['id'], root['parent_id'], root['budget_id']);
+    rootRow.level = 0;
+    addChildren(rootRow);
+    return rootRow;
 }
 function BuildTree_(array, parent_id_key, outputStyle = undefined) {
     /**
@@ -77,7 +79,7 @@ const bfsTree = function (root) {
 const dfsTree = function (root) {
     let catTree = new Array();
     let toVisit = [root];
-    console.log(root);
+    console.log("before dfs: ", root);
     while (toVisit.length > 0) {
         let next = toVisit.pop(); // pop makes it dfs, shift makes it bfs
         for (let c of next.children) {
@@ -85,5 +87,6 @@ const dfsTree = function (root) {
         }
         catTree.push(next);
     }
+    console.log("after dfs: ", catTree);
     return catTree;
 };

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 class CategoryRow {
-    constructor(name, amount, id, parent_id, level, budget_id, children) {
+    constructor(name, amount, id, parent_id, budget_id) {
         this.removeDomElement = () => {
             // why is this moved to the constructor?!
             this.dom_element_ref.remove(this.dom_element_ref);
@@ -18,11 +18,11 @@ class CategoryRow {
         this.amount = amount;
         this.id = id;
         this.parent_id = parent_id;
-        this.level = level;
         this.budget_id = budget_id;
-        this.children = children;
+        this.level = NaN;
+        this.children = [];
         this.to_be_deleted = false;
-        this._dom_element_ref = undefined;
+        this.dom_element_ref = undefined;
     }
     get element() {
         return this.renderFrozen();
@@ -91,10 +91,7 @@ class Budget {
             // write amounts to db
             // get parent_id's from db
             // maybe render elements?
-            console.log('rows before syncing: ', this.rows);
-            console.log('to keep before syncing: ', this.toKeep);
             for (const row of this.toKeep) {
-                console.log("syncing this row now: ", row);
                 row.syncNameAmountParentIdWithDB();
             }
         };
@@ -152,31 +149,41 @@ class Budget {
             }
         };
         this.removeById = (id) => {
-            this.rows = this.rows.filter(row => row.id != id);
+            // # 36: After change to .root tree as main datastructure,
+            // this needs to be refactored in order to search for and 
+            // delete a specific CategoryRow object.
+            const removeCategoryRow = (root, id) => {
+                for (const childIndex in root) {
+                    removeCategoryRow(root[childIndex].children, id);
+                    if (root[childIndex].id == id) {
+                        return root.splice(Number(childIndex), 1);
+                    }
+                }
+            };
+            removeCategoryRow(this.root.children, id);
+            //this.rows = this.rows.filter(row => row.id != id)
         };
         /* DOM ELEMENTS */
-        this.privateUndrenderDom = () => {
-        };
         this.clearDOM = () => {
-            // throw "IN ORDER FOR THIS TO RUN - WE CANNOT RECREATE THE TREE EVERY TIME WITH BUILDTREE ETC. Or, At least the DOM reference need to be kept intact."
-            console.log('clearDOM: ', this.rows);
+            console.log('clearDOMthis: ', this);
+            console.log('clearDOMrows: ', this.rows);
             // clears dom
-            for (const row of this.rows) {
-                console.log('clearDOM: ', row);
+            for (const row of this.rows.filter(row => row.name != 'root')) {
+                console.log('clearDOMrow: ', row);
                 row.removeDomElement();
             }
             // renderfrozen all + render editable all: clear dom, first.
         };
         this.renderFrozenAll = () => {
-            this.clearDOM();
+            // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
             this.renderCategories(true);
         };
         this.renderEditableAll = () => {
-            this.clearDOM();
+            // this.clearDOM();
             this.renderCategories(false);
         };
         this.syncFromDomElementToObject = () => {
-            for (let row of this.rows) {
+            for (let row of this.rows.filter(row => row.name != 'root')) {
                 row.readValuesFromDomElement();
             }
         };
@@ -239,12 +246,12 @@ class Budget {
             this.sum = budgetTotalSum;
         };
         // # 36: just set rows directly..
-        this.rows = rows;
+        this.root = BuildTree(rows, 'parent_id');
         this.sum = 0;
-        this._editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
         this.budgetRowsDomElement = budgetRowsDomElement;
+        this.editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
         // # 36: Is this need anymore or should it be run automatically somewhere else?
-        this.renderCategories();
+        //this.renderCategories();
     }
     get editable() {
         return this._editable;
@@ -257,10 +264,6 @@ class Budget {
             this.renderFrozenAll();
         }
         this._editable = state;
-    }
-    set rows(rows) {
-        // # 36: make buildtree run and write it to this.root as well.
-        this._root = BuildTree(rows, 'parent_id');
     }
     // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows() {

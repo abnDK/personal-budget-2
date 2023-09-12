@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const budget_id = parseInt(window.location.href.split("/").at(-1));
 
     const filteredCategories = categories.filter(cat => cat.budget_id === budget_id)//.filter(cat => cat.name != 'root');
-    console.log(filteredCategories)
+    console.log("filtered cats: ", filteredCategories)
     
     BUDGET = new Budget(filteredCategories, budgetRowsDomElement);
     
@@ -136,12 +136,13 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
         button.style.backgroundColor = "#FFD182"
 
         
-
+        BUDGET.editable = false;
 
 
         // DELETE CATEGORIES IN DB
         const idsToDelete = BUDGET.toDelete.toSorted((a, b) => a.level - b.level).reverse().map(row => row.id)
-        
+        console.log('now deleting the following ids: ', idsToDelete)
+        return
         const deletedCategories = await deleteCategories(idsToDelete);
 
         console.log('these cats just been returned as deletedL: ', deletedCategories)
