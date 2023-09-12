@@ -173,7 +173,8 @@ class Budget {
     budgetRowsDomElement: Element;
     sum: number;
     private _editable: boolean;
-    private _root: CategoryRow
+    private _root: CategoryRow;
+    private query: BudgetQueryService;
 
     
 
@@ -181,13 +182,12 @@ class Budget {
 
         // # 36: just set rows directly..
         this.root = BuildTree(rows, 'parent_id');
-        
-        this.sum = 0;
-        
+                
         this.budgetRowsDomElement = budgetRowsDomElement;
-
-        this.editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
         
+        this.query = new BudgetQueryService()
+
+        this.initRenderBudget()
 
         // # 36: Is this need anymore or should it be run automatically somewhere else?
         //this.renderCategories();
@@ -195,6 +195,8 @@ class Budget {
 
 
     }
+    
+    ///// GETTERS AND SETTERS \\\\\
 
     get editable(): boolean {
         
@@ -207,20 +209,44 @@ class Budget {
         
         if (state) {
         
-            this.renderEditableAll();
-        
+            this.renderEditableBudget();
+
         } else {
             
             /* 
-            HERE WE
-            upd trans
-            upd cat
-            del cats
-            remove cats from object
-            
+            Freezing the budget in DOM consists of multiple steps
+            1. fetching data from dom to budget object
+            2. deleting any rows marked for deletion
+            3. updating existing rows with values (while calculating sums as well)
+            4. writing everything to the dom after db and budget object has been updated
             */
 
-            this.renderFrozenAll();
+            // FETCHING DATA FROM DOM
+            this.fetchDataFromDOM();
+
+            console.log('After fetching data from DOM: ', this.rows)
+            console.log('Status: SUCCESS')
+
+
+            // DELETING ROWS
+            this.deleteCategoryRows();
+
+            console.log('After deleting categories in object and db: ', this.rows)
+            console.log('Status: AWAITING')
+
+            // UPDATING EXISTING ROWS
+            this.updateCategoryRows();
+
+            console.log('After updating categories with name, amount and parent_ids: ', this.rows)
+            console.log('Status: AWAITING')
+
+            // RENDER TO DOM
+            this.renderFrozenBudget();
+
+            console.log('After rendering budget to the DOM: ', this.rows)
+            console.log('Status: AWAITING')
+
+
         
         }
         
@@ -289,6 +315,66 @@ class Budget {
 
     }
 
+    //// DOM INTERACTIONS \\\\
+
+    
+
+    initRenderBudget = (): void => {
+
+        // inital rendering of budget when dom content has loaded.
+        this.renderCategories(true);
+
+    }
+
+    fetchDataFromDOM = (): void => {
+
+        console.log('called fetchDataFromDOM')
+
+        for (let row of this.rows.filter(row=>row.name != 'root')) {
+            
+            row.readValuesFromDomElement()
+
+        }
+
+    }
+
+    renderEditableBudget = (): void => {
+
+        this.clearBudget();
+
+        this.renderCategories(false)
+
+    }
+
+    clearBudget = (): void => {
+
+        for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
+
+            DOMChild.remove(DOMChild)
+
+        }
+
+    }
+
+
+    //// DB QUERYING \\\\
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
     syncDB = () => {
         // write amounts to db
         // get parent_id's from db
@@ -353,7 +439,6 @@ class Budget {
         
         // test "rootLevel" filter on rows:
         const levelOneTree = this.rowsByLevel(1);
-        console.log("x", levelOneTree)
 
         levelOneTree.forEach(row => {
         //this.toKeep.forEach(row => {
@@ -367,13 +452,6 @@ class Budget {
                 row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
 
             }
-                        
-            console.log("&&&&&&&&&&&&&")
-            console.log("&&&&&&&&&&&&&")
-            console.log(this)
-            console.log(row)
-            console.log("&&&&&&&&&&&&&")
-            console.log("&&&&&&&&&&&&&")
 
         });
 

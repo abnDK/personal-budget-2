@@ -242,3 +242,44 @@ const updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
         return res.json();
     }).catch((err) => { throw new Error(err); });
 };
+class BudgetQueryService {
+    constructor() {
+        // CATEGORIES
+        this.updateCategoryNameAmount = function (categoryId, name, amount) {
+            return fetch(`http://localhost:3000/categories/${categoryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name, amount: amount })
+            })
+                .then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return res.json();
+            })
+                .catch((err) => { throw new Error(err); });
+        };
+        this.getCategoryParentIds = () => {
+            return { id: NaN, categoryId: NaN };
+        };
+        // TRANSACTIONS
+        this.updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
+            // WHY? WE DO THIS IN PREV FUNC.
+            newCategoryId = newCategoryId ? newCategoryId : null;
+            return fetch(`http://localhost:3000/transactions/${transactionId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'category_id': newCategoryId })
+            }).then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return res.json();
+            }).catch((err) => { throw new Error(err); });
+        };
+    }
+}

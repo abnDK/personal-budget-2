@@ -306,7 +306,59 @@ const updateCategoryIdOfTransaction = function (transactionId: number, newCatego
 
 
 
+class BudgetQueryService {
+    
 
+    // CATEGORIES
+    updateCategoryNameAmount = function(categoryId: number, name: string, amount: number): Promise<{id: number, name: string, amount: number}> {
+
+    
+        return fetch(`http://localhost:3000/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({name: name, amount: amount})
+        })
+        .then((res)=>{
+            if (!res.ok) {
+                throw new Error(String(res.status))
+            }
+            return res.json()
+        })
+        .catch((err)=> {throw new Error(err)}) 
+    }
+
+    getCategoryParentIds = (): {id: number, categoryId: number} => {
+
+        return {id: NaN, categoryId: NaN}
+
+    }
+
+
+    
+    // TRANSACTIONS
+    updateCategoryIdOfTransaction = function (transactionId: number, newCategoryId: number | null) {
+
+        // WHY? WE DO THIS IN PREV FUNC.
+        newCategoryId = newCategoryId ? newCategoryId : null
+    
+        return fetch(`http://localhost:3000/transactions/${transactionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({'category_id':newCategoryId})
+        }).then((res) => {
+            if (!res.ok) {
+                throw new Error(String(res.status))
+            }
+            return res.json()
+        }).catch((err) => {throw new Error(err)})
+    }
+
+
+}
 
 
 

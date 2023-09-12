@@ -87,6 +87,27 @@ class Budget {
         this.rowsByLevel = (rootLevel = 0) => {
             return this.rows.filter(row => row.level >= rootLevel);
         };
+        //// DOM INTERACTIONS \\\\
+        this.initRenderBudget = () => {
+            // inital rendering of budget when dom content has loaded.
+            this.renderCategories(true);
+        };
+        this.fetchDataFromDOM = () => {
+            console.log('called fetchDataFromDOM');
+            for (let row of this.rows.filter(row => row.name != 'root')) {
+                row.readValuesFromDomElement();
+            }
+        };
+        this.renderEditableBudget = () => {
+            this.clearBudget();
+            this.renderCategories(false);
+        };
+        this.clearBudget = () => {
+            for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
+                DOMChild.remove(DOMChild);
+            }
+        };
+        //// DB QUERYING \\\\
         this.syncDB = () => {
             // write amounts to db
             // get parent_id's from db
@@ -119,7 +140,6 @@ class Budget {
             // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
             // test "rootLevel" filter on rows:
             const levelOneTree = this.rowsByLevel(1);
-            console.log("x", levelOneTree);
             levelOneTree.forEach(row => {
                 //this.toKeep.forEach(row => {
                 if (frozen) {
@@ -128,12 +148,6 @@ class Budget {
                 else {
                     row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
                 }
-                console.log("&&&&&&&&&&&&&");
-                console.log("&&&&&&&&&&&&&");
-                console.log(this);
-                console.log(row);
-                console.log("&&&&&&&&&&&&&");
-                console.log("&&&&&&&&&&&&&");
             });
         };
         this.removeDeletable = () => {
@@ -247,21 +261,37 @@ class Budget {
         };
         // # 36: just set rows directly..
         this.root = BuildTree(rows, 'parent_id');
-        this.sum = 0;
         this.budgetRowsDomElement = budgetRowsDomElement;
-        this.editable = false; // make a setter, than when this is changed to true, will render all frozen rows as editable/input type
+        this.query = new BudgetQueryService();
+        this.initRenderBudget();
         // # 36: Is this need anymore or should it be run automatically somewhere else?
         //this.renderCategories();
     }
+    ///// GETTERS AND SETTERS \\\\\
     get editable() {
         return this._editable;
     }
     set editable(state) {
         if (state) {
-            this.renderEditableAll();
+            this.renderEditableBudget();
         }
         else {
-            this.renderFrozenAll();
+            /*
+            Freezing the budget in DOM consists of multiple steps
+            1. fetching data from dom to budget object
+            2. deleting any rows marked for deletion
+            3. updating existing rows with values (while calculating sums as well)
+            4. writing everything to the dom after db and budget object has been updated
+            */
+            // FETCHING DATA FROM DOM
+            this.fetchDataFromDOM();
+            console.log('After fetching data from DOM: ', this.rows);
+            // DELETING ROWS
+            this.deleteCategoryRows();
+            // UPDATING EXISTING ROWS
+            this.updateCategoryRows();
+            // RENDER TO DOM
+            this.renderFrozenBudget();
         }
         this._editable = state;
     }
