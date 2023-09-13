@@ -333,11 +333,66 @@ class BudgetQueryService {
         .catch((err)=> {throw new Error(err)}) 
     }
 
+    updateCategoryParentId = function(categoryId: number, parentId: number): Promise<{id: number, parentId: number}> {
+
+    
+        return fetch(`http://localhost:3000/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({parent_id: parentId})
+        })
+        .then((res)=>{
+            if (!res.ok) {
+                throw new Error(String(res.status))
+            }
+            return res.json()
+        })
+        .catch((err)=> {throw new Error(err)}) 
+    }
+
+    getCategoriesParentIds = async function(budgetId: number = 0): Promise<{id: number, parentId: number} | undefined> {
+        try {
+            
+            const categories = await fetch('http://localhost:3000/categories')
+            
+            let categoriesJson = await categories.json();
+
+            if (budgetId != 0) {
+
+                categoriesJson = categoriesJson.filter(cat => cat.budget_id == budgetId)
+
+            }
+
+            return categoriesJson.map(cat => {
+
+                return {id: Number(cat.id), parentId: Number(cat.parent_id)}
+
+            })
+
+        } catch (error) {
+            
+            console.error(error)
+
+        }
+    }
+
+    getCategoryChildren = async function(category_id: number): Promise<Category[]> {
+
+        const categories: Category[] = await getCategories();
+    
+        return categories.filter(cat => cat.parent_id == category_id);
+    
+    }
+
     getCategoryParentIds = (): {id: number, categoryId: number} => {
 
         return {id: NaN, categoryId: NaN}
 
     }
+
+
 
 
     
@@ -370,9 +425,13 @@ class BudgetQueryService {
     }
     
     getTransactionsByCategoryId = async function(category_id: number): Promise<Transaction[]> { 
+        
         const transactions = await getTransactions();
+        
         const filteredTransactions: Transaction[] = transactions.filter(transaction => transaction.category_id == category_id);
+        
         return filteredTransactions
+
     };
 
 

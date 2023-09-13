@@ -261,13 +261,50 @@ class BudgetQueryService {
             })
                 .catch((err) => { throw new Error(err); });
         };
+        this.updateCategoryParentId = function (categoryId, parentId) {
+            return fetch(`http://localhost:3000/categories/${categoryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ parent_id: parentId })
+            })
+                .then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return res.json();
+            })
+                .catch((err) => { throw new Error(err); });
+        };
+        this.getCategoriesParentIds = function (budgetId = 0) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const categories = yield fetch('http://localhost:3000/categories');
+                    let categoriesJson = yield categories.json();
+                    if (budgetId != 0) {
+                        categoriesJson = categoriesJson.filter(cat => cat.budget_id == budgetId);
+                    }
+                    return categoriesJson.map(cat => {
+                        return { id: Number(cat.id), parentId: Number(cat.parent_id) };
+                    });
+                }
+                catch (error) {
+                    console.error(error);
+                }
+            });
+        };
+        this.getCategoryChildren = function (category_id) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const categories = yield getCategories();
+                return categories.filter(cat => cat.parent_id == category_id);
+            });
+        };
         this.getCategoryParentIds = () => {
             return { id: NaN, categoryId: NaN };
         };
         // TRANSACTIONS
         this.updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
-            // WHY? WE DO THIS IN PREV FUNC.
-            newCategoryId = newCategoryId ? newCategoryId : null;
             return fetch(`http://localhost:3000/transactions/${transactionId}`, {
                 method: 'PUT',
                 headers: {
@@ -281,5 +318,23 @@ class BudgetQueryService {
                 return res.json();
             }).catch((err) => { throw new Error(err); });
         };
+        this.getTransactions = function () {
+            return fetch(`http://localhost:3000/transactions`, {
+                method: 'GET'
+            }).then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return res.json();
+            }).catch((err) => { throw new Error(err); });
+        };
+        this.getTransactionsByCategoryId = function (category_id) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const transactions = yield getTransactions();
+                const filteredTransactions = transactions.filter(transaction => transaction.category_id == category_id);
+                return filteredTransactions;
+            });
+        };
+        // nothing here yet
     }
 }

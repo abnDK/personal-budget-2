@@ -112,13 +112,82 @@ class Budget {
             }
         };
         //// BUDGET MANIPULATION \\\\
-        this.deleteCategoryRows = () => {
+        this.deleteCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
             console.log('waiting for some code to delete rows');
-        };
-        this.updateCategoryRows = () => {
+            for (const deletableRow of this.toDelete) {
+                yield this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id);
+                yield this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
+                yield this.deleteCategoryFromDB(deletableRow.id);
+            }
+            // either remove deletable rows from budget object, or make sure they will be filtered out
+        });
+        this.updateCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
+            console.log('updateCategoryRows called');
+            // get potentially updated parentIds
+            const categoriesParentIds = yield this.query.getCategoriesParentIds(this.root.budget_id);
+            console.log(`ids and parentIds: ${categoriesParentIds}`);
+            console.log(categoriesParentIds);
+            // write parentIds to CategoryRows
+            for (const { id, parentId } of categoriesParentIds) {
+                console.log(`getting id: ${id} and parentId: ${parentId}`);
+                console.log(`getting row by id:`);
+                console.log(this.rowById(id));
+                console.log(this.rowById(id).parent_id);
+                this.rowById(id).parent_id = parentId;
+            }
+            console.log(`this.toDelete: ${this.toDelete}`);
+            // rebuild tree with new parent_ids (and remove this.toDelete rows from this.root)
+            for (const categoryRow of this.toDelete) {
+                console.log('running through rows for deletion');
+                this.removeById(categoryRow.id);
+            }
+            // calculate sums
+            this.calculateBudgetSums();
+            // update amount and value in db
             console.log('waiting for some code to update rows');
+        });
+        this.calculateBudgetSums = () => {
+            console.log('waiting for some code to calculate budget sums');
+            let sum = NaN;
+            console.log(`The total sum is: ${sum}`);
+        };
+        this.rowById = (id) => {
+            return this.rows.filter(row => row.id == id)[0];
+        };
+        this.removeById = (categoryId, root = this.root) => {
+            // Finds category and removes.
+            // If category has children, the children will be lifted 1 generation
+            for (const child of root.children) {
+                console.log(`Looking for ${categoryId} in row: ${child}`);
+                if (child.id == categoryId) {
+                    console.log(`Found row with to be deleted id: ${categoryId} = ${child}`);
+                    root.children = [...root.children.filter(child => child.id != categoryId), ...child.children];
+                    console.log(`Row have been deleted from root: ${this.root}`);
+                    return;
+                }
+                this.removeById(categoryId, root);
+            }
+            console.log('No nodes deleted in this run...');
         };
         //// DB QUERYING \\\\
+        this.handleTransactionCategoryForeignKeyConstraint = (categoryId) => __awaiter(this, void 0, void 0, function* () {
+            console.log('handling transaction category foreign key constraint');
+            const transactionsWithCategoryId = yield this.query.getTransactionsByCategoryId(categoryId);
+            for (const transaction of transactionsWithCategoryId) {
+                yield this.query.updateCategoryIdOfTransaction(transaction.id, categoryId);
+            }
+        });
+        this.handleCategoryParentIdForeignKeyConstraint = (categoryIdToBeDeleted, newParentId) => __awaiter(this, void 0, void 0, function* () {
+            console.log('handling category parent_id foreign key constraint');
+            const childrenOfDeletedCategory = yield this.query.getCategoryChildren(categoryIdToBeDeleted);
+            for (const categoryChild of childrenOfDeletedCategory) {
+                yield this.query.updateCategoryParentId(categoryChild.id, newParentId);
+            }
+        });
+        this.deleteCategoryFromDB = (categoryId) => {
+            console.log('deleting category from db');
+        };
+        //// OLD - CONSIDER DELETE \\\\ 
         this.syncDB = () => {
             // write amounts to db
             // get parent_id's from db
@@ -294,23 +363,28 @@ class Budget {
             3. updating existing rows with values (while calculating sums as well)
             4. writing everything to the dom after db and budget object has been updated
             */
-            console.log('before anything: ', this.rows);
             // FETCHING DATA FROM DOM
             this.fetchDataFromDOM();
             console.log('After fetching data from DOM: ', this.rows);
             console.log('Status: SUCCESS');
             // DELETING ROWS
-            this.deleteCategoryRows();
-            console.log('After deleting categories in object and db: ', this.rows);
-            console.log('Status: AWAITING');
-            // UPDATING EXISTING ROWS
-            this.updateCategoryRows();
-            console.log('After updating categories with name, amount and parent_ids: ', this.rows);
-            console.log('Status: AWAITING');
-            // RENDER TO DOM
-            this.renderFrozenBudget();
-            console.log('After rendering budget to the DOM: ', this.rows);
-            console.log('Status: AWAITING');
+            this.deleteCategoryRows()
+                .then(() => {
+                console.log('After deleting categories in object and db: ', this.rows);
+                console.log('Status: AWAITING');
+                // UPDATING EXISTING ROWS
+                return this.updateCategoryRows();
+            })
+                .then(() => {
+                console.log('After updating categories with name, amount and parent_ids: ', this.rows);
+                console.log('Status: AWAITING');
+                // RENDER TO DOM
+                this.renderFrozenBudget();
+            })
+                .finally(() => {
+                console.log('After rendering budget to the DOM: ', this.rows);
+                console.log('Status: SUCCESS');
+            });
         }
         this._editable = state;
     }

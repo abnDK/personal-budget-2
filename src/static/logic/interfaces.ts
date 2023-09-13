@@ -230,22 +230,32 @@ class Budget {
 
 
             // DELETING ROWS
-            this.deleteCategoryRows();
+            this.deleteCategoryRows()
+                .then(() => {
+                    console.log('After deleting categories in object and db: ', this.rows)
+                    console.log('Status: AWAITING')
 
-            console.log('After deleting categories in object and db: ', this.rows)
-            console.log('Status: AWAITING')
+                    // UPDATING EXISTING ROWS
+                    return this.updateCategoryRows();
+                     
+                })
+                .then(() => {
+                    console.log('After updating categories with name, amount and parent_ids: ', this.rows)
+                    console.log('Status: AWAITING')
+        
+                    // RENDER TO DOM
+                    this.renderFrozenBudget();
+                })
+                .finally(() => {
+                    console.log('After rendering budget to the DOM: ', this.rows)
+                    console.log('Status: SUCCESS')
+                });
 
-            // UPDATING EXISTING ROWS
-            this.updateCategoryRows();
+            
 
-            console.log('After updating categories with name, amount and parent_ids: ', this.rows)
-            console.log('Status: AWAITING')
+            
 
-            // RENDER TO DOM
-            this.renderFrozenBudget();
-
-            console.log('After rendering budget to the DOM: ', this.rows)
-            console.log('Status: SUCCESS')
+            
 
 
         
@@ -359,7 +369,7 @@ class Budget {
 
         for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
 
-            DOMChild.remove(DOMChild)
+            DOMChild.remove(DOMChild);
 
         }
 
@@ -367,17 +377,17 @@ class Budget {
 
     //// BUDGET MANIPULATION \\\\
 
-    deleteCategoryRows = () => {
+    deleteCategoryRows = async (): Promise<void> => {
 
         console.log('waiting for some code to delete rows')
 
         for (const deletableRow of this.toDelete) {
 
-            this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id)
+            await this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id)
 
-            this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
+            await this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
 
-            this.deleteCategoryFromDB(deletableRow.id)
+            await this.deleteCategoryFromDB(deletableRow.id)
 
         }
 
@@ -387,25 +397,87 @@ class Budget {
 
     }
 
-    updateCategoryRows = () => {
-
-        /* 
+    updateCategoryRows = async () => {
+        console.log('updateCategoryRows called')
         
-        get potentially updated parentIds
+        
+        // get potentially updated parentIds
+        const categoriesParentIds = await this.query.getCategoriesParentIds(this.root.budget_id);
 
-        write parentIds to CategoryRows
+        console.log(`ids and parentIds: ${categoriesParentIds}`)
+        console.log(categoriesParentIds)
 
-        rebuild tree with new parent_ids
+        // write parentIds to CategoryRows
+        for (const {id, parentId} of categoriesParentIds) {
 
-        calculate sums
+            this.rowById(id).parent_id = parentId;
 
-        update amount and value in db
+        }
 
-        */
+        console.log(`this.toDelete: ${this.toDelete}`)
+        // rebuild tree with new parent_ids (and remove this.toDelete rows from this.root)
+        for (const categoryRow of this.toDelete) {
+
+            console.log('running through rows for deletion')
+            
+            this.removeById(categoryRow.id)
+
+        }
+
+        // calculate sums
+        this.calculateBudgetSums();
+
+        // update amount and value in db
+
+       
 
 
         console.log('waiting for some code to update rows')
 
+
+    }
+
+    calculateBudgetSums = (): void => {
+
+        console.log('waiting for some code to calculate budget sums')
+        
+        let sum: number = NaN
+
+        console.log(`The total sum is: ${sum}`)
+    }
+
+    rowById = (id: number): CategoryRow => {
+
+        return this.rows.filter(row => row.id == id)[0]
+    
+    }
+
+    removeById = (categoryId: number, root: CategoryRow = this.root): void => {
+
+        // Finds category and removes.
+        // If category has children, the children will be lifted 1 generation
+
+        for (const child of root.children) {
+
+            console.log(`Looking for ${categoryId} in row: ${child}`)
+            
+            if (child.id == categoryId) {
+
+                console.log(`Found row with to be deleted id: ${categoryId} = ${child}`)
+
+                root.children = [...root.children.filter(child => child.id != categoryId), ...child.children]
+                
+                console.log(`Row have been deleted from root: ${this.root}`)
+
+                return 
+            
+            }
+
+            this.removeById(categoryId, root);
+        
+        }
+
+        console.log('No nodes deleted in this run...')
 
     }
 
@@ -453,7 +525,7 @@ class Budget {
 
 
 
-
+//// OLD - CONSIDER DELETE \\\\ 
 
 
 
