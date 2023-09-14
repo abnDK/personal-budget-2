@@ -303,6 +303,21 @@ class BudgetQueryService {
         this.getCategoryParentIds = () => {
             return { id: NaN, categoryId: NaN };
         };
+        this.deleteCategory = (category_id) => {
+            return fetch(`http://localhost:3000/categories/${category_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return res.json();
+            })
+                .catch((err) => { throw new Error(err); });
+        };
         // TRANSACTIONS
         this.updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
             return fetch(`http://localhost:3000/transactions/${transactionId}`, {

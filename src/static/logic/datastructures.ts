@@ -1,4 +1,4 @@
-function BuildTree(array: Category[], parent_id_key: string): CategoryRow {
+function BuildTree(array: Category[], parent_id_key: string = 'parent_id'): CategoryRow {
 
     function addChildren(element: CategoryRow) {
         

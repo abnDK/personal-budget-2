@@ -3,7 +3,7 @@
 // CREATE BUDGET ROW
 const createBudgetRow = function (category) {
     let budgetRowElement = createHTMLElement('div', `budget-row ${LevelClassMap.get(String(category['level']))}`, '', [
-        createHTMLElement('div', 'category-name', category['name']),
+        createHTMLElement('div', 'category-name', `${category['name']} (${category['id']}/${category['parent_id']})`),
         createHTMLElement('div', 'category-amount', String(category['amount']))
     ]);
     // set id's on budget row element

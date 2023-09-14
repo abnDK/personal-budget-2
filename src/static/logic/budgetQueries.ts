@@ -352,7 +352,7 @@ class BudgetQueryService {
         .catch((err)=> {throw new Error(err)}) 
     }
 
-    getCategoriesParentIds = async function(budgetId: number = 0): Promise<{id: number, parentId: number} | undefined> {
+    getCategoriesParentIds = async function(budgetId: number = 0): Promise<{id: number, parentId: number}[] | undefined> {
         try {
             
             const categories = await fetch('http://localhost:3000/categories')
@@ -390,6 +390,25 @@ class BudgetQueryService {
 
         return {id: NaN, categoryId: NaN}
 
+    }
+
+    deleteCategory = (category_id: number): Promise<Category> => {
+
+        return fetch(`http://localhost:3000/categories/${category_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then((res)=>{
+            if (!res.ok) {
+                throw new Error(String(res.status))
+            }
+    
+            return res.json()
+
+        })
+        .catch((err)=> {throw new Error(err)})
     }
 
 

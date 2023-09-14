@@ -181,7 +181,7 @@ class Budget {
     constructor(rows: Category[], budgetRowsDomElement: Element) { 
 
         // # 36: just set rows directly..
-        this.root = BuildTree(rows, 'parent_id');
+        this.root = BuildTree(rows);
                 
         this.budgetRowsDomElement = budgetRowsDomElement;
         
@@ -382,11 +382,10 @@ class Budget {
         console.log('waiting for some code to delete rows')
 
         for (const deletableRow of this.toDelete) {
-
-            await this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id)
+            await this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
 
             await this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
-
+            
             await this.deleteCategoryFromDB(deletableRow.id)
 
         }
@@ -415,14 +414,26 @@ class Budget {
         }
 
         console.log(`this.toDelete: ${this.toDelete}`)
-        // rebuild tree with new parent_ids (and remove this.toDelete rows from this.root)
+        
+        // remove rows in this.toDelete
+        /* 
         for (const categoryRow of this.toDelete) {
 
             console.log('running through rows for deletion')
+            console.log(`Next row: ${categoryRow}`)
             
             this.removeById(categoryRow.id)
 
+            console.log(`Rows after deletion: ${this.toDelete}`)
+
         }
+        */
+        // alternative way of filtering out toDelete rows: run BuildTree only with .toKeep?
+        this.root = BuildTree(this.toKeep);
+        
+        
+        // rebuild tree with new parent_ids
+        // // this is done everytime reading this.rows
 
         // calculate sums
         this.calculateBudgetSums();
@@ -483,15 +494,15 @@ class Budget {
 
     //// DB QUERYING \\\\
 
-    handleTransactionCategoryForeignKeyConstraint = async (categoryId: number) => {
+    handleTransactionCategoryForeignKeyConstraint = async (oldCategoryId: number, newCategoryId: number) => {
 
         console.log('handling transaction category foreign key constraint')
 
-        const transactionsWithCategoryId = await this.query.getTransactionsByCategoryId(categoryId);
+        const transactionsWithCategoryId = await this.query.getTransactionsByCategoryId(oldCategoryId);
 
         for (const transaction of transactionsWithCategoryId) {
             
-            await this.query.updateCategoryIdOfTransaction(transaction.id, categoryId)
+            await this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId)
 
         }
 
@@ -512,9 +523,11 @@ class Budget {
 
     }
 
-    deleteCategoryFromDB = (categoryId: number) => {
+    deleteCategoryFromDB = async (categoryId: number) => {
 
         console.log('deleting category from db')
+
+        await this.query.deleteCategory(categoryId);
 
     }
     

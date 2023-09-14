@@ -1,5 +1,5 @@
 "use strict";
-function BuildTree(array, parent_id_key) {
+function BuildTree(array, parent_id_key = 'parent_id') {
     function addChildren(element) {
         let children = array.filter(child => child[parent_id_key] == element.id);
         let childrenRows = children.map(child => {

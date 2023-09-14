@@ -115,7 +115,7 @@ class Budget {
         this.deleteCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
             console.log('waiting for some code to delete rows');
             for (const deletableRow of this.toDelete) {
-                yield this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id);
+                yield this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
                 yield this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
                 yield this.deleteCategoryFromDB(deletableRow.id);
             }
@@ -129,18 +129,26 @@ class Budget {
             console.log(categoriesParentIds);
             // write parentIds to CategoryRows
             for (const { id, parentId } of categoriesParentIds) {
-                console.log(`getting id: ${id} and parentId: ${parentId}`);
-                console.log(`getting row by id:`);
-                console.log(this.rowById(id));
-                console.log(this.rowById(id).parent_id);
                 this.rowById(id).parent_id = parentId;
             }
             console.log(`this.toDelete: ${this.toDelete}`);
-            // rebuild tree with new parent_ids (and remove this.toDelete rows from this.root)
+            // remove rows in this.toDelete
+            /*
             for (const categoryRow of this.toDelete) {
-                console.log('running through rows for deletion');
-                this.removeById(categoryRow.id);
+    
+                console.log('running through rows for deletion')
+                console.log(`Next row: ${categoryRow}`)
+                
+                this.removeById(categoryRow.id)
+    
+                console.log(`Rows after deletion: ${this.toDelete}`)
+    
             }
+            */
+            // alternative way of filtering out toDelete rows: run BuildTree only with .toKeep?
+            this.root = BuildTree(this.toKeep);
+            // rebuild tree with new parent_ids
+            // // this is done everytime reading this.rows
             // calculate sums
             this.calculateBudgetSums();
             // update amount and value in db
@@ -170,11 +178,11 @@ class Budget {
             console.log('No nodes deleted in this run...');
         };
         //// DB QUERYING \\\\
-        this.handleTransactionCategoryForeignKeyConstraint = (categoryId) => __awaiter(this, void 0, void 0, function* () {
+        this.handleTransactionCategoryForeignKeyConstraint = (oldCategoryId, newCategoryId) => __awaiter(this, void 0, void 0, function* () {
             console.log('handling transaction category foreign key constraint');
-            const transactionsWithCategoryId = yield this.query.getTransactionsByCategoryId(categoryId);
+            const transactionsWithCategoryId = yield this.query.getTransactionsByCategoryId(oldCategoryId);
             for (const transaction of transactionsWithCategoryId) {
-                yield this.query.updateCategoryIdOfTransaction(transaction.id, categoryId);
+                yield this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId);
             }
         });
         this.handleCategoryParentIdForeignKeyConstraint = (categoryIdToBeDeleted, newParentId) => __awaiter(this, void 0, void 0, function* () {
@@ -184,9 +192,10 @@ class Budget {
                 yield this.query.updateCategoryParentId(categoryChild.id, newParentId);
             }
         });
-        this.deleteCategoryFromDB = (categoryId) => {
+        this.deleteCategoryFromDB = (categoryId) => __awaiter(this, void 0, void 0, function* () {
             console.log('deleting category from db');
-        };
+            yield this.query.deleteCategory(categoryId);
+        });
         //// OLD - CONSIDER DELETE \\\\ 
         this.syncDB = () => {
             // write amounts to db
@@ -340,7 +349,7 @@ class Budget {
             this.sum = budgetTotalSum;
         };
         // # 36: just set rows directly..
-        this.root = BuildTree(rows, 'parent_id');
+        this.root = BuildTree(rows);
         this.budgetRowsDomElement = budgetRowsDomElement;
         this.query = new BudgetQueryService();
         this.initRenderBudget();
