@@ -454,6 +454,30 @@ class Budget {
         
         let sum: number = NaN
 
+        const calcChildrenSum = (element: CategoryRow): number => {
+
+            if (element.children.length) {
+
+                element.amount = 0;
+                
+                for (const child of element.children) {
+
+                    calcChildrenSum(child)
+    
+                    element.amount += child.amount
+    
+                }
+
+            }
+            
+            return element.amount
+
+        }
+
+        this.root.amount = calcChildrenSum(this.root)
+
+        this.sum = this.root.amount
+
         console.log(`The total sum is: ${sum}`)
     }
 

@@ -157,6 +157,18 @@ class Budget {
         this.calculateBudgetSums = () => {
             console.log('waiting for some code to calculate budget sums');
             let sum = NaN;
+            const calcChildrenSum = (element) => {
+                if (element.children.length) {
+                    element.amount = 0;
+                    for (const child of element.children) {
+                        calcChildrenSum(child);
+                        element.amount += child.amount;
+                    }
+                }
+                return element.amount;
+            };
+            this.root.amount = calcChildrenSum(this.root);
+            this.sum = this.root.amount;
             console.log(`The total sum is: ${sum}`);
         };
         this.rowById = (id) => {
