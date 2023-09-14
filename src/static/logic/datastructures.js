@@ -37,10 +37,13 @@ const dfsTree = function (root) {
     let toVisit = [root];
     while (toVisit.length > 0) {
         let next = toVisit.pop(); // pop makes it dfs, shift makes it bfs
-        for (let c of next.children) {
+        // sorts children by id, to ensure same order when rendering it to the budget
+        for (let c of next.children.sort((childA, childB) => childB.id - childA.id)) {
             toVisit.push(c);
         }
         catTree.push(next);
     }
+    // sort category tree by id
+    //catTree.sort((catA, catB) => catA.id - catB.id);
     return catTree;
 };
