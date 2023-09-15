@@ -62,21 +62,12 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
         throw new Error('Could not find budget rows element');
     }
     let categories = yield getCategories();
-    console.log(categories);
     if (categories == undefined) {
         throw new Error('Categories returned undefined!');
     }
     const budget_id = parseInt(window.location.href.split("/").at(-1));
-    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id); //.filter(cat => cat.name != 'root');
-    console.log("filtered cats: ", filteredCategories);
+    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id);
     BUDGET = new Budget(filteredCategories, budgetRowsDomElement);
-    /*
-    console.log('###', BUDGET)
-
-    for (let row of BUDGET.rows) {
-        budgetRowsRoot.appendChild(row.element)
-    }
-     */
 }));
 const toggle = () => {
     BUDGET.editable = !BUDGET.editable;
@@ -107,62 +98,6 @@ document.querySelector('.button-edit').addEventListener('click', (event) => __aw
         button.innerText = 'Edit';
         button.style.backgroundColor = "#FFD182";
         BUDGET.editable = false;
-        /*
-        return
-
-        // DELETE CATEGORIES IN DB
-        const idsToDelete = BUDGET.toDelete.toSorted((a, b) => a.level - b.level).reverse().map(row => row.id)
-        console.log('now deleting the following ids: ', idsToDelete)
-        const deletedCategories = await deleteCategories(idsToDelete);
-
-        console.log('these cats just been returned as deletedL: ', deletedCategories)
-
-        for (const deletedCategory of deletedCategories) {
-            // Takes the parent_id of deletedCategories and write it to the children of a
-            // deletedCategory. This will i.e. mean that if a child node is deleted,
-            // the grandchild will have the parent node as it's parent. (in a root->parent->child->grandchild tree)
-            
-            // IMPORTANT:
-            // make sure this also is sorted from grandchild level to parent level
-            // so rows getting new parent_id's if their parent_id category was deleted
-            // can be elevated from bottom to top of tree, if a chain of categories
-            // was deleted.
-
-            const orphanedCategories = BUDGET.rowsByParentId(deletedCategory.id);
-
-            if (orphanedCategories.length) {
-
-                for (const orphan of orphanedCategories) {
-
-                    orphan.parent_id = deletedCategory.parent_id
-
-                }
-
-            }
-
-        }
-        
-        BUDGET.removeDeletable();
-        // when this returns - we need to update parents ids before we do calcSums. Else it will look
-        // for parent_id that has been deleted in the above when deleting a row, that is not grandchild or nor loner.
-
-        
-        // GET DATA FROM DOM ELEMENTS TO OBJECT
-        BUDGET.syncFromDomElementToObject()
-
-        // CALC SUMS (but don't write them)
-        BUDGET.calcSums(); // ERROR LIES HERE SOME WHERE. DO WE TEMPORARILY STORE CATORIES IN DB WIHT NULL PARENT_ID AND BUDGET ID - IT SHOULD JUST USE OLD VALUE THEN..
-
-        
-        // UPDATE CATEGORIES IN DB (and get updated parent_ids)
-        BUDGET.syncDB()
-
-        // after getting parent ids back, run through category rows and update parent_id (and maybe level???)
-
-        // RENDER FROZEN AGAIN
-        
-        BUDGET.editable = !BUDGET.editable;
-        */
     }
 }));
 // MARK DELETE

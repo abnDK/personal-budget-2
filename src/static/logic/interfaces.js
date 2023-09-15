@@ -92,9 +92,9 @@ class Budget {
         this.initRenderBudget = () => {
             // inital rendering of budget when dom content has loaded.
             this.renderCategories(true);
+            this.renderBudgetSum();
         };
         this.fetchDataFromDOM = () => {
-            console.log('called fetchDataFromDOM');
             for (let row of this.rows.filter(row => row.name != 'root')) {
                 row.readValuesFromDomElement();
             }
@@ -102,15 +102,35 @@ class Budget {
         this.renderEditableBudget = () => {
             this.clearBudget();
             this.renderCategories(false);
+            this.renderBudgetSum();
         };
         this.renderFrozenBudget = () => {
             this.clearBudget();
             this.renderCategories(true);
+            this.renderBudgetSum();
+        };
+        this.renderCategories = (frozen = true) => {
+            /* Only for initial population of category rows to the budget */
+            // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
+            // test "rootLevel" filter on rows:
+            const levelOneTree = this.rowsByLevel(1);
+            levelOneTree.forEach(row => {
+                //this.toKeep.forEach(row => {
+                if (frozen) {
+                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
+                }
+                else {
+                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
+                }
+            });
         };
         this.clearBudget = () => {
             for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
                 DOMChild.remove(DOMChild);
             }
+        };
+        this.renderBudgetSum = () => {
+            document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
         };
         /* ADDROW: renderNewRow() is added here */
         //// BUDGET MANIPULATION \\\\
@@ -152,7 +172,6 @@ class Budget {
             };
             this.root.amount = calcChildrenSum(this.root);
             this.sum = this.root.amount;
-            console.log(`The total sum is: ${sum}`);
         };
         this.rowById = (id) => {
             return this.rows.filter(row => row.id == id)[0];
@@ -161,45 +180,28 @@ class Budget {
             // Finds category and removes.
             // If category has children, the children will be lifted 1 generation
             for (const child of root.children) {
-                console.log(`Looking for ${categoryId} in row: ${child}`);
                 if (child.id == categoryId) {
-                    console.log(`Found row with to be deleted id: ${categoryId} = ${child}`);
                     root.children = [...root.children.filter(child => child.id != categoryId), ...child.children];
-                    console.log(`Row have been deleted from root: ${this.root}`);
                     return;
                 }
                 this.removeById(categoryId, root);
             }
-            console.log('No nodes deleted in this run...');
         };
         /* ADDROW: addNewRow() is added here */
         //// DB QUERYING \\\\
         this.handleTransactionCategoryForeignKeyConstraint = (oldCategoryId, newCategoryId) => __awaiter(this, void 0, void 0, function* () {
-            console.log('handling transaction category foreign key constraint');
             const transactionsWithCategoryId = yield this.query.getTransactionsByCategoryId(oldCategoryId);
-            console.log(`For category_id: ${oldCategoryId} we are now updating the following transactions' category_id`);
-            console.log(transactionsWithCategoryId);
             for (const transaction of transactionsWithCategoryId) {
-                console.log(`Now querying transaction no. ${transaction.id}`);
-                console.log(transaction);
-                console.log('Transactions table before update');
-                const transBefore = yield this.query.getTransactions();
-                console.log(transBefore);
                 yield this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId);
-                console.log('Transactions table after update');
-                const transAfter = yield this.query.getTransactions();
-                console.log(transAfter);
             }
         });
         this.handleCategoryParentIdForeignKeyConstraint = (categoryIdToBeDeleted, newParentId) => __awaiter(this, void 0, void 0, function* () {
-            console.log('handling category parent_id foreign key constraint');
             const childrenOfDeletedCategory = yield this.query.getCategoryChildren(categoryIdToBeDeleted);
             for (const categoryChild of childrenOfDeletedCategory) {
                 yield this.query.updateCategoryParentId(categoryChild.id, newParentId);
             }
         });
         this.deleteCategoryFromDB = (categoryId) => __awaiter(this, void 0, void 0, function* () {
-            console.log('deleting category from db');
             yield this.query.deleteCategory(categoryId);
         });
         /* ADDROW: postNewCategory() is added here */
@@ -229,22 +231,6 @@ class Budget {
                 return categoryRow;
             });
             return this.rows;
-        };
-        // # 36: when this is run - filter out root.
-        this.renderCategories = (frozen = true) => {
-            /* Only for initial population of category rows to the budget */
-            // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
-            // test "rootLevel" filter on rows:
-            const levelOneTree = this.rowsByLevel(1);
-            levelOneTree.forEach(row => {
-                //this.toKeep.forEach(row => {
-                if (frozen) {
-                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
-                }
-                else {
-                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
-                }
-            });
         };
         this.removeDeletable = () => {
             console.log('called removeDeletable');
@@ -355,13 +341,11 @@ class Budget {
             }
             this.sum = budgetTotalSum;
         };
-        // # 36: just set rows directly..
         this.root = BuildTree(rows);
         this.budgetRowsDomElement = budgetRowsDomElement;
         this.query = new BudgetQueryService();
+        this.sum = this.root.amount;
         this.initRenderBudget();
-        // # 36: Is this need anymore or should it be run automatically somewhere else?
-        //this.renderCategories();
     }
     ///// GETTERS AND SETTERS \\\\\
     get editable() {
@@ -404,7 +388,6 @@ class Budget {
         }
         this._editable = state;
     }
-    // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows() {
         return dfsTree(this.root);
     }

@@ -169,8 +169,7 @@ interface HTMLElementBudgetRowEditable extends HTMLElementBudgetRow {
 
 
 class Budget {
-    //rows: CategoryRow[];
-    //root: Category
+
     budgetRowsDomElement: Element;
     sum: number;
     private _editable: boolean;
@@ -181,19 +180,15 @@ class Budget {
 
     constructor(rows: Category[], budgetRowsDomElement: Element) { 
 
-        // # 36: just set rows directly..
         this.root = BuildTree(rows);
                 
         this.budgetRowsDomElement = budgetRowsDomElement;
         
         this.query = new BudgetQueryService()
 
+        this.sum = this.root.amount;
+
         this.initRenderBudget()
-
-        // # 36: Is this need anymore or should it be run automatically somewhere else?
-        //this.renderCategories();
-
-
 
     }
     
@@ -260,7 +255,6 @@ class Budget {
     }
 
     
-    // # 36: Reads this.root which is a tree. Should return the parsed array DFS. 
     get rows(): CategoryRow[] {
 
         return dfsTree(this.root)
@@ -333,11 +327,11 @@ class Budget {
         // inital rendering of budget when dom content has loaded.
         this.renderCategories(true);
 
+        this.renderBudgetSum()
+
     }
 
     fetchDataFromDOM = (): void => {
-
-        console.log('called fetchDataFromDOM')
 
         for (let row of this.rows.filter(row=>row.name != 'root')) {
             
@@ -353,6 +347,8 @@ class Budget {
 
         this.renderCategories(false)
 
+        this.renderBudgetSum()
+
     }
 
     renderFrozenBudget = (): void => {
@@ -360,6 +356,32 @@ class Budget {
         this.clearBudget();
 
         this.renderCategories(true)
+
+        this.renderBudgetSum()
+
+    }
+
+    renderCategories = (frozen: boolean = true): void => {
+        /* Only for initial population of category rows to the budget */
+        // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
+        
+        // test "rootLevel" filter on rows:
+        const levelOneTree = this.rowsByLevel(1);
+
+        levelOneTree.forEach(row => {
+        //this.toKeep.forEach(row => {
+
+            if (frozen) {
+
+                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
+
+            } else {
+
+                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
+
+            }
+
+        });
 
     }
 
@@ -372,6 +394,13 @@ class Budget {
         }
 
     }
+
+    renderBudgetSum = (): void => {
+
+        document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
+
+    }
+
 
     /* ADDROW: renderNewRow() is added here */
 
@@ -448,7 +477,6 @@ class Budget {
 
         this.sum = this.root.amount
 
-        console.log(`The total sum is: ${sum}`)
     }
 
     rowById = (id: number): CategoryRow => {
@@ -463,17 +491,11 @@ class Budget {
         // If category has children, the children will be lifted 1 generation
 
         for (const child of root.children) {
-
-            console.log(`Looking for ${categoryId} in row: ${child}`)
             
             if (child.id == categoryId) {
 
-                console.log(`Found row with to be deleted id: ${categoryId} = ${child}`)
-
                 root.children = [...root.children.filter(child => child.id != categoryId), ...child.children]
                 
-                console.log(`Row have been deleted from root: ${this.root}`)
-
                 return 
             
             }
@@ -481,8 +503,6 @@ class Budget {
             this.removeById(categoryId, root);
         
         }
-
-        console.log('No nodes deleted in this run...')
 
     }
 
@@ -492,35 +512,17 @@ class Budget {
 
     handleTransactionCategoryForeignKeyConstraint = async (oldCategoryId: number, newCategoryId: number) => {
 
-        console.log('handling transaction category foreign key constraint')
-
         const transactionsWithCategoryId = await this.query.getTransactionsByCategoryId(oldCategoryId);
 
-        console.log(`For category_id: ${oldCategoryId} we are now updating the following transactions' category_id`)
-        console.log(transactionsWithCategoryId)
-
         for (const transaction of transactionsWithCategoryId) {
-
-            console.log(`Now querying transaction no. ${transaction.id}`)
-            console.log(transaction)
             
-            console.log('Transactions table before update')
-            const transBefore = await this.query.getTransactions()
-            console.log(transBefore)
-
             await this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId)
-
-            console.log('Transactions table after update')
-            const transAfter = await this.query.getTransactions()
-            console.log(transAfter)
 
         }
 
     }
 
     handleCategoryParentIdForeignKeyConstraint = async (categoryIdToBeDeleted: number, newParentId: number) => {
-
-        console.log('handling category parent_id foreign key constraint')
 
         const childrenOfDeletedCategory = await this.query.getCategoryChildren(categoryIdToBeDeleted);
 
@@ -534,8 +536,6 @@ class Budget {
     }
 
     deleteCategoryFromDB = async (categoryId: number) => {
-
-        console.log('deleting category from db')
 
         await this.query.deleteCategory(categoryId);
 
@@ -613,30 +613,7 @@ class Budget {
         
     }
 
-    // # 36: when this is run - filter out root.
-    renderCategories = (frozen: boolean = true): void => {
-        /* Only for initial population of category rows to the budget */
-        // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
-        
-        // test "rootLevel" filter on rows:
-        const levelOneTree = this.rowsByLevel(1);
-
-        levelOneTree.forEach(row => {
-        //this.toKeep.forEach(row => {
-
-            if (frozen) {
-
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
-
-            } else {
-
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
-
-            }
-
-        });
-
-    }
+    
 
     removeDeletable = (): void => {
         console.log('called removeDeletable')
