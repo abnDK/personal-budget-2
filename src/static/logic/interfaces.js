@@ -113,7 +113,6 @@ class Budget {
         };
         //// BUDGET MANIPULATION \\\\
         this.deleteCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
-            console.log('waiting for some code to delete rows');
             for (const deletableRow of this.toDelete) {
                 yield this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
                 yield this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
@@ -131,27 +130,14 @@ class Budget {
             for (const { id, parentId } of categoriesParentIds) {
                 this.rowById(id).parent_id = parentId;
             }
-            console.log(`this.toDelete: ${this.toDelete}`);
-            // remove rows in this.toDelete
-            /*
-            for (const categoryRow of this.toDelete) {
-    
-                console.log('running through rows for deletion')
-                console.log(`Next row: ${categoryRow}`)
-                
-                this.removeById(categoryRow.id)
-    
-                console.log(`Rows after deletion: ${this.toDelete}`)
-    
-            }
-            */
-            // alternative way of filtering out toDelete rows: run BuildTree only with .toKeep?
+            // rebuild budget tree only with the .toKeep rows
             this.root = BuildTree(this.toKeep);
-            // rebuild tree with new parent_ids
-            // // this is done everytime reading this.rows
             // calculate sums
             this.calculateBudgetSums();
             // update amount and value in db
+            for (const cat of this.rows) {
+                yield this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount);
+            }
             console.log('waiting for some code to update rows');
         });
         this.calculateBudgetSums = () => {
@@ -193,8 +179,18 @@ class Budget {
         this.handleTransactionCategoryForeignKeyConstraint = (oldCategoryId, newCategoryId) => __awaiter(this, void 0, void 0, function* () {
             console.log('handling transaction category foreign key constraint');
             const transactionsWithCategoryId = yield this.query.getTransactionsByCategoryId(oldCategoryId);
+            console.log(`For category_id: ${oldCategoryId} we are now updating the following transactions' category_id`);
+            console.log(transactionsWithCategoryId);
             for (const transaction of transactionsWithCategoryId) {
+                console.log(`Now querying transaction no. ${transaction.id}`);
+                console.log(transaction);
+                console.log('Transactions table before update');
+                const transBefore = yield this.query.getTransactions();
+                console.log(transBefore);
                 yield this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId);
+                console.log('Transactions table after update');
+                const transAfter = yield this.query.getTransactions();
+                console.log(transAfter);
             }
         });
         this.handleCategoryParentIdForeignKeyConstraint = (categoryIdToBeDeleted, newParentId) => __awaiter(this, void 0, void 0, function* () {
@@ -400,7 +396,7 @@ class Budget {
                 console.log('After updating categories with name, amount and parent_ids: ', this.rows);
                 console.log('Status: AWAITING');
                 // RENDER TO DOM
-                this.renderFrozenBudget();
+                return this.renderFrozenBudget();
             })
                 .finally(() => {
                 console.log('After rendering budget to the DOM: ', this.rows);
@@ -423,7 +419,10 @@ class Budget {
         return this.rows.filter(row => !row.to_be_deleted);
     }
     get toDelete() {
-        return this.rows.filter(row => row.to_be_deleted);
+        const toDelete = this.rows.filter(row => row.to_be_deleted);
+        // sorted by level to avoid FK constraint errors on backend.
+        const toDeleteByLevel = toDelete.toSorted((a, b) => b.level - a.level);
+        return toDeleteByLevel;
     }
     get loners() {
         // return elements closest to the root and not having any children

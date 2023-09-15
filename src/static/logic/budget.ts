@@ -138,11 +138,12 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
         
         BUDGET.editable = false;
 
+        /* 
+        return
 
         // DELETE CATEGORIES IN DB
         const idsToDelete = BUDGET.toDelete.toSorted((a, b) => a.level - b.level).reverse().map(row => row.id)
         console.log('now deleting the following ids: ', idsToDelete)
-        return
         const deletedCategories = await deleteCategories(idsToDelete);
 
         console.log('these cats just been returned as deletedL: ', deletedCategories)
@@ -192,7 +193,7 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
         // RENDER FROZEN AGAIN
         
         BUDGET.editable = !BUDGET.editable;
-
+        */
     }
 
 

@@ -91,7 +91,15 @@ class TransactionService {
         });
     }
     static updateTransaction(id, name, amount, date, category_id, recipient, comment) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, arguments, void 0, function* () {
+            console.log('updateTransaction received these data: ', arguments);
+            console.log('id: ', id);
+            console.log('name: ', name);
+            console.log('amount: ', amount);
+            console.log('date: ', date);
+            console.log('category_id: ', category_id);
+            console.log('recipient: ', recipient);
+            console.log('comment: ', comment);
             let pre_updated_trans_response = yield pool.query('SELECT * FROM transaction WHERE id = $1', [id]);
             const pre_updated_trans = pre_updated_trans_response['rows'][0];
             // setting previous values, if no new is given.
@@ -113,6 +121,7 @@ class TransactionService {
             }
             // init transaction object
             let transaction = new transaction_1.Transaction(updated_trans.rows[0].id, updated_trans.rows[0].name, updated_trans.rows[0].amount, updated_trans.rows[0].date, updated_trans.rows[0].category_id);
+            console.log('Transaction service returning: ', transaction);
             // return transaction object
             return transaction;
         });

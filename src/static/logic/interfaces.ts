@@ -244,21 +244,13 @@ class Budget {
                     console.log('Status: AWAITING')
         
                     // RENDER TO DOM
-                    this.renderFrozenBudget();
+                    return this.renderFrozenBudget();
                 })
                 .finally(() => {
                     console.log('After rendering budget to the DOM: ', this.rows)
                     console.log('Status: SUCCESS')
                 });
 
-            
-
-            
-
-            
-
-
-        
         }
         
         this._editable = state;
@@ -295,9 +287,12 @@ class Budget {
     }
 
     get toDelete() {
-        
-        return this.rows.filter(row => row.to_be_deleted)
 
+        const toDelete = this.rows.filter(row => row.to_be_deleted)
+
+        // sorted by level (i.e. child before parent) to avoid FK constraint errors on backend.
+        return toDelete.toSorted((a, b) => b.level - a.level)
+        
     }
 
     get loners() {
@@ -379,9 +374,8 @@ class Budget {
 
     deleteCategoryRows = async (): Promise<void> => {
 
-        console.log('waiting for some code to delete rows')
-
         for (const deletableRow of this.toDelete) {
+
             await this.handleTransactionCategoryForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
 
             await this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id)
@@ -390,21 +384,12 @@ class Budget {
 
         }
 
-        // either remove deletable rows from budget object, or make sure they will be filtered out
-
-
-
     }
 
     updateCategoryRows = async () => {
-        console.log('updateCategoryRows called')
-        
         
         // get potentially updated parentIds
         const categoriesParentIds = await this.query.getCategoriesParentIds(this.root.budget_id);
-
-        console.log(`ids and parentIds: ${categoriesParentIds}`)
-        console.log(categoriesParentIds)
 
         // write parentIds to CategoryRows
         for (const {id, parentId} of categoriesParentIds) {
@@ -412,45 +397,23 @@ class Budget {
             this.rowById(id).parent_id = parentId;
 
         }
-
-        console.log(`this.toDelete: ${this.toDelete}`)
         
-        // remove rows in this.toDelete
-        /* 
-        for (const categoryRow of this.toDelete) {
-
-            console.log('running through rows for deletion')
-            console.log(`Next row: ${categoryRow}`)
-            
-            this.removeById(categoryRow.id)
-
-            console.log(`Rows after deletion: ${this.toDelete}`)
-
-        }
-        */
-        // alternative way of filtering out toDelete rows: run BuildTree only with .toKeep?
+        // rebuild budget tree only with the .toKeep rows
         this.root = BuildTree(this.toKeep);
-        
-        
-        // rebuild tree with new parent_ids
-        // // this is done everytime reading this.rows
 
         // calculate sums
         this.calculateBudgetSums();
 
         // update amount and value in db
+        for (const cat of this.rows) {
 
+            await this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount)
+
+        }
        
-
-
-        console.log('waiting for some code to update rows')
-
-
     }
 
     calculateBudgetSums = (): void => {
-
-        console.log('waiting for some code to calculate budget sums')
         
         let sum: number = NaN
 
@@ -469,7 +432,7 @@ class Budget {
                 }
 
             }
-            
+
             return element.amount
 
         }
@@ -524,9 +487,23 @@ class Budget {
 
         const transactionsWithCategoryId = await this.query.getTransactionsByCategoryId(oldCategoryId);
 
+        console.log(`For category_id: ${oldCategoryId} we are now updating the following transactions' category_id`)
+        console.log(transactionsWithCategoryId)
+
         for (const transaction of transactionsWithCategoryId) {
+
+            console.log(`Now querying transaction no. ${transaction.id}`)
+            console.log(transaction)
             
+            console.log('Transactions table before update')
+            const transBefore = await this.query.getTransactions()
+            console.log(transBefore)
+
             await this.query.updateCategoryIdOfTransaction(transaction.id, newCategoryId)
+
+            console.log('Transactions table after update')
+            const transAfter = await this.query.getTransactions()
+            console.log(transAfter)
 
         }
 

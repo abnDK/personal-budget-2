@@ -61,9 +61,13 @@ router.delete('/:id', async (req, res) => {
 
 
 router.put('/:id', async (req, res) => {
-    
+
+    console.log('put transaction router received this payload: ', req.body)
+
     const id = req.params.id;
     const { name, amount, date, category_id, recipient, comment } = req.body;
+
+    
     
     const transaction = await TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment);
 

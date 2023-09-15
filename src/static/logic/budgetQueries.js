@@ -320,16 +320,26 @@ class BudgetQueryService {
         };
         // TRANSACTIONS
         this.updateCategoryIdOfTransaction = function (transactionId, newCategoryId) {
+            const transactionObject = {
+                name: null,
+                amount: null,
+                date: null,
+                category_id: newCategoryId,
+                recipient: null,
+                comment: null
+            };
+            console.log(`Updating transaction with id: ${transactionId} with following data: `, transactionObject);
             return fetch(`http://localhost:3000/transactions/${transactionId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 'category_id': newCategoryId })
+                body: JSON.stringify(transactionObject)
             }).then((res) => {
                 if (!res.ok) {
                     throw new Error(String(res.status));
                 }
+                console.log('After update, this transaction was returned: ', res);
                 return res.json();
             }).catch((err) => { throw new Error(err); });
         };

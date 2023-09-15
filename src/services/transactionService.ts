@@ -118,6 +118,15 @@ class TransactionService {
 
     static async updateTransaction(id: number, name?: string, amount?: number, date?: Date, category_id?: number | null, recipient?: string, comment?: string): Promise<Transaction> {
 
+        console.log('updateTransaction received these data: ', arguments)
+        console.log('id: ', id)
+        console.log('name: ', name)
+        console.log('amount: ', amount)
+        console.log('date: ', date)
+        console.log('category_id: ', category_id)
+        console.log('recipient: ', recipient)
+        console.log('comment: ', comment)
+
         let pre_updated_trans_response = await pool.query('SELECT * FROM transaction WHERE id = $1', [id]);
         const pre_updated_trans = pre_updated_trans_response['rows'][0]
         // setting previous values, if no new is given.
@@ -150,6 +159,8 @@ class TransactionService {
             updated_trans.rows[0].date, 
             updated_trans.rows[0].category_id
         )
+
+        console.log('Transaction service returning: ', transaction)
 
         // return transaction object
         return transaction
