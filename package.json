@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --timeout 5000 --exit ./src/test/*.test.js",
-    "comp-run-server": "tsc; node index.js",
-    "go": "tsc; nodemon comp-run-server"
+    "compile": "tsc",
+    "seed": "node ./src/utils/seeding/seed.js",
+    "run-server": "node index.js",
+    "go": "npm run compile; npm run seed; npm run run-server"
   },
   "author": "",
   "license": "ISC",

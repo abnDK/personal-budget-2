@@ -26,10 +26,10 @@ INSERT INTO category ("name", "amount", "budget_id", "parent_id") VALUES
 INSERT INTO category ("name", "amount", "budget_id", "parent_id") VALUES
 ('Bus', 400, 4, 8),                     -- id 11
 ('Tog', 250, 4, 8),                     -- id 12
-('Arriva', 250, 4, 11),                 -- id 13
+('Arriva', 250, 4, 12),                 -- id 13
 ('DSB', 1400, 4, 12),                   -- id 14
-('Deutsche Bahn', 220, 4, 12),          -- id 15
-('2_DSB', 1400, 4, 12),                 -- id 16
+('Deutsche Bahn', 220, 4, 11),          -- id 15
+('2_DSB', 1400, 4, 11),                 -- id 16
 ('2_Deutsche Bahn', 220, 4, 12);        -- id 17
 
 -- insert transactions without category
