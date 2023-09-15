@@ -442,7 +442,7 @@ class BudgetQueryService {
             if (!res.ok) {
                 throw new Error(String(res.status))
             }
-            console.log('After update, this transaction was returned: ' res)
+            console.log('After update, this transaction was returned: ', res)
             return res.json()
         }).catch((err) => {throw new Error(err)})
     }

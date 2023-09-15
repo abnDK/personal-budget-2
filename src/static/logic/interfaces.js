@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 class CategoryRow {
+    /* ADDROW: new: boolean is added here */
     constructor(name, amount, id, parent_id, budget_id) {
         this.removeDomElement = () => {
             // why is this moved to the constructor?!
@@ -111,6 +112,7 @@ class Budget {
                 DOMChild.remove(DOMChild);
             }
         };
+        /* ADDROW: renderNewRow() is added here */
         //// BUDGET MANIPULATION \\\\
         this.deleteCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
             for (const deletableRow of this.toDelete) {
@@ -118,18 +120,15 @@ class Budget {
                 yield this.handleCategoryParentIdForeignKeyConstraint(deletableRow.id, deletableRow.parent_id);
                 yield this.deleteCategoryFromDB(deletableRow.id);
             }
-            // either remove deletable rows from budget object, or make sure they will be filtered out
         });
         this.updateCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
-            console.log('updateCategoryRows called');
             // get potentially updated parentIds
             const categoriesParentIds = yield this.query.getCategoriesParentIds(this.root.budget_id);
-            console.log(`ids and parentIds: ${categoriesParentIds}`);
-            console.log(categoriesParentIds);
             // write parentIds to CategoryRows
             for (const { id, parentId } of categoriesParentIds) {
                 this.rowById(id).parent_id = parentId;
             }
+            /* ADDROW: rows wo parent_ids will have the id of their parent in the tree as parent_id */
             // rebuild budget tree only with the .toKeep rows
             this.root = BuildTree(this.toKeep);
             // calculate sums
@@ -138,10 +137,8 @@ class Budget {
             for (const cat of this.rows) {
                 yield this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount);
             }
-            console.log('waiting for some code to update rows');
         });
         this.calculateBudgetSums = () => {
-            console.log('waiting for some code to calculate budget sums');
             let sum = NaN;
             const calcChildrenSum = (element) => {
                 if (element.children.length) {
@@ -175,6 +172,7 @@ class Budget {
             }
             console.log('No nodes deleted in this run...');
         };
+        /* ADDROW: addNewRow() is added here */
         //// DB QUERYING \\\\
         this.handleTransactionCategoryForeignKeyConstraint = (oldCategoryId, newCategoryId) => __awaiter(this, void 0, void 0, function* () {
             console.log('handling transaction category foreign key constraint');
@@ -204,6 +202,7 @@ class Budget {
             console.log('deleting category from db');
             yield this.query.deleteCategory(categoryId);
         });
+        /* ADDROW: postNewCategory() is added here */
         //// OLD - CONSIDER DELETE \\\\ 
         this.syncDB = () => {
             // write amounts to db
@@ -420,10 +419,10 @@ class Budget {
     }
     get toDelete() {
         const toDelete = this.rows.filter(row => row.to_be_deleted);
-        // sorted by level to avoid FK constraint errors on backend.
-        const toDeleteByLevel = toDelete.toSorted((a, b) => b.level - a.level);
-        return toDeleteByLevel;
+        // sorted by level (i.e. child before parent) to avoid FK constraint errors on backend.
+        return toDelete.toSorted((a, b) => b.level - a.level);
     }
+    /* ADDROW: get newRows() {} is added here */
     get loners() {
         // return elements closest to the root and not having any children
         const parentIdsOfChildren = Array.from(new Set(this.children.map(child => child.parent_id)));
