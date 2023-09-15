@@ -33,6 +33,7 @@ class CategoryRow implements Category {
     to_be_deleted: boolean;
     dom_element_ref: object | undefined;
     frozen: boolean;
+    /* ADDROW: new: boolean is added here */
 
 
     constructor(name: string, amount: number, id: number, parent_id: number, budget_id: number) {
@@ -295,6 +296,8 @@ class Budget {
         
     }
 
+    /* ADDROW: get newRows() {} is added here */
+
     get loners() {
         // return elements closest to the root and not having any children
 
@@ -370,6 +373,8 @@ class Budget {
 
     }
 
+    /* ADDROW: renderNewRow() is added here */
+
     //// BUDGET MANIPULATION \\\\
 
     deleteCategoryRows = async (): Promise<void> => {
@@ -397,6 +402,8 @@ class Budget {
             this.rowById(id).parent_id = parentId;
 
         }
+
+        /* ADDROW: rows wo parent_ids will have the id of their parent in the tree as parent_id */
         
         // rebuild budget tree only with the .toKeep rows
         this.root = BuildTree(this.toKeep);
@@ -479,6 +486,8 @@ class Budget {
 
     }
 
+    /* ADDROW: addNewRow() is added here */
+
     //// DB QUERYING \\\\
 
     handleTransactionCategoryForeignKeyConstraint = async (oldCategoryId: number, newCategoryId: number) => {
@@ -532,6 +541,7 @@ class Budget {
 
     }
     
+    /* ADDROW: postNewCategory() is added here */
 
 
 
