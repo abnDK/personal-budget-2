@@ -14,7 +14,7 @@
     grid-template-columns: [first] 1fr [content-start transactions-start] 10fr [content-center transactions-end budget-start] 10fr [content-end budget-end] 1fr [last];
     grid-template-rows: [first header-start] 1fr [header-end] 2fr [content-start] 20fr [content-end] 2fr [footer-start] 1fr [footer-end last];
 
-    background-color: #FEEDCF;
+    background-color: #686e62;
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -68,7 +68,7 @@
 
     border-radius: 20px 0px 0px 20px;
 
-    background-color: #FFD182;
+    background-color: #e6e3dc;
     color: #3d321f;
     
 }
@@ -154,7 +154,7 @@
 
     border-radius: 0px 20px 20px 0px;
 
-    background-color: #ecc179;
+    background-color: #c8c3ba;
     color: #3d321f;
     
 }
