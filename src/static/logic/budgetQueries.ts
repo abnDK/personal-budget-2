@@ -315,7 +315,40 @@ class BudgetQueryService {
 
     // CATEGORIES
 
+    postNewCategory = async (name:string, amount: number, parent_id: number, budget_id: number): Promise<Category> => {
 
+        /* 
+            make params om til enkeltstående
+            skal returne objects fra db'en
+        */
+
+        const data = {
+            name: name, 
+            amount: amount,
+            parent_id: parent_id,
+            budget_id: budget_id
+        }
+
+        console.log('PLACEHOLDER: Waiting for some code to post this: ' , name)
+
+        return fetch('http://localhost:3000/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then((res)=>{
+                if (!res.ok) {
+                    throw new Error(res.status)
+                }
+                return res.json()
+            })
+            .catch((err)=> {throw new Error(err)})
+
+        return <Category>{name: 'name', amount: NaN, id: NaN, parent_id: NaN, budget_id: NaN}
+
+    }
 
     updateCategoryNameAmount = function(categoryId: number, name: string, amount: number): Promise<{id: number, name: string, amount: number}> {
 

@@ -37,6 +37,7 @@ class CategoryService {
     }
     static createCategory(name, amount, parent_id, budget_id) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('ready to insert new cat into db: ', name, amount);
             // create budget
             let data_category = yield pool.query('INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, parent_id, budget_id]);
             // verify only 1 budget has been created and returned from db

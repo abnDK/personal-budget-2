@@ -48,6 +48,8 @@ class CategoryService {
 
     static async createCategory(name: string, amount: number, parent_id?: number, budget_id?:number): Promise<Category> {
 
+        console.log('ready to insert new cat into db: ', name, amount)
+
         // create budget
         let data_category = await pool.query('INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *', [name, amount, parent_id, budget_id]);
 

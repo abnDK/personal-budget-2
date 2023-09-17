@@ -120,7 +120,7 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
 
 
     // toggle button between 'edit' and 'save' state
-    let button = event.currentTarget
+    let button: HTMLDivElement = event.currentTarget
 
     if (button.innerText == 'Edit') {
         button.innerText ='Save'

@@ -72,6 +72,24 @@ class CategoryRow implements Category {
         this._dom_element_ref = new_ref
     }
 
+    addChild = (): CategoryRow => {
+        
+        if (this.level === 3) throw 'cannot add child to grandchild/level 3 category in budget'
+
+        const newRow = new CategoryRow(
+            
+            "", 0, NaN, this.id, this.budget_id
+
+        )
+
+        newRow.level = this.level + 1;
+
+        this.children.push(newRow);
+
+        return newRow
+
+    }
+
     replaceDomElementRef(new_ref: object): void {
 
         this.dom_element_ref.replaceWith(new_ref);
@@ -91,8 +109,12 @@ class CategoryRow implements Category {
     renderFrozen() {
 
         this.frozen = true;
+
+        this.dom_element_ref = createBudgetRow(this);
+
+        this.bindDomElementToObject();
   
-        return createBudgetRow(this);
+        return this.dom_element_ref
     
     }
 
@@ -100,7 +122,11 @@ class CategoryRow implements Category {
         
         this.frozen = false;
 
-        return createEditableBudgetRow(this);
+        this.dom_element_ref = createEditableBudgetRow(this);
+
+        this.bindDomElementToObject();
+
+        return this.dom_element_ref
     
     }
 
@@ -137,9 +163,23 @@ class CategoryRow implements Category {
         } 
     }
 
-    async syncNameAmountParentIdWithDB(): Promise<void> {
-
+    async syncNameAmountParentIdWithDB(): Promise<void> { // POSSIBLY NOT IN USE - CONSIDER DELETE
+        throw 'POSSIBLY NOT IN USE - CONSIDER DELETE - REMOVE MARK IF THIS IS THROWN'
         const updatedCategoryRow = await updateCategoryNameAmountRequest(this);
+
+    }
+
+    private bindDomElementToObject = (): void => {
+
+        Object.defineProperty(
+            this.dom_element_ref,
+            'getObject',
+            {
+                value: () => this,
+                writable: false
+            }
+                
+        )
 
     }
 }
@@ -176,6 +216,7 @@ class Budget {
     private _editable: boolean;
     private _root: CategoryRow;
     private query: BudgetQueryService;
+    private id: number;
 
     
 
@@ -185,6 +226,8 @@ class Budget {
         this.root = BuildTree(rows);
                 
         this.budgetRowsDomElement = budgetRowsDomElement;
+
+        this.id = parseInt(window.location.href.split("/").at(-1)) ?? "unknowns budget_id"
         
         this.query = new BudgetQueryService()
 
@@ -373,7 +416,24 @@ class Budget {
 
     }
 
-    /* ADDROW: renderNewRow() is added here */
+    /* ADDROW: renderNewRow(parent_id) is added here */
+    renderNewRow = (newRow: CategoryRow): void => {
+
+        // figure out the best way to make relation between object row.dom_element_ref and this rendered new row
+        newRow.dom_element_ref = newRow.renderEditable()
+
+        // get parent element and add child node immediatly after this
+        const childrenArray = Array.from(BUDGET.budgetRowsDomElement.children)
+        const indexOfParent = childrenArray.findIndex((categoryRow) => categoryRow.dataset.id == newRow.parent_id)
+        const parentElement = childrenArray[indexOfParent]
+        
+        parentElement.replaceWith(
+            parentElement,
+            newRow.dom_element_ref
+            )
+        
+
+    } 
 
     //// BUDGET MANIPULATION \\\\
 
@@ -414,7 +474,25 @@ class Budget {
         // update amount and value in db
         for (const cat of this.rows) {
 
-            await this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount)
+            if (!cat.id) {
+                
+                // if new, add it to db
+
+                console.log('inside updateCategoryRows: Now posting cat: ', cat)
+
+                cat.id = await this.addNewCategoryToDB(cat)
+
+            } else {
+                
+                // if not new, update database with new values
+
+                console.log('inside updateCategoryRows: Now updating cat: ', cat)
+
+
+                await this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount)
+
+            }
+
 
         }
        
@@ -484,13 +562,22 @@ class Budget {
 
         console.log('No nodes deleted in this run...')
 
-    }
+    }                                                                                                                                                                                                                                                                                                                                                       
 
-    /* ADDROW: addNewRow() is added here */
+    /* ADDROW: addNewRow(parent_id) is added here */
+    addNewRow = (parent_id: number): void => {
+        // both creates new row object and renders to dom, as
+        // this will only be possible when in editable mode.
+
+        const newRow = this.rowById(parent_id).addChild();
+
+        BUDGET.renderNewRow(newRow)
+
+    }
 
     //// DB QUERYING \\\\
 
-    handleTransactionCategoryForeignKeyConstraint = async (oldCategoryId: number, newCategoryId: number) => {
+    handleTransactionCategoryForeignKeyConstraint = async (oldCategoryId: number, newCategoryId: number): Promise<void> => {
 
         console.log('handling transaction category foreign key constraint')
 
@@ -518,7 +605,7 @@ class Budget {
 
     }
 
-    handleCategoryParentIdForeignKeyConstraint = async (categoryIdToBeDeleted: number, newParentId: number) => {
+    handleCategoryParentIdForeignKeyConstraint = async (categoryIdToBeDeleted: number, newParentId: number): Promise<void> => {
 
         console.log('handling category parent_id foreign key constraint')
 
@@ -533,7 +620,7 @@ class Budget {
 
     }
 
-    deleteCategoryFromDB = async (categoryId: number) => {
+    deleteCategoryFromDB = async (categoryId: number): Promise<void> => {
 
         console.log('deleting category from db')
 
@@ -542,7 +629,20 @@ class Budget {
     }
     
     /* ADDROW: postNewCategory() is added here */
+    addNewCategoryToDB = async (category: CategoryRow): Promise<number> => {
 
+        const newCat =  await this.query.postNewCategory(
+            category.name,
+            category.amount,
+            category.parent_id,
+            category.budget_id
+        )
+
+        console.log('newCat just posted: ', newCat)
+
+        return newCat.id
+
+    }
 
 
 
@@ -626,11 +726,14 @@ class Budget {
 
             if (frozen) {
 
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
+                //row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
+                this.budgetRowsDomElement.appendChild(row.renderFrozen());
+
 
             } else {
 
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
+                // row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
+                this.budgetRowsDomElement.appendChild(row.renderEditable());
 
             }
 
