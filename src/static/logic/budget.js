@@ -54,6 +54,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var _a;
 let BUDGET;
 // POPULATE BUDGET WITH CATEGORY ROWS
 document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -166,7 +167,12 @@ document.querySelector('.button-edit').addEventListener('click', (event) => __aw
     }
 }));
 // MARK DELETE
-// ADD NEW CATEGORY ROW
+// ADD NEW (root) CATEGORY ROW
+(_a = document.querySelector('#addRow')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', (event) => {
+    const newRow = BUDGET.root.addChild();
+    BUDGET.budgetRowsDomElement.appendChild(newRow.renderEditable());
+    newRow.focusOnElement();
+});
 // /* TO BE DELETED
 const makeCategoryTreeFromBudget = () => {
     var _a, _b;

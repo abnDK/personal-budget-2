@@ -267,6 +267,11 @@ class Budget {
         
             this.renderEditableBudget();
 
+            // show addRow button
+            document.querySelector("#addRow").hidden = false;
+
+
+
         } else {
             
             /* 
@@ -307,6 +312,10 @@ class Budget {
                     console.log('Status: SUCCESS')
                 });
 
+            // hide addRow button when not editable any more
+            document.querySelector("#addRow").hidden = true;
+
+
         }
         
         this._editable = state;
@@ -338,7 +347,8 @@ class Budget {
 
     get toKeep() {
         
-        return this.rows.filter(row => !row.to_be_deleted)
+        // we dont keep rows marked to be deleted or with no name
+        return this.rows.filter(row => !row.to_be_deleted && row.name != '')
 
     }
 
@@ -355,6 +365,8 @@ class Budget {
 
         return this.rows.filter(row => !row.id)
     }
+
+    
 
     /* ADDROW: get newRows() {} is added here */
 
@@ -392,6 +404,10 @@ class Budget {
 
         // inital rendering of budget when dom content has loaded.
         this.renderCategories(true);
+
+        
+
+
 
     }
 

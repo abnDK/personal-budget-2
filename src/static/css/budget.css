@@ -180,20 +180,20 @@
     grid-row: subheader-start / subheader-end;
 
     display:grid;
-    grid-template-columns: [left-start] 1fr [left-end right-start] 1fr [right-end];
+    grid-template-columns: [info-start] 1fr [info-end] auto [add-row-start] 38px [add-row-end] 4px [edit-btn-start] 38px [edit-btn-end];
     grid-template-rows: [start] 1fr [center] 1fr [end];
 }
 
 .budget-subheader > .start-date {
-    grid-column: left-start / span 1;
+    grid-column: info-start / span 1;
 }
 
 .budget-subheader > .budget-sum {
-    grid-column: left-start / span 1;
+    grid-column: info-start / span 1;
 }
 
-.budget-subheader > .button-edit {
-    grid-column: right-start / span 1;
+.budget-subheader > .button-add {
+    grid-column: add-row-start / span 1;
     grid-row: start / end;
 
     justify-self: end;
@@ -202,7 +202,27 @@
     
     
     height: 14px;
-    width: 40px;
+    width: 38;
+    font-size: 12px;
+
+    background-color: #6D8764;
+    color: white;
+    border: 1px #3A5431 solid;
+
+    border-radius: 2px;
+}
+
+.budget-subheader > .button-edit {
+    grid-column: edit-btn-start / span 1;
+    grid-row: start / end;
+
+    justify-self: end;
+    align-self: center;
+    text-align:center;
+    
+    
+    height: 14px;
+    width: 38;
     font-size: 8px;
 
     background-color: #FFD182;

@@ -452,6 +452,8 @@ class Budget {
     set editable(state) {
         if (state) {
             this.renderEditableBudget();
+            // show addRow button
+            document.querySelector("#addRow").hidden = false;
         }
         else {
             /*
@@ -483,6 +485,8 @@ class Budget {
                 console.log('After rendering budget to the DOM: ', this.rows);
                 console.log('Status: SUCCESS');
             });
+            // hide addRow button when not editable any more
+            document.querySelector("#addRow").hidden = true;
         }
         this._editable = state;
     }
@@ -497,7 +501,8 @@ class Budget {
         return this._root;
     }
     get toKeep() {
-        return this.rows.filter(row => !row.to_be_deleted);
+        // we dont keep rows marked to be deleted or with no name
+        return this.rows.filter(row => !row.to_be_deleted && row.name != '');
     }
     get toDelete() {
         const toDelete = this.rows.filter(row => row.to_be_deleted);

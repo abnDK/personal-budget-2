@@ -203,8 +203,15 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
 
 // MARK DELETE
 
-// ADD NEW CATEGORY ROW
+// ADD NEW (root) CATEGORY ROW
+document.querySelector('#addRow')?.addEventListener('click', (event) => {
+    
+    const newRow = BUDGET.root.addChild()
 
+    BUDGET.budgetRowsDomElement.appendChild(newRow.renderEditable());
+    
+    newRow.focusOnElement()
+})
 
 
 
