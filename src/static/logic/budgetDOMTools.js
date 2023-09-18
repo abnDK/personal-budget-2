@@ -178,11 +178,13 @@ const makeDeleteable = function (budgetRow) {
     Array.from(budgetRow.querySelectorAll('input.category-name')).forEach(input => { input.disabled = true; });
     // greyout delete button and add row button
     const deleteBtn = budgetRow.querySelector('.delete-category-btn');
-    if (!deleteBtn.className.includes('greyed-out')) {
+    // check for deleteBtn if it somehow cannot be found
+    if (deleteBtn && !deleteBtn.className.includes('greyed-out')) {
         deleteBtn.className += ' greyed-out';
     }
     const addBtn = budgetRow.querySelector('.add-category-btn');
-    if (!addBtn.className.includes('greyed-out')) {
+    // checking for addBtn first, as grandchild rows doesn't have addBtn and thus will be undefined and we skip
+    if (addBtn && !addBtn.className.includes('greyed-out')) {
         addBtn.className += ' greyed-out';
     }
 };
@@ -193,11 +195,13 @@ const unmakeDeleteable = function (budgetRow) {
     Array.from(budgetRow.querySelectorAll('input.category-name')).forEach(input => { input.disabled = false; });
     // un-greyout delete button and add row button
     const deleteBtn = budgetRow.querySelector('.delete-category-btn');
-    if (deleteBtn.className.includes('greyed-out')) {
+    // check for deleteBtn if it somehow cannot be found
+    if (deleteBtn && deleteBtn.className.includes('greyed-out')) {
         deleteBtn.className = deleteBtn === null || deleteBtn === void 0 ? void 0 : deleteBtn.className.replace(' greyed-out', '');
     }
     const addBtn = budgetRow.querySelector('.add-category-btn');
-    if (addBtn.className.includes('greyed-out')) {
+    // checking for addBtn first, as grandchild rows doesn't have addBtn and thus will be undefined and we skip
+    if (addBtn && addBtn.className.includes('greyed-out')) {
         addBtn.className = addBtn === null || addBtn === void 0 ? void 0 : addBtn.className.replace(' greyed-out', '');
     }
 };
