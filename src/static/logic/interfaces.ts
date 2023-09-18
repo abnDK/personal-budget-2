@@ -182,6 +182,18 @@ class CategoryRow implements Category {
         )
 
     }
+
+    focusOnElement = (): void => {
+
+        if (this.frozen) {
+
+            throw 'can only focus on editable elements'
+
+        }
+
+        this.dom_element_ref.querySelector('.category-name').focus();
+
+    }
 }
 
 const LevelClassMap = new Map([
@@ -431,7 +443,10 @@ class Budget {
             parentElement,
             newRow.dom_element_ref
             )
+            
         
+        // Set focus on the new child elements name-field
+        newRow.focusOnElement()
 
     } 
 
@@ -719,7 +734,7 @@ class Budget {
         // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
         
         // test "rootLevel" filter on rows:
-        const levelOneTree = this.rowsByLevel(1);
+        const levelOneTree: CategoryRow[] = this.rowsByLevel(1);
 
         levelOneTree.forEach(row => {
         //this.toKeep.forEach(row => {

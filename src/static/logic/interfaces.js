@@ -29,6 +29,12 @@ class CategoryRow {
                 writable: false
             });
         };
+        this.focusOnElement = () => {
+            if (this.frozen) {
+                throw 'can only focus on editable elements';
+            }
+            this.dom_element_ref.querySelector('.category-name').focus();
+        };
         this.name = name;
         this.amount = amount;
         this.id = id;
@@ -141,6 +147,8 @@ class Budget {
             const indexOfParent = childrenArray.findIndex((categoryRow) => categoryRow.dataset.id == newRow.parent_id);
             const parentElement = childrenArray[indexOfParent];
             parentElement.replaceWith(parentElement, newRow.dom_element_ref);
+            // Set focus on the new child elements name-field
+            newRow.focusOnElement();
         };
         //// BUDGET MANIPULATION \\\\
         this.deleteCategoryRows = () => __awaiter(this, void 0, void 0, function* () {

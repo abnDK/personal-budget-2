@@ -50,7 +50,7 @@ const createEditableBudgetRow = function (category) {
     nameInput.type = 'text';
     nameInput.value = category['name'];
     nameInput.placeholder = 'Add name for new row';
-    nameInput.addEventListener('change', () => {
+    nameInput.addEventListener('keyup', () => {
         editableBudgetRowElement.getObject().name = nameInput.value;
     });
     editableBudgetRowElement.appendChild(nameInput);
@@ -72,7 +72,7 @@ const createEditableBudgetRow = function (category) {
     let amountInput = createHTMLElement('input', 'category-amount');
     amountInput.type = 'number';
     amountInput.value = category['amount'];
-    amountInput.addEventListener('change', () => {
+    amountInput.addEventListener('keyup', () => {
         editableBudgetRowElement.getObject().amount = amountInput.value;
     });
     editableBudgetRowElement.appendChild(amountInput);

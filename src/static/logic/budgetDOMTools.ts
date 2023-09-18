@@ -65,11 +65,12 @@ const createEditableBudgetRow = function(category: CategoryRow): Element {
     
     nameInput.placeholder = 'Add name for new row'
     
-    nameInput.addEventListener('change', () => {
+    nameInput.addEventListener('keyup', () => {
         
-        editableBudgetRowElement.getObject().name = nameInput.value
+        editableBudgetRowElement.getObject().name = nameInput.value;
     
     })
+
     
     editableBudgetRowElement.appendChild(nameInput);
     
@@ -106,7 +107,7 @@ const createEditableBudgetRow = function(category: CategoryRow): Element {
     
     amountInput.value = category['amount'];
     
-    amountInput.addEventListener('change', () => {
+    amountInput.addEventListener('keyup', () => {
         
         editableBudgetRowElement.getObject().amount = amountInput.value
     
