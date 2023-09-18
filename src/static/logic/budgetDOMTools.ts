@@ -75,7 +75,8 @@ const createEditableBudgetRow = function(category: CategoryRow): Element {
     editableBudgetRowElement.appendChild(nameInput);
     
     // ADD ROW BUTTON
-    if (category['level'] < 3) {
+    // don't add to grandchild elements or new rows (has id == NaN)
+    if (category['level'] < 3 && !Number.isNaN(category.id)) {
         
         let categoryAddBtn = createHTMLElement('div', 'add-category-btn', '+')
         

@@ -177,11 +177,23 @@ class Budget {
             }
         });
         this.updateCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
+            // add post new row function here
+            // think the rest will work if BuildTree sets parent_id on children rows?
+            for (const cat of this.newRows) {
+                console.log('inside updateCategoryRows: Now posting cat: ', cat);
+                cat.id = yield this.addNewCategoryToDB(cat);
+                for (const child of cat.children) {
+                    child.parent_id = cat.id;
+                }
+            }
             // get potentially updated parentIds
             const categoriesParentIds = yield this.query.getCategoriesParentIds(this.root.budget_id);
             // write parentIds to CategoryRows
             for (const { id, parentId } of categoriesParentIds) {
-                this.rowById(id).parent_id = parentId;
+                // filter out new rows (has id == NaN)
+                if (!Number.isNaN(parentId)) {
+                    this.rowById(id).parent_id = parentId;
+                }
             }
             /* ADDROW: rows wo parent_ids will have the id of their parent in the tree as parent_id */
             // rebuild budget tree only with the .toKeep rows
@@ -190,16 +202,9 @@ class Budget {
             this.calculateBudgetSums();
             // update amount and value in db
             for (const cat of this.rows) {
-                if (!cat.id) {
-                    // if new, add it to db
-                    console.log('inside updateCategoryRows: Now posting cat: ', cat);
-                    cat.id = yield this.addNewCategoryToDB(cat);
-                }
-                else {
-                    // if not new, update database with new values
-                    console.log('inside updateCategoryRows: Now updating cat: ', cat);
-                    yield this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount);
-                }
+                // if not new, update database with new values
+                console.log('inside updateCategoryRows: Now updating cat: ', cat);
+                yield this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount);
             }
         });
         this.calculateBudgetSums = () => {
@@ -264,7 +269,12 @@ class Budget {
             console.log('handling category parent_id foreign key constraint');
             const childrenOfDeletedCategory = yield this.query.getCategoryChildren(categoryIdToBeDeleted);
             for (const categoryChild of childrenOfDeletedCategory) {
-                yield this.query.updateCategoryParentId(categoryChild.id, newParentId);
+                try {
+                    yield this.query.updateCategoryParentId(categoryChild.id, newParentId);
+                }
+                catch (err) {
+                    console.error(err);
+                }
             }
         });
         this.deleteCategoryFromDB = (categoryId) => __awaiter(this, void 0, void 0, function* () {
@@ -493,6 +503,9 @@ class Budget {
         const toDelete = this.rows.filter(row => row.to_be_deleted);
         // sorted by level (i.e. child before parent) to avoid FK constraint errors on backend.
         return toDelete.toSorted((a, b) => b.level - a.level);
+    }
+    get newRows() {
+        return this.rows.filter(row => !row.id);
     }
     /* ADDROW: get newRows() {} is added here */
     get loners() {

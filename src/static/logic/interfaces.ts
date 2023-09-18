@@ -351,6 +351,11 @@ class Budget {
         
     }
 
+    get newRows() {
+
+        return this.rows.filter(row => !row.id)
+    }
+
     /* ADDROW: get newRows() {} is added here */
 
     get loners() {
@@ -497,14 +502,35 @@ class Budget {
 
     updateCategoryRows = async () => {
         
+        // add post new row function here
+        // think the rest will work if BuildTree sets parent_id on children rows?
+        for (const cat of this.newRows) {
+
+            console.log('inside updateCategoryRows: Now posting cat: ', cat)
+
+            cat.id = await this.addNewCategoryToDB(cat)
+
+            for (const child of cat.children) {
+
+                child.parent_id = cat.id
+
+            }
+
+        }
+
         // get potentially updated parentIds
         const categoriesParentIds = await this.query.getCategoriesParentIds(this.root.budget_id);
 
         // write parentIds to CategoryRows
         for (const {id, parentId} of categoriesParentIds) {
+            
+            // filter out new rows (has id == NaN)
+            if (!Number.isNaN(parentId)) {
 
-            this.rowById(id).parent_id = parentId;
+                this.rowById(id).parent_id = parentId;
 
+            }
+            
         }
 
         /* ADDROW: rows wo parent_ids will have the id of their parent in the tree as parent_id */
@@ -518,24 +544,13 @@ class Budget {
         // update amount and value in db
         for (const cat of this.rows) {
 
-            if (!cat.id) {
-                
-                // if new, add it to db
+            // if not new, update database with new values
 
-                console.log('inside updateCategoryRows: Now posting cat: ', cat)
-
-                cat.id = await this.addNewCategoryToDB(cat)
-
-            } else {
-                
-                // if not new, update database with new values
-
-                console.log('inside updateCategoryRows: Now updating cat: ', cat)
+            console.log('inside updateCategoryRows: Now updating cat: ', cat)
 
 
-                await this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount)
+            await this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount)
 
-            }
 
 
         }
@@ -656,7 +671,13 @@ class Budget {
 
         for (const categoryChild of childrenOfDeletedCategory) {
 
-            await this.query.updateCategoryParentId(categoryChild.id, newParentId);
+            try {
+
+                await this.query.updateCategoryParentId(categoryChild.id, newParentId);
+
+            } catch (err) {
+                console.error(err)
+            }
 
         }
 
