@@ -720,6 +720,7 @@ class Budget {
 
 
 
+
 //// OLD - CONSIDER DELETE \\\\ 
 
 
@@ -815,7 +816,7 @@ class Budget {
         }
 
     }
-     */
+    
     /* 
     removeById = (id:number): void => {
         throw 'removeById-deprecated, if not in use?'
@@ -903,6 +904,8 @@ class Budget {
     }
      */
     /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
+    
+    /*
     calcSums = () => {
         throw 'calcSums-deprecated, if not in use?'
 
@@ -997,5 +1000,5 @@ class Budget {
         this.sum = budgetTotalSum;
     }
     
-    
+    */
 }
