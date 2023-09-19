@@ -18,8 +18,13 @@ router.get('/:id', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
+
+    console.log('now posting: ', req.body)
+
     const { name, amount, parent_id, budget_id } = req.body;
+
     let newCategory = await CategoryService.createCategory(name, amount, parent_id, budget_id);
+    
     res.status(200).json(newCategory)
 })
 

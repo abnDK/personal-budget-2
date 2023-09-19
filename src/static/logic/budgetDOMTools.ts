@@ -4,7 +4,7 @@
 const createBudgetRow = function(category: CategoryRow): Element {
     
     let budgetRowElement = createHTMLElement('div', `budget-row ${LevelClassMap.get(String(category['level']))}`, '', [
-        createHTMLElement('div', 'category-name', `${category['name']} (${category['id']}/${category['parent_id']})`),
+        createHTMLElement('div', 'category-name', `${category['name']}`),
         createHTMLElement('div', 'category-amount', String(category['amount']))
     ])
 
@@ -49,30 +49,78 @@ const createEditableBudgetRow = function(category: CategoryRow): Element {
      */
     
     
-
+    // MAIN ELEMENT
     let editableBudgetRowElement = createHTMLElement('div', `budget-row editable ${LevelClassMap.get(String(category['level']))}`)
+    
     editableBudgetRowElement.dataset.id = String(category.id);
+    
     editableBudgetRowElement.dataset.parent_id = String(category.parent_id);
 
+    // NAME SUB ELEMENT
     let nameInput = createHTMLElement('input', 'category-name');
+    
     nameInput.type = 'text';
+    
     nameInput.value = category['name'];
+    
+    nameInput.placeholder = 'Add name for new row'
+    
+    nameInput.addEventListener('keyup', () => {
+        
+        editableBudgetRowElement.getObject().name = nameInput.value;
+    
+    })
+
+    
     editableBudgetRowElement.appendChild(nameInput);
     
-    let categoryAdd = createHTMLElement('div', 'category-add', '', [createHTMLElement('div', 'add-category-btn', '+')])
-    editableBudgetRowElement.appendChild(categoryAdd);
-
+    // ADD ROW BUTTON
+    // don't add to grandchild elements or new rows (has id == NaN)
+    if (category['level'] < 3 && !Number.isNaN(category.id)) {
+        
+        let categoryAddBtn = createHTMLElement('div', 'add-category-btn', '+')
+        
+        categoryAddBtn.addEventListener('click', addBudgetRowHandler)
+        
+        let categoryAdd = createHTMLElement('div', 'category-add', '', [categoryAddBtn])
+        
+        editableBudgetRowElement.appendChild(categoryAdd);
+    
+    }
+    
+    // DELETE CATEGORY BUTTON
     let categoryDelete = createHTMLElement('div', 'category-delete');
+    
     let categoryDeleteBtn = createHTMLElement('div', 'delete-category-btn', 'x');
+    
     categoryDeleteBtn.id = 'delete_' + String(category.id);
+    
     categoryDeleteBtn.addEventListener('click', deleteBudgetRowHandler);
+    
     categoryDelete.appendChild(categoryDeleteBtn);
+    
     editableBudgetRowElement.appendChild(categoryDelete);
 
+    // AMOUNT SUB ELEMENT
     let amountInput = createHTMLElement('input', 'category-amount')
+    
     amountInput.type = 'number';
+    
     amountInput.value = category['amount'];
+    
+    amountInput.addEventListener('keyup', () => {
+        
+        editableBudgetRowElement.getObject().amount = amountInput.value
+    
+    })
+
     editableBudgetRowElement.appendChild(amountInput);
+
+
+    
+
+    
+
 
     return editableBudgetRowElement
 
@@ -137,16 +185,13 @@ const toggleFreezeBudgetRow = function(editableBudgetRow: HTMLElementBudgetRowEd
 }
 
 // ADD BUDGET ROW TO BUDGET
-const addBudgetRow = function(event: Event) {
+const addBudgetRowHandler = function(event: Event) {
     // call createBudgetRow function...
-    console.log(event.currentTarget)
+    const parentRow = getBudgetRow(event.currentTarget)
 
+    console.log('Parent row: ', parentRow.getObject());
 
-
-    // logic that places the row
-    // can we use the same for root row as well as parent, child and grandchild rows?
-
-
+    BUDGET.addNewRow(parentRow.dataset.id)
 
 }
 
@@ -160,7 +205,7 @@ function deleteBudgetRowHandler(event: Event): void {
     
     const budgetRow = getBudgetRow(event.currentTarget);
     
-    const budgetObject = BUDGET.rowById(budgetRow.dataset.id);
+    const budgetObject = budgetRow.getObject();
     
     if (budgetRow.dataset.to_be_deleted == "true") {
     
@@ -225,15 +270,23 @@ const makeDeleteable = function(budgetRow: HTMLElement) {
 
     // greyout delete button and add row button
     const deleteBtn = budgetRow.querySelector('.delete-category-btn')
-    if (!deleteBtn.className.includes('greyed-out')) {
+    
+    // check for deleteBtn if it somehow cannot be found
+    if (deleteBtn && !deleteBtn.className.includes('greyed-out')) {
+        
         deleteBtn.className += ' greyed-out'
+
     }
 
 
 
     const addBtn = budgetRow.querySelector('.add-category-btn')
-    if (!addBtn.className.includes('greyed-out')) {
+    
+    // checking for addBtn first, as grandchild rows doesn't have addBtn and thus will be undefined and we skip
+    if (addBtn && !addBtn.className.includes('greyed-out')) {
+        
         addBtn.className += ' greyed-out'
+
     }
 
 }
@@ -248,13 +301,21 @@ const unmakeDeleteable = function(budgetRow: HTMLElement) {
 
     // un-greyout delete button and add row button
     const deleteBtn = budgetRow.querySelector('.delete-category-btn')
-    if (deleteBtn.className.includes('greyed-out')) {
+
+    // check for deleteBtn if it somehow cannot be found
+    if (deleteBtn && deleteBtn.className.includes('greyed-out')) {
+        
         deleteBtn.className = deleteBtn?.className.replace(' greyed-out', '')
+
     }
 
     const addBtn = budgetRow.querySelector('.add-category-btn')
-    if (addBtn.className.includes('greyed-out')) {
+
+    // checking for addBtn first, as grandchild rows doesn't have addBtn and thus will be undefined and we skip
+    if (addBtn && addBtn.className.includes('greyed-out')) {
+        
         addBtn.className = addBtn?.className.replace(' greyed-out', '')
+
     }
 }
 

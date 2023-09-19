@@ -14,7 +14,7 @@
     grid-template-columns: [first] 1fr [content-start transactions-start] 10fr [content-center transactions-end budget-start] 10fr [content-end budget-end] 1fr [last];
     grid-template-rows: [first header-start] 1fr [header-end] 2fr [content-start] 20fr [content-end] 2fr [footer-start] 1fr [footer-end last];
 
-    background-color: #FEEDCF;
+    background-color: #686e62;
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -68,7 +68,7 @@
 
     border-radius: 20px 0px 0px 20px;
 
-    background-color: #FFD182;
+    background-color: #e6e3dc;
     color: #3d321f;
     
 }
@@ -154,7 +154,7 @@
 
     border-radius: 0px 20px 20px 0px;
 
-    background-color: #ecc179;
+    background-color: #c8c3ba;
     color: #3d321f;
     
 }
@@ -180,20 +180,20 @@
     grid-row: subheader-start / subheader-end;
 
     display:grid;
-    grid-template-columns: [left-start] 1fr [left-end right-start] 1fr [right-end];
+    grid-template-columns: [info-start] 1fr [info-end] auto [add-row-start] 38px [add-row-end] 4px [edit-btn-start] 38px [edit-btn-end];
     grid-template-rows: [start] 1fr [center] 1fr [end];
 }
 
 .budget-subheader > .start-date {
-    grid-column: left-start / span 1;
+    grid-column: info-start / span 1;
 }
 
 .budget-subheader > .budget-sum {
-    grid-column: left-start / span 1;
+    grid-column: info-start / span 1;
 }
 
-.budget-subheader > .button-edit {
-    grid-column: right-start / span 1;
+.budget-subheader > .button-add {
+    grid-column: add-row-start / span 1;
     grid-row: start / end;
 
     justify-self: end;
@@ -202,7 +202,27 @@
     
     
     height: 14px;
-    width: 40px;
+    width: 38;
+    font-size: 12px;
+
+    background-color: #6D8764;
+    color: white;
+    border: 1px #3A5431 solid;
+
+    border-radius: 2px;
+}
+
+.budget-subheader > .button-edit {
+    grid-column: edit-btn-start / span 1;
+    grid-row: start / end;
+
+    justify-self: end;
+    align-self: center;
+    text-align:center;
+    
+    
+    height: 14px;
+    width: 38;
     font-size: 8px;
 
     background-color: #FFD182;

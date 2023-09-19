@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', populateTransactions)
 document.querySelector('.button-edit').addEventListener('click', async (event) => {
 
     // toggle button between 'edit' and 'save' state
-    let button = event.currentTarget
+    let button: HTMLDivElement = event.currentTarget
 
     if (button.innerText == 'Edit') {
         
@@ -136,8 +136,15 @@ document.querySelector('.button-edit').addEventListener('click', async (event) =
 
 // MARK DELETE
 
-// ADD NEW CATEGORY ROW
+// ADD NEW (root) CATEGORY ROW
+document.querySelector('#addRow')?.addEventListener('click', (event) => {
+    
+    const newRow = BUDGET.root.addChild()
 
+    BUDGET.budgetRowsDomElement.appendChild(newRow.renderEditable());
+    
+    newRow.focusOnElement()
+})
 
 
 
