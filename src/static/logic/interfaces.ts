@@ -497,7 +497,7 @@ class Budget {
         }
 
     }
-
+    
     renderNewRow = (newRow: CategoryRow): void => {
 
         newRow.dom_element_ref = newRow.renderEditable()
