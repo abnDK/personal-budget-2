@@ -397,6 +397,8 @@ class Budget {
 
     renderBudgetSum = (): void => {
 
+        // dont forget this
+
         document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
 
     }
