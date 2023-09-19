@@ -400,7 +400,7 @@ class Budget {
         // inital rendering of budget when dom content has loaded.
         this.renderCategories(true);
 
-        
+        this.renderBudgetSum();
 
 
 
@@ -464,29 +464,7 @@ class Budget {
 
     }
 
-    renderCategories = (frozen: boolean = true): void => {
-        /* Only for initial population of category rows to the budget */
-        // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
-        
-        // test "rootLevel" filter on rows:
-        const levelOneTree = this.rowsByLevel(1);
-
-        levelOneTree.forEach(row => {
-        //this.toKeep.forEach(row => {
-
-            if (frozen) {
-
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
-
-            } else {
-
-                row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
-
-            }
-
-        });
-
-    }
+    
 
     clearBudget = (): void => {
 
@@ -1001,4 +979,18 @@ class Budget {
     }
     
     */
+
+    renderBudgetSum = (): void => {
+
+        // dont forget this
+
+        console.log('rendering sum...')
+
+        document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
+
+    }
+
+
+
+    
 }

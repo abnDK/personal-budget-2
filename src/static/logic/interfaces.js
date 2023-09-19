@@ -118,6 +118,7 @@ class Budget {
         this.initRenderBudget = () => {
             // inital rendering of budget when dom content has loaded.
             this.renderCategories(true);
+            this.renderBudgetSum();
         };
         this.fetchDataFromDOM = () => {
             for (let row of this.rows.filter(row => row.name != 'root')) {
@@ -150,21 +151,6 @@ class Budget {
             this.clearBudget();
             this.renderCategories(true);
             this.renderBudgetSum();
-        };
-        this.renderCategories = (frozen = true) => {
-            /* Only for initial population of category rows to the budget */
-            // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
-            // test "rootLevel" filter on rows:
-            const levelOneTree = this.rowsByLevel(1);
-            levelOneTree.forEach(row => {
-                //this.toKeep.forEach(row => {
-                if (frozen) {
-                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
-                }
-                else {
-                    row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderEditable());
-                }
-            });
         };
         this.clearBudget = () => {
             for (const DOMChild of Array.from(this.budgetRowsDomElement.children)) {
@@ -324,6 +310,193 @@ class Budget {
                 // removing row in DOM
                 row.dom_element_ref.remove(row.dom_element_ref);
             }
+        };
+        /*
+        removeById = (id:number): void => {
+            throw 'removeById-deprecated, if not in use?'
+    
+    
+            // # 36: After change to .root tree as main datastructure,
+            // this needs to be refactored in order to search for and
+            // delete a specific CategoryRow object.
+    
+            const removeCategoryRow = (root: CategoryRow[], id: number) => {
+    
+                for (const childIndex in root) {
+                    
+                    removeCategoryRow(root[childIndex].children, id)
+    
+                    if (root[childIndex].id == id) {
+                        return root.splice(Number(childIndex), 1);
+                        
+                    }
+                
+                }
+    
+            }
+    
+            removeCategoryRow(this.root.children, id)
+    
+            //this.rows = this.rows.filter(row => row.id != id)
+    
+        }
+         */
+        /* DOM ELEMENTS */
+        /*
+        private clearDOM = (): void => {
+            throw 'clearDOM-deprecated, if not in use?'
+            
+            console.log('clearDOMthis: ', this)
+            console.log('clearDOMrows: ', this.rows)
+    
+            
+    
+            // clears dom
+            for (const row of this.rows.filter(row => row.name != 'root')) {
+    
+                console.log('clearDOMrow: ', row)
+    
+                row.removeDomElement();
+    
+            }
+    
+            // renderfrozen all + render editable all: clear dom, first.
+    
+        }
+        */
+        /*
+         private renderFrozenAll = (): void => {
+             throw 'renderFrozenAll-deprecated, if not in use?'
+             
+             // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
+     
+             this.renderCategories(true)
+     
+         }
+         */
+        /*
+         private renderEditableAll = (): void => {
+             throw 'renderEditableAll-deprecated, if not in use?'
+     
+             // this.clearDOM();
+             
+             this.renderCategories(false)
+     
+         }
+          */
+        /*
+        syncFromDomElementToObject = (): void => {
+            throw 'syncFromDomElementToObject-deprecated, if not in use?'
+    
+            for (let row of this.rows.filter(row=>row.name != 'root')) {
+                
+                row.readValuesFromDomElement()
+    
+            }
+    
+        }
+         */
+        /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
+        /*
+        calcSums = () => {
+            throw 'calcSums-deprecated, if not in use?'
+    
+            this.calcBudgetSumsOfChildren();
+            
+            this.calcBudgetSumsOfParents();
+            
+            this.calcBudgetTotalSum();
+            
+        }
+    
+        private calcBudgetSumsOfChildrenMap = () => {
+            throw 'deprecated, if not in use?'
+            
+            const childrenSumsMap: Map<number, number> = new Map();
+            
+            for (const grandChild of this.grandChildren) {
+            
+                if (childrenSumsMap.has(grandChild.parent_id)) {
+            
+                    let prevVal: number = childrenSumsMap.get(grandChild.parent_id);
+            
+                    childrenSumsMap.set(grandChild.parent_id, prevVal += grandChild.amount)
+            
+                } else {
+            
+                    childrenSumsMap.set(grandChild.parent_id, grandChild.amount)
+            
+                }
+            
+            }
+        
+            return childrenSumsMap;
+        }
+    
+        private calcBudgetSumsOfChildren = () => {
+            throw 'deprecated, if not in use?'
+            
+            const childrenSumMap = this.calcBudgetSumsOfChildrenMap();
+            
+            for (const [id, amount] of childrenSumMap) {
+            
+                this.rowById(id).amount = amount;
+            
+            }
+    
+        }
+        
+        private calcBudgetSumsOfParentsMap = () => {
+            throw 'deprecated, if not in use?'
+    
+            const parentsSumsMap: Map<number, number> = new Map();
+            
+            for (const child of this.children) {
+                if (parentsSumsMap.has(child.parent_id)) {
+                    let prevVal = parentsSumsMap.get(child.parent_id);
+                    parentsSumsMap.set(child.parent_id, prevVal += child.amount)
+                } else {
+                    parentsSumsMap.set(child.parent_id, child.amount)
+                }
+            }
+        
+            return parentsSumsMap;
+        }
+    
+        private calcBudgetSumsOfParents = () => {
+            throw 'deprecated, if not in use?'
+    
+            const parentsSumMap = this.calcBudgetSumsOfParentsMap();
+    
+            for (const [id, amount] of parentsSumMap) {
+                try {
+                    this.rowById(id).amount = amount;
+    
+                } catch(err) {
+                    console.log("rows: ", this.rows)
+                    console.log('root: ', this.root)
+                    throw `could not recognize id: ${id}`
+                }
+            }
+        }
+        
+        private calcBudgetTotalSum = (): void => {
+            throw 'deprecated, if not in use?'
+    
+            let budgetTotalSum: number = 0;
+            
+            for (let parent of this.parents) {
+                budgetTotalSum += parent.amount
+            }
+        
+            this.sum = budgetTotalSum;
+        }
+        
+        */
+        this.renderBudgetSum = () => {
+            // dont forget this
+            console.log('rendering sum...');
+            document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
         };
         this.root = BuildTree(rows);
         this.budgetRowsDomElement = budgetRowsDomElement;
