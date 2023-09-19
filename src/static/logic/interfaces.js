@@ -177,10 +177,10 @@ class Budget {
             }
         });
         this.updateCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
+            console.log('getting new rows: ', this.newRows);
             // add post new row function here
             // think the rest will work if BuildTree sets parent_id on children rows?
             for (const cat of this.newRows) {
-                console.log('inside updateCategoryRows: Now posting cat: ', cat);
                 cat.id = yield this.addNewCategoryToDB(cat);
                 for (const child of cat.children) {
                     child.parent_id = cat.id;
@@ -315,63 +315,117 @@ class Budget {
             return this.rows;
         };
         // # 36: when this is run - filter out root.
-        this.removeDeletable = () => {
-            throw 'removeDeletable-deprecated, if not in use?';
-            console.log('called removeDeletable');
+        /*
+    
+        removeDeletable = (): void => {
+            throw 'removeDeletable-deprecated, if not in use?'
+    
+            console.log('called removeDeletable')
             for (const row of this.toDelete) {
-                console.log("NOW DELETING: ", row);
-                console.log('before delete: ', this.rows);
+            
+                console.log("NOW DELETING: ", row)
+    
+                console.log('before delete: ', this.rows)
+    
                 // removing row in BUDGET object
-                this.removeById(row.id);
-                console.log('after delete: ', this.rows);
+                this.removeById(row.id)
+    
+                console.log('after delete: ', this.rows)
+    
                 // removing row in DOM
                 row.dom_element_ref.remove(row.dom_element_ref);
+    
+            
+    
             }
-        };
-        this.removeById = (id) => {
-            throw 'removeById-deprecated, if not in use?';
+    
+        }
+         */
+        /*
+        removeById = (id:number): void => {
+            throw 'removeById-deprecated, if not in use?'
+    
+    
             // # 36: After change to .root tree as main datastructure,
-            // this needs to be refactored in order to search for and 
+            // this needs to be refactored in order to search for and
             // delete a specific CategoryRow object.
-            const removeCategoryRow = (root, id) => {
+    
+            const removeCategoryRow = (root: CategoryRow[], id: number) => {
+    
                 for (const childIndex in root) {
-                    removeCategoryRow(root[childIndex].children, id);
+                    
+                    removeCategoryRow(root[childIndex].children, id)
+    
                     if (root[childIndex].id == id) {
                         return root.splice(Number(childIndex), 1);
+                        
                     }
+                
                 }
-            };
-            removeCategoryRow(this.root.children, id);
+    
+            }
+    
+            removeCategoryRow(this.root.children, id)
+    
             //this.rows = this.rows.filter(row => row.id != id)
-        };
+    
+        }
+         */
         /* DOM ELEMENTS */
-        this.clearDOM = () => {
-            throw 'clearDOM-deprecated, if not in use?';
-            console.log('clearDOMthis: ', this);
-            console.log('clearDOMrows: ', this.rows);
+        /*
+        private clearDOM = (): void => {
+            throw 'clearDOM-deprecated, if not in use?'
+            
+            console.log('clearDOMthis: ', this)
+            console.log('clearDOMrows: ', this.rows)
+    
+            
+    
             // clears dom
             for (const row of this.rows.filter(row => row.name != 'root')) {
-                console.log('clearDOMrow: ', row);
+    
+                console.log('clearDOMrow: ', row)
+    
                 row.removeDomElement();
+    
             }
+    
             // renderfrozen all + render editable all: clear dom, first.
-        };
-        this.renderFrozenAll = () => {
-            throw 'renderFrozenAll-deprecated, if not in use?';
-            // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
-            this.renderCategories(true);
-        };
-        this.renderEditableAll = () => {
-            throw 'renderEditableAll-deprecated, if not in use?';
-            // this.clearDOM();
-            this.renderCategories(false);
-        };
-        this.syncFromDomElementToObject = () => {
-            throw 'syncFromDomElementToObject-deprecated, if not in use?';
-            for (let row of this.rows.filter(row => row.name != 'root')) {
-                row.readValuesFromDomElement();
+    
+        }
+        */
+        /*
+         private renderFrozenAll = (): void => {
+             throw 'renderFrozenAll-deprecated, if not in use?'
+             
+             // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
+     
+             this.renderCategories(true)
+     
+         }
+         */
+        /*
+         private renderEditableAll = (): void => {
+             throw 'renderEditableAll-deprecated, if not in use?'
+     
+             // this.clearDOM();
+             
+             this.renderCategories(false)
+     
+         }
+          */
+        /*
+        syncFromDomElementToObject = (): void => {
+            throw 'syncFromDomElementToObject-deprecated, if not in use?'
+    
+            for (let row of this.rows.filter(row=>row.name != 'root')) {
+                
+                row.readValuesFromDomElement()
+    
             }
-        };
+    
+        }
+         */
         /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
         this.calcSums = () => {
             throw 'calcSums-deprecated, if not in use?';
@@ -510,7 +564,7 @@ class Budget {
         return toDelete.toSorted((a, b) => b.level - a.level);
     }
     get newRows() {
-        return this.rows.filter(row => !row.id);
+        return this.rows.filter(row => !row.id && this.toKeep.includes(row));
     }
     /* ADDROW: get newRows() {} is added here */
     get loners() {

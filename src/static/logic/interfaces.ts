@@ -363,7 +363,8 @@ class Budget {
 
     get newRows() {
 
-        return this.rows.filter(row => !row.id)
+        return this.rows.filter(row => !row.id && this.toKeep.includes(row))
+
     }
 
     
@@ -518,11 +519,11 @@ class Budget {
 
     updateCategoryRows = async () => {
         
+        console.log('getting new rows: ', this.newRows)
+
         // add post new row function here
         // think the rest will work if BuildTree sets parent_id on children rows?
         for (const cat of this.newRows) {
-
-            console.log('inside updateCategoryRows: Now posting cat: ', cat)
 
             cat.id = await this.addNewCategoryToDB(cat)
 
@@ -799,7 +800,7 @@ class Budget {
     }
 
     // # 36: when this is run - filter out root.
-    
+    /* 
 
     removeDeletable = (): void => {
         throw 'removeDeletable-deprecated, if not in use?'
@@ -824,7 +825,8 @@ class Budget {
         }
 
     }
-
+     */
+    /* 
     removeById = (id:number): void => {
         throw 'removeById-deprecated, if not in use?'
 
@@ -853,10 +855,10 @@ class Budget {
         //this.rows = this.rows.filter(row => row.id != id)
 
     }
-
+     */
     /* DOM ELEMENTS */
 
-    
+    /* 
     private clearDOM = (): void => {        
         throw 'clearDOM-deprecated, if not in use?'
         
@@ -877,7 +879,8 @@ class Budget {
         // renderfrozen all + render editable all: clear dom, first.
 
     }
-
+    */
+   /* 
     private renderFrozenAll = (): void => {
         throw 'renderFrozenAll-deprecated, if not in use?'
         
@@ -886,7 +889,8 @@ class Budget {
         this.renderCategories(true) 
 
     }
-
+    */
+   /* 
     private renderEditableAll = (): void => {
         throw 'renderEditableAll-deprecated, if not in use?'
 
@@ -895,7 +899,8 @@ class Budget {
         this.renderCategories(false) 
 
     }
-
+     */
+    /* 
     syncFromDomElementToObject = (): void => {
         throw 'syncFromDomElementToObject-deprecated, if not in use?'
 
@@ -906,7 +911,7 @@ class Budget {
         }
 
     }
-    
+     */
     /* CALCULATE SUMS */ // #36: remake all of these, so they work with N levels of the tree. Total sum can be written to root-element
     calcSums = () => {
         throw 'calcSums-deprecated, if not in use?'
