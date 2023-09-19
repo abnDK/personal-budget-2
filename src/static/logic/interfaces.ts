@@ -394,15 +394,7 @@ class Budget {
         }
 
     }
-
-    renderBudgetSum = (): void => {
-
-        // dont forget this
-
-        document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
-
-    }
-
+    
 
     /* ADDROW: renderNewRow() is added here */
 
@@ -801,5 +793,16 @@ class Budget {
         this.sum = budgetTotalSum;
     }
     
+
+
+
+
+    renderBudgetSum = (): void => {
+
+        // dont forget this
+
+        document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
+
+    }
     
 }
