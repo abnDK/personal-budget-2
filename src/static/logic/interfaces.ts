@@ -1,10 +1,4 @@
-interface Transaction {
-    id:number, 
-    name:string, 
-    amount:number, 
-    date:Date, 
-    category_id:string
-}
+
 
 // for use when getting category data from db
 interface Category {
