@@ -56,8 +56,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var _a;
 let BUDGET;
+let TRANS;
+const PERIOD = {
+    YEAR: 2023,
+    MONTH: 9
+};
 // POPULATE BUDGET WITH CATEGORY ROWS
 document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
+    var _b, _c;
+    const BUDGET_ID = parseInt((_b = window.location.href.split('/').at(-1)) !== null && _b !== void 0 ? _b : "-1");
+    console.log('about to init TRANSACTIONS');
+    // TRANSACTIONS PAGE
+    TRANS = new TransactionContainer(BUDGET_ID, new MockTransactionQueries(), new TransactionContainerRender());
+    yield TRANS.init();
+    TRANS.renderTransactions();
+    console.log('TRANSACTIONS has been init');
+    /* TEMP ADD TRANS ROW BUTTON */
+    (_c = document.querySelector('#addTransRow')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', () => { TRANS.addRow(); });
+    // BUDGET PAGE
     let budgetRowsDomElement = document.querySelector('.budget-rows');
     if (budgetRowsDomElement == null) {
         throw new Error('Could not find budget rows element');
@@ -66,25 +82,35 @@ document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, vo
     if (categories == undefined) {
         throw new Error('Categories returned undefined!');
     }
-    const budget_id = parseInt(window.location.href.split("/").at(-1));
-    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id);
+    const filteredCategories = categories.filter(cat => cat.budget_id === BUDGET_ID);
     BUDGET = new Budget(filteredCategories, budgetRowsDomElement);
 }));
 const toggle = () => {
     BUDGET.editable = !BUDGET.editable;
 };
+/*
 // POPULATE TRANSACTION ROWS
-const populateTransactions = () => __awaiter(void 0, void 0, void 0, function* () {
+const populateTransactions = async () => {
+
     let rows = document.querySelector('.transaction-rows');
-    let res = yield fetch('http://localhost:3000/transactions');
-    let transactions = Array.from(yield res.json());
+
+    let res = await fetch('http://localhost:3000/transactions')
+
+    let transactions = Array.from(await res.json())
+
     for (let trans of transactions) {
+
         const row = createTransactionRow(trans.name, trans.amount, trans.date, trans.category_id);
+
         rows.appendChild(row);
     }
-    return;
-});
-document.addEventListener('DOMContentLoaded', populateTransactions);
+
+    return
+
+}
+
+document.addEventListener('DOMContentLoaded', populateTransactions)
+*/
 // TOGGLE EDIT / SAVE
 document.querySelector('.button-edit').addEventListener('click', (event) => __awaiter(void 0, void 0, void 0, function* () {
     // toggle button between 'edit' and 'save' state

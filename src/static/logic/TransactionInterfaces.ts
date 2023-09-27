@@ -1,8 +1,32 @@
 interface ITransactionContainer {
-    rows: Transaction[],
+    rows: TransactionRow[],
     dom_element_ref: Element,
     query: ITransactionQueries,
+    renderer: ITransactionContainerRender,
     budget_id: number
+
+    // init
+    init(): Promise<void>;
+
+    // add/remove data
+    addRow(): void; // init empty TransactionRow and add to rows. Render editable and add to dom.
+    removeRow(row: TransactionRow): void; // delete in db. remove from rows. remove from dom.
+    splitRow(id: number): void; // dont implement yet, but a CR for later
+    saveRow(row: TransactionRow): void; // call saveRow on Transaction. Write to db. Render Trans frozen (returned from Trans.saveRow()) and return to dom.
+
+    // rendering (on init) and dom interaction
+    renderTransactions(): void; // call render frozen() and header() and return combined. Add to dom.
+    renderHeader(): HTMLElement;
+    fetchTransactionDomElement(): void;
+
+    // querying
+    fetchTransactions(): Promise<TransactionRow[]>; // populate this.rows with Transaction data
+
+    
+
+    
+
+
 
 }
 
@@ -11,21 +35,53 @@ interface ITransaction {
     name:string, 
     amount:number, 
     date:Date, 
-    category_id:string,
-    render: ITransactionRender
-    dom_element_ref: Element;
+    category_id: number | undefined,
+    category_name: string | undefined
+}
+    
+
+
+
+interface ITransactionRow extends ITransaction {
+    
+    renderer: ITransactionRowRender
+    dom_element_ref: HTMLElement;
+    frozen: boolean;
+
+    isValid(): boolean; // check if data is valid for writing to db.
+
+    render(): HTMLElement; // reads dome_state, and render appropiate type
+    renderFrozen(): HTMLElement;
+    renderEditable(): HTMLElement;
+    fetchEditableValues(): void; // fetches values from editable dom element and write to object
+
+    bindDomElementToObject(): void; // 2 way binding 
 }
 
-interface ITransactionRender {
-    frozen(): Element;
-    editable(): Element;
+interface ITransactionRowRender {
+    frozen(row: TransactionRow): HTMLElement;
+    editable(row: TransactionRow): HTMLElement;
+}
+
+
+interface ITransactionContainerRender {
+    
+    frozen(): Element; // render transactions in init state
+    header(): Element;
+    
 }
 
 interface ITransactionQueries {
 
-    getTransactionContainerDomElement(): Element;
+    getTransactions(budget_id: number): Promise<ITransaction[]>; // GET request api, filters on budget_id
 
-    getTransactions(budget_id: number): Transaction[]; // GET request api, filters on budget_id
+    deleteTransaction(trans_id: number): void; // return status?
+
+    postTransaction(transaction: ITransaction): void; // return status?
+
+    updateTransaction(transaction: ITransaction): void;
+
+    getCategories(budgetId: number): Promise<Category[] | undefined>;
 
 }
 

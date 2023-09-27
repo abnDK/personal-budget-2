@@ -50,12 +50,35 @@
 
 
 let BUDGET: Budget;
-
+let TRANS: TransactionContainer;
+const PERIOD = {
+    YEAR: 2023,
+    MONTH: 9
+}
 
 
 // POPULATE BUDGET WITH CATEGORY ROWS
 document.addEventListener('DOMContentLoaded', async () => {
     
+    const BUDGET_ID: number = parseInt(window.location.href.split('/').at(-1) ?? "-1");
+
+    
+    console.log('about to init TRANSACTIONS')
+    
+    // TRANSACTIONS PAGE
+    TRANS = new TransactionContainer(BUDGET_ID, new MockTransactionQueries(), new TransactionContainerRender())
+
+    await TRANS.init()
+
+    TRANS.renderTransactions();
+
+    console.log('TRANSACTIONS has been init')
+
+    /* TEMP ADD TRANS ROW BUTTON */
+    document.querySelector('#addTransRow')?.addEventListener('click', () => {TRANS.addRow()})
+
+
+    // BUDGET PAGE
     let budgetRowsDomElement: Element | null = document.querySelector('.budget-rows');
     
     if (budgetRowsDomElement == null) {
@@ -72,9 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     }
 
-    const budget_id = parseInt(window.location.href.split("/").at(-1));
 
-    const filteredCategories = categories.filter(cat => cat.budget_id === budget_id)
+    const filteredCategories = categories.filter(cat => cat.budget_id === BUDGET_ID)
     
     BUDGET = new Budget(filteredCategories, budgetRowsDomElement);
     
@@ -84,6 +106,7 @@ const toggle = (): void => {
     BUDGET.editable = !BUDGET.editable;
 }
 
+/*
 // POPULATE TRANSACTION ROWS
 const populateTransactions = async () => {
 
@@ -105,6 +128,8 @@ const populateTransactions = async () => {
 }
 
 document.addEventListener('DOMContentLoaded', populateTransactions)
+*/
+
 
 
 // TOGGLE EDIT / SAVE

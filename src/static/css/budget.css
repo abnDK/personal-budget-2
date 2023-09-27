@@ -75,7 +75,7 @@
 
 
 
-.transaction-header {
+.transactions-header {
     grid-column: content-start / content-end;
     grid-row: header-start / header-end;
 
@@ -89,7 +89,7 @@
     
 }
 
-.transaction-rows {
+.transaction-rows-table {
     grid-column: content-start / content-end;
     grid-row: content-start / content-end;
 
@@ -101,39 +101,115 @@
 }
 
 
-.transaction-row {
+.transaction-row, .transaction-rows-title {
     grid-column: row-start;
     grid-row: span 1;
 
     display: grid;
-    grid-template-columns: [row-start date-start] 1fr [amount-start] 1fr [description-start] 3fr [category-start] 1fr [row-end];
+    grid-template-columns: [row-start date-start] 4fr [amount-start] 4fr [description-start] 6fr [category-start] 10fr [add-btn-start] 1fr [del-btn-start] 1fr [row-end];
     grid-template-rows: 10px;
-    column-gap: 10px;
+    column-gap: 6px;
+
 }
 
-.transaction-rows > .header {
+
+.transaction-rows-title {
     font-weight:bold;
 }
 
+.transaction-rows > * {
+
+    overflow: hidden;
+
+}
+
 .transaction-date {
-    grid-column: date-start / span 1;
+    grid-column: date-start / amount-start;
+
+
 
 }
 
 .transaction-amount {
-    grid-column: amount-start / span 1;
+    grid-column: amount-start / description-start;
 
 }
 
 .transaction-description {
-    grid-column: description-start / span 1;
+    grid-column: description-start / category-start;
 
 }
 
 .transaction-category {
-    grid-column: category-start / span 1;
+    grid-column: category-start / add-btn-start;
 
 }
+
+.transaction-edit {
+    grid-column: del-btn-start / row-end;
+    justify-self: center;
+    color:#263d5e;
+    transition: all 0.5s ease;
+}
+
+.transaction-edit:hover {
+
+    cursor: pointer;
+    
+    color: rgb(36, 106, 244);
+
+    transform: rotate(10deg);
+
+}
+
+.addTransRow {
+
+    grid-column: add-btn-start / del-btn-start;
+    justify-self: center;
+    color:#3A5431;
+    transition: all 0.5s ease;
+
+}
+
+.addTransRow:hover {
+
+    cursor: pointer;
+    
+    
+    color: rgb(1, 203, 1);
+
+    transform: rotate(20deg);
+
+
+}
+
+.delTransRow {
+    grid-column: del-btn-start / row-end;
+    justify-self: center;
+    color:#A0522D;
+    transition: all 0.5s ease;
+
+}
+
+.delTransRow:hover {
+
+    cursor: pointer;
+    color: rgb(221, 0, 0);
+    transform: rotate(20deg);
+
+}
+
+input.transaction-date, input.transaction-amount, input.transaction-description, input.transaction-category {
+    all: unset;
+    
+    overflow: hidden;
+    
+    background-color: #feffd1;
+    border-bottom: 1px solid #3d321f;
+    height: 8px;
+    justify-self: stretch;
+}
+
 
 
 /** BUDGET PAGE **/

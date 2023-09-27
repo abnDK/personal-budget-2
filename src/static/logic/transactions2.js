@@ -1,3 +1,4 @@
+"use strict";
 /*
 before writing to this,
 
@@ -16,13 +17,7 @@ file structure
   - transactionDOMTools.ts
   - errorHandling.ts
 */
-
-
-
-
 // event handlers
-document.querySelectorAll('.transaction-row').forEach(row=>row.addEventListener('click', (e) => {console.log(e.currentTarget)}));
-
-console.log('do we get loaded in??????')
-
+document.querySelectorAll('.transaction-row').forEach(row => row.addEventListener('click', (e) => { console.log(e.currentTarget); }));
+console.log('do we get loaded in??????');
 // error handling

@@ -494,8 +494,6 @@ class Budget {
         
         */
         this.renderBudgetSum = () => {
-            // dont forget this
-            console.log('rendering sum...');
             document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
         };
         this.root = BuildTree(rows);
