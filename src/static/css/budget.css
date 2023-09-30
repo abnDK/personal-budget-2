@@ -352,8 +352,6 @@ input.transaction-date, input.transaction-amount, input.transaction-description,
     grid-column: category-start / category-end;
 }
 
-.category-row > .category-parent {
-}
 
 
 
