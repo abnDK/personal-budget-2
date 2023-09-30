@@ -66,7 +66,7 @@ class TransactionService {
 
         // create transaction
         let data_trans = await pool.query('INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [name, amount, date, category_id, recipient, comment]);
-
+        console.log('transaction was posted to db, returned this: ', data_trans)
         // verify only 1 transaction has been created and returned from db
         if (!data_trans.rows.length) {
             throw new Error('no new transaction has been created, for some reason?')

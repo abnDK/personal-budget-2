@@ -73,7 +73,9 @@ class TransactionRow {
             this.amount = parseInt((_a = this.dom_element_ref.querySelector('.transaction-amount')) === null || _a === void 0 ? void 0 : _a.value);
             // date is selected only by the day of month, and month + year is preserved
             const day = (_b = this.dom_element_ref.querySelector('.transaction-date')) === null || _b === void 0 ? void 0 : _b.value;
-            this.date = new Date(new Date(this.date).getFullYear(), new Date(this.date).getMonth(), day);
+            // we use UTC time in order to avoid any nasty date shifting when 
+            // parsing because of timezone differences
+            this.date = new Date(Date.UTC(PERIOD.YEAR, PERIOD.MONTH, day));
             this.category_id = parseInt((_c = this.dom_element_ref.querySelector('.transaction-category')) === null || _c === void 0 ? void 0 : _c.value);
             this.category_name = (_f = (_e = (_d = this.dom_element_ref.querySelector('.transaction-category')) === null || _d === void 0 ? void 0 : _d.selectedOptions[0].innerText) === null || _e === void 0 ? void 0 : _e.split('- ')[1]) !== null && _f !== void 0 ? _f : (_g = this.dom_element_ref.querySelector('.transaction-category')) === null || _g === void 0 ? void 0 : _g.selectedOptions[0].innerText;
             this.name = (_h = this.dom_element_ref.querySelector('.transaction-description')) === null || _h === void 0 ? void 0 : _h.value;
@@ -194,11 +196,10 @@ class TransactionRowRender {
         console.log('render editable called');
         const dateRowChild = createHTMLElement('select', 'transaction-date');
         const rowDay = new Date(row.date).getDate().toString().padStart(2, '0');
-        // attention: months are zero based. Input is prob. not, so 
-        // from the getgo, month is probably already overflowing
-        // and creating the effect we want (month + 1) and date 0
-        // == last day of current month.
-        const lastDayOfMonth = new Date(PERIOD.YEAR, PERIOD.MONTH, 0).getDate();
+        // Last day of previous month can be accessed by setting day to 0.
+        // Thus we calculate the last day of the current month by getting
+        // day 0 in the month after the current month (+1).
+        const lastDayOfMonth = new Date(PERIOD.YEAR, PERIOD.MONTH + 1, 0).getDate();
         for (let i = 1; i <= lastDayOfMonth; i++) {
             let rowOption = document.createElement('option');
             rowOption.innerText = i.toString();
@@ -373,7 +374,13 @@ class TransactionContainer {
         // queries
         this.fetchTransactions = () => __awaiter(this, void 0, void 0, function* () {
             const transByBudgetId = yield this.query.getTransactions(this.budget_id);
-            return transByBudgetId.map(trans => new TransactionRow(trans.id, trans.name, trans.amount, trans.date, trans.category_id, trans.category_name, true));
+            return transByBudgetId.map(
+            // datestring returned from db is interpreted as UTC and not our timezone
+            // so date will be day - 1. Parsing it with new Date() this is
+            // corrected, so the returned datestring is intepreted as our timezone.
+            // This results in the right date, but with an extra hour or 2, irrelevant 
+            // for application to work. Thus new Date(...) may not be deleted.
+            trans => new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true));
         });
         this.query = query;
         this.renderer = renderer;
@@ -438,6 +445,7 @@ class MockTransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status);
                 }
+                console.log('returned from API: ', res);
                 return res.json();
             })
                 .catch((err) => { throw new Error(err); });

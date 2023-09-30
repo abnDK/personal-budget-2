@@ -6,7 +6,7 @@
 -- add self ref to category
 -- add foreign key from category to budget
 
-CREATE TABLE budget (id SERIAL PRIMARY KEY, name VARCHAR(50), date_start TIMESTAMP, date_end TIMESTAMP);
+CREATE TABLE budget (id SERIAL PRIMARY KEY, name VARCHAR(50), date_start DATE, date_end DATE);
 GRANT SELECT, INSERT, UPDATE, DELETE ON budget TO pb2_app;
 GRANT SELECT, UPDATE ON budget_id_seq TO pb2_app;
 

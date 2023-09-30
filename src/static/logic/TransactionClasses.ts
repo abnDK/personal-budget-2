@@ -193,9 +193,9 @@ class TransactionRow implements ITransactionRow {
         // date is selected only by the day of month, and month + year is preserved
         const day = this.dom_element_ref.querySelector('.transaction-date')?.value
         
-        this.date = new Date(new Date(this.date).getFullYear(), new Date(this.date).getMonth(), day);
-        
-        
+        // we use UTC time in order to avoid any nasty date shifting when 
+        // parsing because of timezone differences
+        this.date = new Date(Date.UTC(PERIOD.YEAR, PERIOD.MONTH, day));
         
         this.category_id = parseInt(this.dom_element_ref.querySelector('.transaction-category')?.value);
         this.category_name = this.dom_element_ref.querySelector('.transaction-category')?.selectedOptions[0].innerText?.split('- ')[1] ?? this.dom_element_ref.querySelector('.transaction-category')?.selectedOptions[0].innerText;
@@ -293,11 +293,13 @@ class TransactionRowRender implements ITransactionRowRender {
         const rowDay = new Date(row.date).getDate().toString().padStart(2, '0');
 
 
-        // attention: months are zero based. Input is prob. not, so 
-        // from the getgo, month is probably already overflowing
-        // and creating the effect we want (month + 1) and date 0
-        // == last day of current month.
-        const lastDayOfMonth = new Date(PERIOD.YEAR, PERIOD.MONTH, 0).getDate()
+        
+
+
+        // Last day of previous month can be accessed by setting day to 0.
+        // Thus we calculate the last day of the current month by getting
+        // day 0 in the month after the current month (+1).
+        const lastDayOfMonth = new Date(PERIOD.YEAR, PERIOD.MONTH + 1, 0).getDate()
 
         for (let i = 1; i <= lastDayOfMonth; i++) {
 
@@ -587,8 +589,13 @@ class TransactionContainer implements ITransactionContainer {
         const transByBudgetId = await this.query.getTransactions(this.budget_id)
         
         return transByBudgetId.map(
+            // datestring returned from db is interpreted as UTC and not our timezone
+            // so date will be day - 1. Parsing it with new Date() this is
+            // corrected, so the returned datestring is intepreted as our timezone.
+            // This results in the right date, but with an extra hour or 2, irrelevant 
+            // for application to work. Thus new Date(...) may not be deleted.
 
-            trans=>new TransactionRow(trans.id, trans.name, trans.amount, trans.date, trans.category_id, trans.category_name, true)
+            trans=>new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true)
         
         )
     }
@@ -677,6 +684,7 @@ class MockTransactionQueries implements ITransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status)
                 }
+                console.log('returned from API: ', res)
                 return res.json()
             })
             .catch((err)=> {throw new Error(err)})
