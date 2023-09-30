@@ -59,7 +59,8 @@ let BUDGET;
 let TRANS;
 const PERIOD = {
     YEAR: new Date().getFullYear(),
-    MONTH: new Date(2023, 8, 1).getMonth(),
+    MONTH: new Date().getMonth(),
+    DAY: new Date().getDate(),
     monthNames: {
         0: 'Januar',
         1: 'Februar',

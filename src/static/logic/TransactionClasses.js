@@ -284,7 +284,7 @@ class TransactionContainer {
         // add/remove data
         this.addRow = () => {
             // create new empty row
-            const newRow = new TransactionRow(NaN, 'Enter name', 0, new Date, NaN, 'Test', false);
+            const newRow = new TransactionRow(NaN, 'Enter name', 0, new Date(PERIOD.YEAR, PERIOD.MONTH, PERIOD.DAY), NaN, 'Test', false);
             console.log(newRow);
             console.log(newRow.render());
             // add row to rows

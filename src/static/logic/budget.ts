@@ -54,6 +54,7 @@ let TRANS: TransactionContainer;
 const PERIOD = {
     YEAR: new Date().getFullYear(),
     MONTH: new Date().getMonth(), // month is 0-indexed (0 = january, 1 = february...)
+    DAY: new Date().getDate(),
     monthNames: {
         0: 'Januar',
         1: 'Februar',
