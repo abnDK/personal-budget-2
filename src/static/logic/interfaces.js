@@ -585,3 +585,9 @@ class Budget {
         return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-grandchild')));
     }
 }
+class BudgetPage {
+}
+BudgetPage.renderTitles = () => {
+    document.querySelector('.budget-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
+    document.querySelector('.transactions-header-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
+};

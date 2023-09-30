@@ -58,12 +58,28 @@ var _a;
 let BUDGET;
 let TRANS;
 const PERIOD = {
-    YEAR: 2023,
-    MONTH: 9
+    YEAR: new Date().getFullYear(),
+    MONTH: new Date(2023, 8, 1).getMonth(),
+    monthNames: {
+        0: 'Januar',
+        1: 'Februar',
+        2: 'Marts',
+        3: 'April',
+        4: 'Maj',
+        5: 'Juni',
+        6: 'Juli',
+        7: 'August',
+        8: 'September',
+        9: 'Oktober',
+        10: 'November',
+        11: 'December'
+    }
 };
 // POPULATE BUDGET WITH CATEGORY ROWS
 document.addEventListener('DOMContentLoaded', () => __awaiter(void 0, void 0, void 0, function* () {
     var _b, _c;
+    // RENDER TITLES
+    BudgetPage.renderTitles();
     const BUDGET_ID = parseInt((_b = window.location.href.split('/').at(-1)) !== null && _b !== void 0 ? _b : "-1");
     console.log('about to init TRANSACTIONS');
     // TRANSACTIONS PAGE

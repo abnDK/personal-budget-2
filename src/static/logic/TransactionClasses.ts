@@ -587,17 +587,41 @@ class TransactionContainer implements ITransactionContainer {
     fetchTransactions = async (): Promise<TransactionRow[]> => {
         
         const transByBudgetId = await this.query.getTransactions(this.budget_id)
-        
-        return transByBudgetId.map(
+       
+        const transByBudgetIdAndPeriod = transByBudgetId.filter(
+            
             // datestring returned from db is interpreted as UTC and not our timezone
             // so date will be day - 1. Parsing it with new Date() this is
             // corrected, so the returned datestring is intepreted as our timezone.
             // This results in the right date, but with an extra hour or 2, irrelevant 
             // for application to work. Thus new Date(...) may not be deleted.
 
-            trans=>new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true)
-        
+            trans=>{
+
+                trans.date = new Date(trans.date)
+
+                if (trans.date.getFullYear() == PERIOD.YEAR && trans.date.getMonth() === PERIOD.MONTH) {
+                    
+                    // return transactions that matches the period currently rendered on budget page
+
+                    return trans
+
+                }
+
+            }
+
         )
+
+        return transByBudgetIdAndPeriod.map(
+
+            // parse trans.date with new Date as pr. the above comment 
+
+            trans => new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true)
+
+        )
+    
+
+
     }
 
 }

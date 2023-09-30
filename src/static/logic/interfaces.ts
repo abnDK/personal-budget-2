@@ -984,3 +984,14 @@ class Budget {
 
     
 }
+
+
+
+class BudgetPage {
+
+    static renderTitles = (): void => {
+        document.querySelector('.budget-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`
+        document.querySelector('.transactions-header-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`
+    }
+
+}

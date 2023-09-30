@@ -52,14 +52,31 @@
 let BUDGET: Budget;
 let TRANS: TransactionContainer;
 const PERIOD = {
-    YEAR: 2023,
-    MONTH: 9
+    YEAR: new Date().getFullYear(),
+    MONTH: new Date().getMonth(), // month is 0-indexed (0 = january, 1 = february...)
+    monthNames: {
+        0: 'Januar',
+        1: 'Februar',
+        2: 'Marts',
+        3: 'April',
+        4: 'Maj',
+        5: 'Juni',
+        6: 'Juli',
+        7: 'August',
+        8: 'September',
+        9: 'Oktober',
+        10: 'November', 
+        11: 'December'
+    }
 }
 
 
 // POPULATE BUDGET WITH CATEGORY ROWS
 document.addEventListener('DOMContentLoaded', async () => {
-    
+    // RENDER TITLES
+    BudgetPage.renderTitles();
+
+
     const BUDGET_ID: number = parseInt(window.location.href.split('/').at(-1) ?? "-1");
 
     
