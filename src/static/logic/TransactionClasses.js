@@ -277,11 +277,10 @@ class TransactionContainer {
     constructor(budget_id, query, renderer) {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
-            this.rows = yield this.fetchTransactions();
+            this._rows = yield this.fetchTransactions();
             this.renderTransactions();
             this.renderAddTransRowBtn(true);
         });
-        // getters / setters
         // add/remove data
         this.addRow = () => {
             // create new empty row
@@ -337,6 +336,15 @@ class TransactionContainer {
         });
         this.splitRow = (id) => {
             // dont implement yet, but a CR for later
+        };
+        // SORTING ROWS
+        this.sortByDateAndName = (arr) => {
+            return arr.toSorted((a, b) => {
+                if (a.date.getDate() == b.date.getDate()) {
+                    return a.name - b.name;
+                }
+                return a.date.getDate() - b.date.getDate();
+            });
         };
         // EVENT HANDLER
         this.clickTransactionRowBtns = (e) => __awaiter(this, void 0, void 0, function* () {
@@ -475,6 +483,13 @@ class TransactionContainer {
         this.renderer = renderer;
         this.budget_id = budget_id;
         this.editing = false;
+    }
+    // getters / setters
+    get rows() {
+        return this.sortByDateAndName(this._rows);
+    }
+    set rows(rows) {
+        this._rows = rows;
     }
 }
 class TransactionContainerRender {

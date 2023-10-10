@@ -20,7 +20,7 @@ interface ITransactionPage {
 
 
 interface ITransactionContainer {
-    rows: TransactionRow[],
+    _rows: TransactionRow[],
     dom_element_ref: Element,
     query: ITransactionQueries,
     renderer: ITransactionContainerRender,

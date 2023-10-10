@@ -408,7 +408,7 @@ class TransactionRowRender implements ITransactionRowRender {
 /****   C O N T A I N E R   ****/
 class TransactionContainer implements ITransactionContainer {
 
-    rows: TransactionRow[];
+    _rows: TransactionRow[];
     dom_element_ref: Element;
     budget_id: number;
     query: ITransactionQueries;
@@ -429,7 +429,7 @@ class TransactionContainer implements ITransactionContainer {
 
         await this.fetchTransactionDomElement();
 
-        this.rows = await this.fetchTransactions();
+        this._rows = await this.fetchTransactions();
 
         this.renderTransactions();
 
@@ -439,6 +439,17 @@ class TransactionContainer implements ITransactionContainer {
 
     // getters / setters
 
+    get rows(): TransactionRow[] {
+
+        return this.sortByDateAndName(this._rows)
+
+    }
+
+    set rows(rows: TransactionRow[]) {
+
+        this._rows = rows
+
+    }
     
 
     // add/remove data
@@ -523,6 +534,23 @@ class TransactionContainer implements ITransactionContainer {
         // dont implement yet, but a CR for later
 
     }
+
+    // SORTING ROWS
+    sortByDateAndName = (arr: TransactionRow[]): TransactionRow[] => {
+
+
+
+        return arr.toSorted((a: TransactionRow, b: TransactionRow) => {
+
+            if (a.date.getDate() == b.date.getDate()) {
+                return a.name - b.name; 
+            }
+
+            return a.date.getDate() - b.date.getDate()
+        })
+
+    }
+
 
 
     // EVENT HANDLER
