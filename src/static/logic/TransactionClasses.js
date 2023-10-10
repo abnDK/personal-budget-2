@@ -54,10 +54,12 @@ class TransactionRow {
         };
         this.bindDomElementToObject = () => {
             // BINDDOM FOR ROWS
-            Object.defineProperty(this._dom_element_ref, 'getObject', {
-                value: () => this,
-                writable: false
-            });
+            if (!this._dom_element_ref.hasOwnProperty('getObject')) {
+                Object.defineProperty(this._dom_element_ref, 'getObject', {
+                    value: () => this,
+                    writable: false
+                });
+            }
         };
         this.focusOnElement = () => {
             if (this.frozen) {
@@ -124,6 +126,7 @@ class TransactionRow {
         }
     }
     renderFrozen() {
+        console.log('2.5: about to render this frozen');
         this.dom_element_ref = this.renderer.frozen(this);
         this.frozen = true;
         return this.dom_element_ref;
@@ -166,14 +169,19 @@ class TransactionRowRender {
             editRowChild
         ]);
         // add eventhandlers for click on edit button
+        /*
         transactionRow.addEventListener('click', (e) => {
-            console.log('you clicked: ', e.target);
-            console.log(e.target.classList[0]);
-            console.log('the event has been attached to: ', e.currentTarget);
+            console.log('you clicked: ', e.target)
+            console.log(e.target.classList[0])
+            console.log('the event has been attached to: ', e.currentTarget)
+
             if (e.target.classList[0] === 'transaction-edit') {
+
                 e.currentTarget.getObject().renderEditable();
+
             }
-        });
+
+        }) */
         return transactionRow;
     }
     editable(row) {
@@ -253,23 +261,6 @@ class TransactionRowRender {
             addRowBtnChild,
             delRowBtnChild
         ]);
-        // eventlisteners for add and del buttons
-        transactionRow.addEventListener('click', (e) => {
-            var _a, _b;
-            console.log(e.currentTarget);
-            console.log(e.target);
-            console.log(e.target.classList[0]);
-            if (e.target.classList[0] === 'addTransRow') {
-                // setting frozen to true saves object to db and render frozen afterwards
-                (_a = e.currentTarget) === null || _a === void 0 ? void 0 : _a.parentElement.getObject().saveRow(e.currentTarget.getObject());
-            }
-            else if (e.target.classList[0] === 'delTransRow') {
-                // gets object of parent element == TransactionContainer element
-                // and calls the remove row using the row object.
-                (_b = e.currentTarget) === null || _b === void 0 ? void 0 : _b.parentElement.getObject().removeRow(e.currentTarget.getObject());
-            }
-        });
-        console.log('this should be rendered: ', transactionRow);
         return transactionRow;
     }
 }
@@ -279,37 +270,54 @@ class TransactionContainer {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
             this.rows = yield this.fetchTransactions();
+            this.renderTransactions();
+            this.renderAddTransRowBtn(true);
         });
         // getters / setters
         // add/remove data
         this.addRow = () => {
             // create new empty row
             const newRow = new TransactionRow(NaN, 'Enter name', 0, new Date(PERIOD.YEAR, PERIOD.MONTH, PERIOD.DAY), NaN, 'Test', false);
-            console.log(newRow);
-            console.log(newRow.render());
             // add row to rows
             this.rows = [newRow, ...this.rows];
             // render the row to dom
             this.renderTransactions();
         };
-        this.removeRow = (deleteRow) => {
-            var _a;
-            throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.';
+        this.removeRow = (deleteRow) => __awaiter(this, void 0, void 0, function* () {
+            if (deleteRow.id) {
+                // only send del req if row is in db (if no id, its new and not in db yet)
+                if (yield this.query.deleteTransaction(deleteRow.id)) {
+                    this.rows = this.rows.filter(row => row !== deleteRow);
+                    this.renderTransactions();
+                }
+                ;
+            }
+            else {
+                this.rows = this.rows.filter(row => row !== deleteRow);
+                this.renderTransactions();
+            }
+            /*
+            throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
             if (deleteRow.delete()) {
                 // if row is deleted from db,
                 // remove from mem object this.rows
+                
                 this.rows = this.rows.filter(row => row !== deleteRow);
+    
                 // remove from dom element
-                (_a = deleteRow.dom_element_ref.parentElement) === null || _a === void 0 ? void 0 : _a.removeChild(deleteRow.dom_element_ref);
+                deleteRow.dom_element_ref.parentElement?.removeChild(deleteRow.dom_element_ref)
+                        
             }
-        };
+            */
+        });
         this.saveRow = (saveRow) => __awaiter(this, void 0, void 0, function* () {
             // maybe we have to fetch values from the input fields first and write to object??
             saveRow.fetchEditableValues();
             // TODO: VALIDATION
             saveRow.isValid();
+            console.log('id of row being saved: ', saveRow.id);
             // Write row to db. Post if new (no id) and Put if known (id known)
-            if (Number.isNaN(saveRow.id) === true) {
+            if (Number.isNaN(saveRow.id)) {
                 yield this.query.postTransaction(saveRow);
             }
             else {
@@ -321,12 +329,37 @@ class TransactionContainer {
         this.splitRow = (id) => {
             // dont implement yet, but a CR for later
         };
-        // rendering
+        // EVENT HANDLER
+        this.clickTransactionRowBtns = (e) => __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c, _d, _e;
+            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('addTransRow')) {
+                // setting frozen to true saves object to db and render frozen afterwards
+                yield ((_b = e.currentTarget) === null || _b === void 0 ? void 0 : _b.getObject().saveRow(e.target.parentElement.getObject()));
+                this.updateAddTransRowBtn();
+            }
+            else if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains('delTransRow')) {
+                // gets object of parent element == TransactionContainer element
+                // and calls the remove row using the row object.
+                yield ((_d = e.currentTarget) === null || _d === void 0 ? void 0 : _d.getObject().removeRow(e.target.parentElement.getObject()));
+                this.updateAddTransRowBtn();
+            }
+            else if ((_e = e === null || e === void 0 ? void 0 : e.target) === null || _e === void 0 ? void 0 : _e.classList.contains('transaction-edit')) {
+                if (this.rows.filter(row => !row.frozen).length == 0) {
+                    // only render row editable if no other rows is editable
+                    e.target.parentElement.getObject().renderEditable();
+                    this.updateAddTransRowBtn();
+                }
+            }
+            // what about edit?
+        });
+        // RENDERING
         this.renderTransactions = () => {
             // get container element
             const transactionRowsElement = document.querySelector('.transaction-rows');
-            // render header of transactions
-            // transactionRowsElement.appendChild(this.renderHeader());
+            // remove all children, if any
+            this.unrenderChildren(transactionRowsElement);
+            // eventhandler for click on transactions rows buttons
+            transactionRowsElement === null || transactionRowsElement === void 0 ? void 0 : transactionRowsElement.addEventListener('click', this.clickTransactionRowBtns);
             // render transaction rows one by one. T.frozen()
             for (let row of this.rows) {
                 transactionRowsElement === null || transactionRowsElement === void 0 ? void 0 : transactionRowsElement.appendChild(row.render());
@@ -335,6 +368,11 @@ class TransactionContainer {
             this.dom_element_ref = transactionRowsElement;
             // make 2 way binding between dom_element_ref on container object and Dom element
             this.bindDomElementToObject();
+        };
+        this.unrenderChildren = (parent) => {
+            while (parent.firstChild) {
+                parent === null || parent === void 0 ? void 0 : parent.removeChild(parent.firstChild);
+            }
         };
         this.renderHeader = () => {
             /*
@@ -358,6 +396,37 @@ class TransactionContainer {
             // return header element
             return header;
         };
+        this.updateAddTransRowBtn = () => {
+            if (this.rows.filter(row => !row.frozen).length > 0) {
+                this.renderAddTransRowBtn(false);
+            }
+            else {
+                this.renderAddTransRowBtn(true);
+            }
+        };
+        this.renderAddTransRowBtn = (active) => {
+            // renders in 2 versions. Active / inactive
+            // eventhandler on the container element listens for clicks on target where id = addTransRow
+            // if any rows !frozen, render inactive. If not, render active.
+            var _a;
+            console.log('render add trans row');
+            const addTransRowBtn = document.createElement('div');
+            addTransRowBtn.id = "addTransRow";
+            if (active) {
+                addTransRowBtn.className = 'bi bi-plus-circle-fill active';
+                addTransRowBtn.addEventListener('click', () => {
+                    this.addRow();
+                    // why does this line not get called when clicking on the element?
+                    // - i think to 2 way binding error is causing this not to be read.
+                    // fix this and check if the update row button updates correctly...
+                    this.updateAddTransRowBtn();
+                });
+            }
+            else {
+                addTransRowBtn.className = 'bi bi-plus-circle';
+            }
+            (_a = document.querySelector('#addTransRow')) === null || _a === void 0 ? void 0 : _a.replaceWith(addTransRowBtn);
+        };
         this.fetchTransactionDomElement = () => {
             const transactionRowDomElement = document.querySelector('.transaction-rows');
             if (!transactionRowDomElement)
@@ -366,12 +435,14 @@ class TransactionContainer {
         };
         this.bindDomElementToObject = () => {
             // bindDomElement for CONTAINER
-            Object.defineProperty(this.dom_element_ref, 'getObject', {
-                value: () => this,
-                writable: false
-            });
+            if (!this.dom_element_ref.hasOwnProperty('getObject')) {
+                Object.defineProperty(this.dom_element_ref, 'getObject', {
+                    value: () => this,
+                    writable: false
+                });
+            }
         };
-        // queries
+        // QUERIES
         this.fetchTransactions = () => __awaiter(this, void 0, void 0, function* () {
             const transByBudgetId = yield this.query.getTransactions(this.budget_id);
             const transByBudgetIdAndPeriod = transByBudgetId.filter(
@@ -394,6 +465,7 @@ class TransactionContainer {
         this.query = query;
         this.renderer = renderer;
         this.budget_id = budget_id;
+        this.editing = false;
     }
 }
 class TransactionContainerRender {
@@ -422,16 +494,26 @@ class MockTransactionQueries {
                     throw new Error(String(res.status));
                 }
                 return res.json();
-            }).catch((err) => { throw new Error(err); });
+            }).catch((err) => { console.log(err); });
             // filter transactions with category_id within relevant budget_id
             const filteredTransactions = allTransactions.filter(transaction => Array.from(categoriesIdNameMap.keys()).includes(transaction.category_id));
             // add category name to each transaction
             filteredTransactions.forEach(transaction => transaction.category_name = categoriesIdNameMap.get(transaction.category_id));
             return filteredTransactions;
         });
-        this.deleteTransaction = (trans_id) => {
+        this.deleteTransaction = (trans_id) => __awaiter(this, void 0, void 0, function* () {
             // return status?
-        };
+            return yield fetch(`http://localhost:3000/transactions/${trans_id}`, {
+                method: 'DELETE',
+            })
+                .then((res) => {
+                if (!res.ok) {
+                    throw new Error(String(res.status));
+                }
+                return true;
+            })
+                .catch((err) => { throw err; });
+        });
         this.postTransaction = (transaction) => {
             // return status?
             const data = {
@@ -442,7 +524,7 @@ class MockTransactionQueries {
                 recipient: undefined,
                 comment: undefined
             };
-            console.log('posting this to transactions: ', data);
+            console.log('POSTING this to transactions: ', data);
             return fetch('http://localhost:3000/transactions', {
                 method: 'POST',
                 headers: {
@@ -454,10 +536,9 @@ class MockTransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status);
                 }
-                console.log('returned from API: ', res);
                 return res.json();
             })
-                .catch((err) => { throw new Error(err); });
+                .catch((err) => { throw err; });
         };
         this.updateTransaction = (transaction) => __awaiter(this, void 0, void 0, function* () {
             // name, amount, date, category_id, recipient, comment
@@ -469,7 +550,7 @@ class MockTransactionQueries {
                 recipient: undefined,
                 comment: undefined
             };
-            console.log('updating/putting this to transactions: ', data);
+            console.log('UPDATE/PUTTING this to transactions: ', data);
             return fetch(`http://localhost:3000/transactions/${transaction.id}`, {
                 method: 'PUT',
                 headers: {
@@ -481,9 +562,10 @@ class MockTransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status);
                 }
+                console.log('1: i just updated');
                 return res.json();
             })
-                .catch((err) => { throw new Error(err); });
+                .catch((err) => { throw err; });
         });
         this.getCategories = (budgetId) => __awaiter(this, void 0, void 0, function* () {
             try {

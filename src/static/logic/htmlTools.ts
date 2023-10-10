@@ -13,7 +13,6 @@ function createHTMLElement(tag: string, className?: string | undefined, innerTex
     }
     
     if (innerText && tag == 'input') {
-        new HTMLInputElement()
         element.value = innerText
     }
     else if (innerText) {

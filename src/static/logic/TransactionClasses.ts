@@ -137,6 +137,7 @@ class TransactionRow implements ITransactionRow {
     }
 
     renderFrozen(): HTMLElement {
+        console.log('2.5: about to render this frozen')
 
         this.dom_element_ref = this.renderer.frozen(this)
 
@@ -158,15 +159,21 @@ class TransactionRow implements ITransactionRow {
 
     private bindDomElementToObject = (): void => {
         // BINDDOM FOR ROWS
-        Object.defineProperty(
-            this._dom_element_ref,
-            'getObject',
-            {
-                value: () => this,
-                writable: false
-            }
-                
-        )
+        if (!this._dom_element_ref.hasOwnProperty('getObject')) {
+
+            Object.defineProperty(
+                this._dom_element_ref,
+                'getObject',
+                {
+                    value: () => this,
+                    writable: false
+                }
+                    
+            )
+
+        }
+        
+        
 
     }
 
@@ -250,7 +257,7 @@ class TransactionRowRender implements ITransactionRowRender {
         )
 
         // add eventhandlers for click on edit button
-
+        /* 
         transactionRow.addEventListener('click', (e) => {
             console.log('you clicked: ', e.target)
             console.log(e.target.classList[0])
@@ -262,7 +269,7 @@ class TransactionRowRender implements ITransactionRowRender {
 
             }
 
-        })
+        }) */
 
 
         return transactionRow
@@ -379,27 +386,6 @@ class TransactionRowRender implements ITransactionRowRender {
                 delRowBtnChild
             ]
         )
-        
-        // eventlisteners for add and del buttons
-        transactionRow.addEventListener('click', (e) => {
-            console.log(e.currentTarget)
-            console.log(e.target)
-            console.log(e.target.classList[0])
-            if (e.target.classList[0] === 'addTransRow') {
-
-                // setting frozen to true saves object to db and render frozen afterwards
-                e.currentTarget?.parentElement.getObject().saveRow(e.currentTarget.getObject())
-
-            } else if (e.target.classList[0] === 'delTransRow') {
-                // gets object of parent element == TransactionContainer element
-                // and calls the remove row using the row object.
-                e.currentTarget?.parentElement.getObject().removeRow(e.currentTarget.getObject())
-            }
-
-
-        })
-
-        console.log('this should be rendered: ', transactionRow)
 
         return transactionRow
 
@@ -408,7 +394,6 @@ class TransactionRowRender implements ITransactionRowRender {
 
 
 /****   C O N T A I N E R   ****/
-
 class TransactionContainer implements ITransactionContainer {
 
     rows: TransactionRow[];
@@ -416,6 +401,7 @@ class TransactionContainer implements ITransactionContainer {
     budget_id: number;
     query: ITransactionQueries;
     renderer: ITransactionContainerRender;
+    editing: boolean;
 
 
     constructor(budget_id: number, query: ITransactionQueries, renderer: ITransactionContainerRender) {
@@ -423,14 +409,19 @@ class TransactionContainer implements ITransactionContainer {
         this.query = query;
         this.renderer = renderer;
         this.budget_id = budget_id;
+        this.editing = false;
 
     }
 
     init = async (): Promise<void> => {
 
-        await this.fetchTransactionDomElement()
+        await this.fetchTransactionDomElement();
 
-        this.rows = await this.fetchTransactions()
+        this.rows = await this.fetchTransactions();
+
+        this.renderTransactions();
+
+        this.renderAddTransRowBtn(true);
 
     }
 
@@ -440,21 +431,44 @@ class TransactionContainer implements ITransactionContainer {
 
     // add/remove data
     addRow = (): void => {
+        
         // create new empty row
         const newRow = new TransactionRow(NaN, 'Enter name', 0, new Date(PERIOD.YEAR, PERIOD.MONTH, PERIOD.DAY), NaN, 'Test', false)
-        console.log(newRow)
-        console.log(newRow.render())
+        
         // add row to rows
         this.rows = [newRow, ...this.rows]
         
-
         // render the row to dom
         this.renderTransactions()
 
+        
+
     }
 
-    removeRow = (deleteRow: TransactionRow): void => {
+    removeRow = async (deleteRow: TransactionRow): Promise<void> => {
 
+        if (deleteRow.id) {
+
+            // only send del req if row is in db (if no id, its new and not in db yet)
+            if (await this.query.deleteTransaction(deleteRow.id)) {
+
+                this.rows = this.rows.filter(row => row !== deleteRow);
+            
+                this.renderTransactions()
+                
+            };
+
+        } else {
+
+            this.rows = this.rows.filter(row => row !== deleteRow);
+            
+            this.renderTransactions()
+            
+        }
+        
+        
+
+        /* 
         throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
         if (deleteRow.delete()) { 
             // if row is deleted from db,
@@ -466,7 +480,7 @@ class TransactionContainer implements ITransactionContainer {
             deleteRow.dom_element_ref.parentElement?.removeChild(deleteRow.dom_element_ref)
                     
         }
-
+        */
     }
     
     
@@ -478,8 +492,10 @@ class TransactionContainer implements ITransactionContainer {
         // TODO: VALIDATION
         saveRow.isValid()
 
+        console.log('id of row being saved: ', saveRow.id)
+
         // Write row to db. Post if new (no id) and Put if known (id known)
-        if (Number.isNaN(saveRow.id) === true) {
+        if (Number.isNaN(saveRow.id)) {
             
             await this.query.postTransaction(saveRow)
 
@@ -500,14 +516,58 @@ class TransactionContainer implements ITransactionContainer {
 
     }
 
-    // rendering
+
+    // EVENT HANDLER
+
+    clickTransactionRowBtns = async (e: EventTarget) => {
+
+        if (e?.target?.classList.contains('addTransRow')) {
+
+            // setting frozen to true saves object to db and render frozen afterwards
+            await e.currentTarget?.getObject().saveRow(e.target.parentElement.getObject())
+
+            this.updateAddTransRowBtn()
+
+
+        } else if (e?.target?.classList.contains('delTransRow')) {
+            // gets object of parent element == TransactionContainer element
+            // and calls the remove row using the row object.
+            await e.currentTarget?.getObject().removeRow(e.target.parentElement.getObject())
+
+            this.updateAddTransRowBtn()
+
+        } else if (e?.target?.classList.contains('transaction-edit')) {
+
+            if (this.rows.filter(row => !row.frozen).length == 0) {
+                
+                // only render row editable if no other rows is editable
+                e.target.parentElement.getObject().renderEditable();
+
+                this.updateAddTransRowBtn();
+            
+            }
+
+
+        }
+
+
+        // what about edit?
+
+
+    }
+
+    // RENDERING
+
     renderTransactions = (): void => {
 
         // get container element
         const transactionRowsElement = document.querySelector('.transaction-rows');
         
-        // render header of transactions
-        // transactionRowsElement.appendChild(this.renderHeader());
+        // remove all children, if any
+        this.unrenderChildren(transactionRowsElement)
+
+        // eventhandler for click on transactions rows buttons
+        transactionRowsElement?.addEventListener('click', this.clickTransactionRowBtns)
 
         // render transaction rows one by one. T.frozen()
         for (let row of this.rows) {
@@ -523,6 +583,18 @@ class TransactionContainer implements ITransactionContainer {
         this.bindDomElementToObject()
 
         
+        
+
+    }
+
+    private unrenderChildren = (parent: HTMLElement): void => {
+
+        while (parent.firstChild) {
+
+            parent?.removeChild(parent.firstChild);
+
+        }
+
 
     }
 
@@ -559,6 +631,59 @@ class TransactionContainer implements ITransactionContainer {
 
     }
 
+    updateAddTransRowBtn = (): void => {
+
+        if (this.rows.filter(row => !row.frozen).length > 0) {
+
+            this.renderAddTransRowBtn(false)
+
+        } else {
+
+            this.renderAddTransRowBtn(true)
+
+        }
+
+    }
+
+
+    renderAddTransRowBtn = (active: boolean): void => {
+
+        // renders in 2 versions. Active / inactive
+        // eventhandler on the container element listens for clicks on target where id = addTransRow
+        // if any rows !frozen, render inactive. If not, render active.
+
+        console.log('render add trans row')
+        
+        const addTransRowBtn = document.createElement('div');
+            addTransRowBtn.id = "addTransRow"
+
+        if (active) {
+            
+            addTransRowBtn.className = 'bi bi-plus-circle-fill active';        
+
+            addTransRowBtn.addEventListener('click', () => {
+                
+                this.addRow()
+
+                // why does this line not get called when clicking on the element?
+                // - i think to 2 way binding error is causing this not to be read.
+                // fix this and check if the update row button updates correctly...
+                this.updateAddTransRowBtn()
+
+            })
+
+        } else {
+
+            addTransRowBtn.className = 'bi bi-plus-circle';      
+
+        }
+
+        document.querySelector('#addTransRow')?.replaceWith(
+                addTransRowBtn
+            )
+
+    }
+
     fetchTransactionDomElement = (): void => {
 
         const transactionRowDomElement: Element | null = document.querySelector('.transaction-rows')
@@ -570,19 +695,25 @@ class TransactionContainer implements ITransactionContainer {
 
     private bindDomElementToObject = (): void => {
         // bindDomElement for CONTAINER
-        Object.defineProperty(
-            this.dom_element_ref,
-            'getObject',
-            {
-                value: () => this,
-                writable: false
-            }
-                
-        )
+        if (!this.dom_element_ref.hasOwnProperty('getObject')) {
+
+            Object.defineProperty(
+                this.dom_element_ref,
+                'getObject',
+                {
+                    value: () => this,
+                    writable: false
+                }
+                    
+            )
+
+        }
+        
+        
 
     }
 
-    // queries
+    // QUERIES
 
     fetchTransactions = async (): Promise<TransactionRow[]> => {
         
@@ -664,7 +795,7 @@ class MockTransactionQueries implements ITransactionQueries {
                     throw new Error(String(res.status))
                 }
                 return res.json()
-            }).catch((err) => {throw new Error(err)})
+            }).catch((err) => {console.log(err)})
         
         // filter transactions with category_id within relevant budget_id
         const filteredTransactions = allTransactions.filter(transaction => Array.from(categoriesIdNameMap.keys()).includes(transaction.category_id))
@@ -677,8 +808,19 @@ class MockTransactionQueries implements ITransactionQueries {
 
     }
 
-    deleteTransaction = (trans_id: number): void => {
+    deleteTransaction = async (trans_id: number): Promise<boolean> => {
         // return status?
+
+        return await fetch(`http://localhost:3000/transactions/${trans_id}`, {
+                method: 'DELETE',
+            })
+            .then((res)=>{
+                if (!res.ok) {
+                    throw new Error(String(res.status))
+                }
+                return true
+            })
+            .catch((err)=> {throw err})
 
     }
 
@@ -695,7 +837,7 @@ class MockTransactionQueries implements ITransactionQueries {
             comment: undefined
         }
 
-        console.log('posting this to transactions: ', data)
+        console.log('POSTING this to transactions: ', data)
 
         return fetch('http://localhost:3000/transactions', {
                 method: 'POST',
@@ -708,10 +850,9 @@ class MockTransactionQueries implements ITransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status)
                 }
-                console.log('returned from API: ', res)
                 return res.json()
             })
-            .catch((err)=> {throw new Error(err)})
+            .catch((err)=> {throw err})
             
 
         
@@ -729,7 +870,7 @@ class MockTransactionQueries implements ITransactionQueries {
             comment: undefined
         }
 
-        console.log('updating/putting this to transactions: ', data)
+        console.log('UPDATE/PUTTING this to transactions: ', data)
 
         return fetch(`http://localhost:3000/transactions/${transaction.id}`, {
                 method: 'PUT',
@@ -742,9 +883,10 @@ class MockTransactionQueries implements ITransactionQueries {
                 if (!res.ok) {
                     throw new Error(res.status)
                 }
+                console.log('1: i just updated')
                 return res.json()
             })
-            .catch((err)=> {throw new Error(err)})
+            .catch((err)=> {throw err})
             
 
 

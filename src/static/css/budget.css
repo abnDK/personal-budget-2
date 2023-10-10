@@ -57,7 +57,7 @@
 
     display: grid;
     grid-template-columns: [page-border] 15px [content-start] 1fr [content-end] 15px [page-center];
-    grid-template-rows: [page-top] 10px [header-start] 30px [header-end content-start] 1fr [content-end] 10px [page-bottom];
+    grid-template-rows: [page-top] 10px [header-start] 20px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
 
     place-self: center end;
 
@@ -87,6 +87,28 @@
 
 
     
+}
+
+.transactions-subheader {
+
+    grid-column: content-start / content-end;
+    grid-row: subheader-start / subheader-end;
+    justify-self: end;
+    align-self: center;
+
+}
+
+#addTransRow {
+
+    font-size: 12px;
+    color: green;
+
+}
+
+#addTransRow:hover {
+    color: rgb(0, 158, 0);
+    cursor: pointer;
+
 }
 
 .transaction-rows-table {
@@ -221,7 +243,7 @@ input.transaction-date, input.transaction-amount, input.transaction-description,
 
     display: grid;
     grid-template-columns: [page-border] 15px [content-start] 1fr [content-end] 15px [page-center];
-    grid-template-rows: [page-top] 10px [header-start] 30px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
+    grid-template-rows: [page-top] 10px [header-start] 20px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
 
     /* H/W ratio: 420/260 = 1,615 */
 
@@ -260,12 +282,12 @@ input.transaction-date, input.transaction-amount, input.transaction-description,
     grid-template-rows: [start] 1fr [center] 1fr [end];
 }
 
-.budget-subheader > .start-date {
-    grid-column: info-start / span 1;
-}
 
 .budget-subheader > .budget-sum {
     grid-column: info-start / span 1;
+    grid-row: center / end;
+
+    justify-self: start;
 }
 
 .budget-subheader > .button-add {

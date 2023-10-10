@@ -1,9 +1,32 @@
+
+
+interface ITransactionPage {
+    container: ITransactionContainer,
+    title: {
+        value: string,
+        element: HTMLElement
+    }
+    controls: { // this is the "subheader" section with different global controls such as "add row" etc.
+        addRowBtn: HTMLElement
+    },
+    init(): void, // calls init on container and renders addRowBtn
+    renderAddTransRowBtn(active: boolean): void,
+    updateAddRowBtnState(): void,
+    getTitleElement(): HTMLElement,
+    getAddRowBtnElement(): HTMLElement
+}
+
+
+
+
 interface ITransactionContainer {
     rows: TransactionRow[],
     dom_element_ref: Element,
     query: ITransactionQueries,
     renderer: ITransactionContainerRender,
     budget_id: number
+    editing: boolean
+    page: ITransactionPage
 
     // init
     init(): Promise<void>;
@@ -75,7 +98,7 @@ interface ITransactionQueries {
 
     getTransactions(budget_id: number): Promise<ITransaction[]>; // GET request api, filters on budget_id
 
-    deleteTransaction(trans_id: number): void; // return status?
+    deleteTransaction(trans_id: number): Promise<boolean>; // return status?
 
     postTransaction(transaction: ITransaction): void; // return status?
 

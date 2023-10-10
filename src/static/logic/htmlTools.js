@@ -9,7 +9,6 @@ function createHTMLElement(tag, className, innerText, children) {
         element.className = className;
     }
     if (innerText && tag == 'input') {
-        new HTMLInputElement();
         element.value = innerText;
     }
     else if (innerText) {

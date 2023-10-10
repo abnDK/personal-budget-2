@@ -1,54 +1,4 @@
 
-
-
-/**
- * split files:
- *      budgetDOMTools.js
- *      budgetQueries.js
- *      
- * 
- * 
- * 
- * 
- * FLOWS:
- * 
- * when click 'edit':
- * - name and amount field become input fields
- * - 'delete row' checkbox is shown
- * - 'add row' button is shown
- * 
- * 
- * when click 'save':
- * - rows marked for deletion are deleted in db (HTTP DELETE REQUEST)
- * - if all successful, rows are removed and sum can be calculated of the remaining rows.
- *   - what if not succesful: An error message is shown and all rows remain shown. User can then try again?
- * - when sum is calculated, rows are "frozen" with new values (checkbox are removed, class 'editable' removed)
- * 
- * when 'delete row' is checked:
- * - row is greyed out and cannot be edited anymore
- * 
- * 
- * EVENTS:
- * 
- * Edit budget rows
- *  [x] Toggle edit/save for all rows
- *  [x] set row for deletion (mark it and when saved, it disappears. When marked it is greyed out.)
- *  [ ] Delete multiple rows and change category_id of related transactions
- * 
- * Save budget rows
- *  [x] calculate sum
- *  [x] parent sum = children sum = grandchildren sum
- *  [x] save to db
- * 
- * Populate budget
- *  [x] get data from db and create budget rows and add to .budget-rows element
- * 
- * Add budget row
- *  [ ] Add new row on all 3 levels (parent, child, grandchild - and not grand-grandchild)
- *  [ ] Save row to db on save. (might already happen if we just add row like when we populate budget)
- */
-
-
 let BUDGET: Budget;
 let TRANS: TransactionContainer;
 const PERIOD = {
@@ -88,13 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await TRANS.init()
 
-    TRANS.renderTransactions();
+    
 
     console.log('TRANSACTIONS has been init')
-
-    /* TEMP ADD TRANS ROW BUTTON */
-    document.querySelector('#addTransRow')?.addEventListener('click', () => {TRANS.addRow()})
-
 
     // BUDGET PAGE
     let budgetRowsDomElement: Element | null = document.querySelector('.budget-rows');

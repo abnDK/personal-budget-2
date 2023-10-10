@@ -15,8 +15,9 @@ html
         .transactions-container
             .transactions-header
                 .transactions-header-title="Transactions - "
-                .bi.bi-dash-circle= " remove  row"
-                #addTransRow.bi.bi-plus-circle= " add new row"
+
+            .transactions-subheader
+                #addTransRow
                 
             .transaction-rows-table 
                 .transaction-rows-title
@@ -33,7 +34,6 @@ html
             .budget-header
                 .budget-title#budget_id(data-budget_id=4)="Budget and Report - "
             .budget-subheader
-                .start-date= "Start date: dd-mm-yyyy"
                 .budget-sum= "Budget sum:"
                 .button-add#addRow(hidden=true)= "+"
                 .button-edit#editSave= "Edit"
