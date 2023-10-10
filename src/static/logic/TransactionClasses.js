@@ -245,13 +245,14 @@ class TransactionRowRender {
             // make indents for categorys and level 2 and 3 (child and grandchildren)
             let indent = '';
             if (category.level > 1) {
+                indent = '|';
                 for (let i = 0; i < category.level - 1; i++) {
                     indent += "--";
                 }
                 indent += ' ';
             }
-            newOptionElement.innerText = `${indent}${category.name}`;
-            if (this.category_id == category.id) {
+            newOptionElement.innerText = category.name === 'root' ? `${indent} Uncategorized` : `${indent} ${category.name}`;
+            if (row.category_id == category.id) {
                 newOptionElement.selected = true;
             }
             categoryRowChild.appendChild(newOptionElement);
@@ -322,7 +323,6 @@ class TransactionContainer {
             saveRow.fetchEditableValues();
             // TODO: VALIDATION
             saveRow.isValid();
-            console.log('id of row being saved: ', saveRow.id);
             // Write row to db. Post if new (no id) and Put if known (id known)
             if (Number.isNaN(saveRow.id)) {
                 const newRow = yield this.query.postTransaction(saveRow);

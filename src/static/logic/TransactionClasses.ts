@@ -364,15 +364,16 @@ class TransactionRowRender implements ITransactionRowRender {
             // make indents for categorys and level 2 and 3 (child and grandchildren)
             let indent: string = ''
             if (category.level > 1) {
+                indent = '|'
                 for (let i=0; i<category.level-1; i++) {
                     indent += "--"
                 }
                 indent += ' '
             }
             
-            newOptionElement.innerText = `${indent}${category.name}`
+            newOptionElement.innerText = category.name === 'root' ? `${indent} Uncategorized` : `${indent} ${category.name}`;
 
-            if (this.category_id == category.id) {
+            if (row.category_id == category.id) {
                 newOptionElement.selected = true;
             }
 
@@ -452,8 +453,6 @@ class TransactionContainer implements ITransactionContainer {
         // render the row to dom
         this.renderTransactions()
 
-        
-
     }
 
     removeRow = async (deleteRow: TransactionRow): Promise<void> => {
@@ -477,8 +476,6 @@ class TransactionContainer implements ITransactionContainer {
             
         }
         
-        
-
         /* 
         throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
         if (deleteRow.delete()) { 
@@ -494,16 +491,12 @@ class TransactionContainer implements ITransactionContainer {
         */
     }
     
-    
-
     saveRow = async (saveRow: TransactionRow): Promise<void> => {
         // maybe we have to fetch values from the input fields first and write to object??
         saveRow.fetchEditableValues()
 
         // TODO: VALIDATION
         saveRow.isValid()
-
-        console.log('id of row being saved: ', saveRow.id)
 
         // Write row to db. Post if new (no id) and Put if known (id known)
         if (Number.isNaN(saveRow.id)) {
@@ -561,7 +554,6 @@ class TransactionContainer implements ITransactionContainer {
                 this.updateAddTransRowBtn();
             
             }
-
 
         }
 
