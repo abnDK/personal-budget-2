@@ -52,6 +52,13 @@ class TransactionRow {
             console.log('INPUT VALID: ', this);
             return true;
         };
+        this.sync = (row) => {
+            this.id = parseInt(row.id);
+            this.name = row.name;
+            this.amount = parseInt(row.amount);
+            this.date = new Date(row.date);
+            this.category_id = parseInt(row.category_id);
+        };
         this.bindDomElementToObject = () => {
             // BINDDOM FOR ROWS
             if (!this._dom_element_ref.hasOwnProperty('getObject')) {
@@ -318,10 +325,12 @@ class TransactionContainer {
             console.log('id of row being saved: ', saveRow.id);
             // Write row to db. Post if new (no id) and Put if known (id known)
             if (Number.isNaN(saveRow.id)) {
-                yield this.query.postTransaction(saveRow);
+                const newRow = yield this.query.postTransaction(saveRow);
+                saveRow.sync(newRow);
             }
             else {
-                yield this.query.updateTransaction(saveRow);
+                const updatedRow = yield this.query.updateTransaction(saveRow);
+                saveRow.sync(updatedRow);
             }
             // render element frozen with updated values
             saveRow.renderFrozen();

@@ -109,6 +109,17 @@ class TransactionRow implements ITransactionRow {
 
     }
 
+    sync = (row: {id: string, name: string, amount: string, date: string, category_id: string, recipient: string, comment:string}): void => {
+
+        
+        this.id = parseInt(row.id);
+        this.name = row.name;
+        this.amount = parseInt(row.amount);
+        this.date = new Date(row.date);
+        this.category_id = parseInt(row.category_id);
+
+
+    }
 
     /* DOM EVENTS AND ELEMENTS */
 
@@ -497,11 +508,15 @@ class TransactionContainer implements ITransactionContainer {
         // Write row to db. Post if new (no id) and Put if known (id known)
         if (Number.isNaN(saveRow.id)) {
             
-            await this.query.postTransaction(saveRow)
+            const newRow = await this.query.postTransaction(saveRow)
+
+            saveRow.sync(newRow);
 
         } else {
 
-            await this.query.updateTransaction(saveRow)
+            const updatedRow = await this.query.updateTransaction(saveRow)
+
+            saveRow.sync(updatedRow)
 
         }
 

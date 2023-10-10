@@ -100,9 +100,9 @@ interface ITransactionQueries {
 
     deleteTransaction(trans_id: number): Promise<boolean>; // return status?
 
-    postTransaction(transaction: ITransaction): void; // return status?
+    postTransaction(transaction: ITransaction): {id: string, name: string, amount: string, date: string, category_id: string, recipient: string, comment:string}; // return status?
 
-    updateTransaction(transaction: ITransaction): void;
+    updateTransaction(transaction: ITransaction): {id: string, name: string, amount: string, date: string, category_id: string, recipient: string, comment:string};
 
     getCategories(budgetId: number): Promise<Category[] | undefined>;
 
