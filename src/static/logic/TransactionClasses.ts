@@ -760,6 +760,21 @@ class TransactionContainer implements ITransactionContainer {
         const transactionsRowsObject = e.currentTarget.parentElement.children[1].getObject()
         console.log(transactionsRowsObject)
 
+
+        // remove '.sorted-by' from previous sorting column title
+        let columnTitleElements = Array.from(e.currentTarget.children)
+
+        for (let element of columnTitleElements) {
+            console.log("x", element)
+
+            element.classList.remove('sorted-by')
+
+        }
+
+        // set '.sorted-by' for new sorting column title
+        e?.target.classList.add('sorted-by')
+
+
         if (e?.target?.classList.contains('transaction-date')) {
 
             console.log('clicked "day" column and ready for sorting...')
@@ -786,6 +801,8 @@ class TransactionContainer implements ITransactionContainer {
             // getting the transaction rows container, sorts the rows and rerender rows
             transactionsRowsObject.sortRowsBy('description')   
 
+
+
         }
 
         if (e?.target?.classList.contains('transaction-category')) {
@@ -793,8 +810,8 @@ class TransactionContainer implements ITransactionContainer {
             console.log('clicked "category" column and ready for sorting...')
 
             // getting the transaction rows container, sorts the rows and rerender rows
-            transactionsRowsObject.sortRowsBy('category')   
-
+            transactionsRowsObject.sortRowsBy('category')
+            
         }
 
 

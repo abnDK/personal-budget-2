@@ -471,6 +471,14 @@ class TransactionContainer {
             console.log(e.currentTarget.parentElement.children);
             const transactionsRowsObject = e.currentTarget.parentElement.children[1].getObject();
             console.log(transactionsRowsObject);
+            // remove '.sorted-by' from previous sorting column title
+            let columnTitleElements = Array.from(e.currentTarget.children);
+            for (let element of columnTitleElements) {
+                console.log("x", element);
+                element.classList.remove('sorted-by');
+            }
+            // set '.sorted-by' for new sorting column title
+            e === null || e === void 0 ? void 0 : e.target.classList.add('sorted-by');
             if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('transaction-date')) {
                 console.log('clicked "day" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows

@@ -139,10 +139,19 @@
     font-weight:bold;
 }
 
-.transaction-rows-title > .transaction-amount:hover, .transaction-category:hover, .transaction-date:hover, .transaction-description:hover {
+.transaction-rows-title .transaction-amount:hover, 
+.transaction-rows-title .transaction-category:hover, 
+.transaction-rows-title .transaction-date:hover, 
+.transaction-rows-title .transaction-description:hover {
 
     cursor: pointer;
     text-decoration: underline;
+
+}
+
+.sorted-by {
+
+    color: green;
 
 }
 
