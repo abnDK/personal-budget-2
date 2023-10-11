@@ -26,6 +26,7 @@ interface ITransactionContainer {
     renderer: ITransactionContainerRender,
     budget_id: number
     editing: boolean
+    sortedBy: {key: string, asc: boolean}
     page: ITransactionPage
 
     // init
@@ -39,7 +40,7 @@ interface ITransactionContainer {
 
     // rendering (on init) and dom interaction
     renderTransactions(): void; // call render frozen() and header() and return combined. Add to dom.
-    renderHeader(): HTMLElement;
+    renderHeader(): void;
     fetchTransactionDomElement(): void;
 
     // querying

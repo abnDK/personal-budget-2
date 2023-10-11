@@ -278,6 +278,7 @@ class TransactionContainer {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
             this._rows = yield this.fetchTransactions();
+            this.renderHeader();
             this.renderTransactions();
             this.renderAddTransRowBtn(true);
         });
@@ -338,8 +339,69 @@ class TransactionContainer {
             // dont implement yet, but a CR for later
         };
         // SORTING ROWS
-        this.sortByDateAndName = (arr) => {
-            return arr.toSorted((a, b) => {
+        this.rowsSorted = (key = this.sortedBy.key) => {
+            let rows;
+            switch (key) {
+                case 'date':
+                    return this.rowsByDateAndName();
+                case 'amount':
+                    return this.rowsByAmountAndName();
+                default:
+                    console.log('hit default case');
+                    break;
+            }
+        };
+        this.rowsByDateAndName = () => {
+            let sortedRows = this._rows.toSorted((a, b) => {
+                return a.date.getDate() - b.date.getDate();
+            });
+            if (this.sortedBy.key === 'date') {
+                if (!this.sortedBy.asc) {
+                    this.sortedBy.asc = true;
+                    return sortedRows;
+                }
+                else {
+                    this.sortedBy.asc = false;
+                    return sortedRows.reverse();
+                }
+            }
+            else {
+                this.sortedBy.key = 'date';
+                this.sortedBy.asc = true;
+                return sortedRows;
+            }
+        };
+        this.rowsByAmountAndName = () => {
+            console.log('SORT BY AMOUNT ');
+            let sortedRows = this._rows.toSorted((a, b) => {
+                return a.amount - b.amount;
+            });
+            if (this.sortedBy.key === 'amount') {
+                if (!this.sortedBy.asc) {
+                    this.sortedBy.asc = true;
+                    return sortedRows;
+                }
+                else {
+                    this.sortedBy.asc = false;
+                    return sortedRows.reverse();
+                }
+            }
+            else {
+                this.sortedBy.key = 'amount';
+                this.sortedBy.asc = true;
+                return sortedRows;
+            }
+        };
+        this.rowsByNameAndDate = () => {
+            return this.rows.toSorted((a, b) => {
+                if (a.date.getDate() == b.date.getDate()) {
+                    return a.name - b.name;
+                }
+                return a.date.getDate() - b.date.getDate();
+            });
+        };
+        this.rowsByCategoryAndName = () => {
+            return this.rows.toSorted((a, b) => {
                 if (a.date.getDate() == b.date.getDate()) {
                     return a.name - b.name;
                 }
@@ -367,8 +429,28 @@ class TransactionContainer {
                     this.updateAddTransRowBtn();
                 }
             }
-            // what about edit?
         });
+        this.clickHeaderSort = (e) => {
+            var _a, _b;
+            console.log('TARGET: ', e.target);
+            console.log('CURRENTTARGET: ', e.currentTarget);
+            console.log(e.currentTarget.parentElement);
+            console.log(e.currentTarget.parentElement.children);
+            const transactionsRowsObject = e.currentTarget.parentElement.children[1].getObject();
+            console.log(transactionsRowsObject);
+            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('transaction-date')) {
+                console.log('clicked "day" column and ready for sorting...');
+                // getting the transaction rows container, sorts the rows and rerender rows
+                transactionsRowsObject.sortedBy.key = 'date';
+                transactionsRowsObject.renderTransactions();
+            }
+            else if ((_b = e === null || e === void 0 ? void 0 : e.target) === null || _b === void 0 ? void 0 : _b.classList.contains('transaction-amount')) {
+                console.log('clicked "amount" column and ready for sorting...');
+                // getting the transaction rows container, sorts the rows and rerender rows
+                transactionsRowsObject.sortedBy.key = 'amount';
+                transactionsRowsObject.renderTransactions();
+            }
+        };
         // RENDERING
         this.renderTransactions = () => {
             // get container element
@@ -394,6 +476,9 @@ class TransactionContainer {
         this.renderHeader = () => {
             /*
     
+    
+    
+    
             TARGET ELEMENT
     
                 <div class="transaction-row header">
@@ -404,14 +489,18 @@ class TransactionContainer {
                 </div>
     
             */
+            const transactionsRowsTitle = document.querySelector('.transaction-rows-title');
             // render header section of transaction columns
-            const dateChild = createHTMLElement('div', 'transaction-date', 'Date');
+            const dateChild = createHTMLElement('div', 'transaction-date', 'Day');
             const amountChild = createHTMLElement('div', 'transaction-amount', 'Amt');
             const descriptionChild = createHTMLElement('div', 'transaction-description', 'Name');
             const categoryChild = createHTMLElement('div', 'transaction-category', 'Category');
-            const header = createHTMLElement('div', 'transaction-row header', undefined, [dateChild, amountChild, descriptionChild, categoryChild]);
-            // return header element
-            return header;
+            transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(dateChild);
+            transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(amountChild);
+            transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(descriptionChild);
+            transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(categoryChild);
+            // eventhandler for sorting when clicking on column titles
+            transactionsRowsTitle.addEventListener('click', this.clickHeaderSort);
         };
         this.updateAddTransRowBtn = () => {
             if (this.rows.filter(row => !row.frozen).length > 0) {
@@ -483,10 +572,14 @@ class TransactionContainer {
         this.renderer = renderer;
         this.budget_id = budget_id;
         this.editing = false;
+        this.sortedBy = {
+            key: 'date',
+            asc: false
+        };
     }
     // getters / setters
     get rows() {
-        return this.sortByDateAndName(this._rows);
+        return this.rowsSorted();
     }
     set rows(rows) {
         this._rows = rows;

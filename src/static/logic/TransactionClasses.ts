@@ -414,6 +414,7 @@ class TransactionContainer implements ITransactionContainer {
     query: ITransactionQueries;
     renderer: ITransactionContainerRender;
     editing: boolean;
+    sortedBy: {key: string, asc: boolean}
 
 
     constructor(budget_id: number, query: ITransactionQueries, renderer: ITransactionContainerRender) {
@@ -422,6 +423,10 @@ class TransactionContainer implements ITransactionContainer {
         this.renderer = renderer;
         this.budget_id = budget_id;
         this.editing = false;
+        this.sortedBy = {
+            key: 'date',
+            asc: false
+        }
 
     }
 
@@ -430,6 +435,8 @@ class TransactionContainer implements ITransactionContainer {
         await this.fetchTransactionDomElement();
 
         this._rows = await this.fetchTransactions();
+
+        this.renderHeader();
 
         this.renderTransactions();
 
@@ -441,7 +448,7 @@ class TransactionContainer implements ITransactionContainer {
 
     get rows(): TransactionRow[] {
 
-        return this.sortByDateAndName(this._rows)
+        return this.rowsSorted()
 
     }
 
@@ -536,11 +543,110 @@ class TransactionContainer implements ITransactionContainer {
     }
 
     // SORTING ROWS
-    sortByDateAndName = (arr: TransactionRow[]): TransactionRow[] => {
 
+    rowsSorted = (key: string = this.sortedBy.key): TransactionRow[] => {
 
+        let rows: TransactionRow[];
 
-        return arr.toSorted((a: TransactionRow, b: TransactionRow) => {
+        switch(key) {
+            case 'date':
+                return this.rowsByDateAndName();
+            case 'amount':
+                return this.rowsByAmountAndName();    
+            default: 
+                console.log('hit default case')
+                break;
+
+        }
+
+    }
+
+    rowsByDateAndName = (): TransactionRow[] => {
+
+        let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+
+            return a.date.getDate() - b.date.getDate()
+
+        })
+
+        if (this.sortedBy.key === 'date') {
+
+            if (!this.sortedBy.asc) {
+
+                this.sortedBy.asc = true;
+
+                return sortedRows
+
+            } else {
+
+                this.sortedBy.asc = false
+
+                return sortedRows.reverse()
+
+            }
+            
+        } else {
+
+            this.sortedBy.key = 'date';
+            this.sortedBy.asc = true;
+
+            return sortedRows
+
+        }
+
+    }
+
+    rowsByAmountAndName = (): TransactionRow[] => {
+        console.log('SORT BY AMOUNT ')
+
+        let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+
+            return a.amount - b.amount
+        })
+
+        if (this.sortedBy.key === 'amount') {
+
+            if (!this.sortedBy.asc) {
+
+                this.sortedBy.asc = true;
+
+                return sortedRows
+
+            } else {
+
+                this.sortedBy.asc = false
+
+                return sortedRows.reverse()
+
+            }
+            
+        } else {
+
+            this.sortedBy.key = 'amount';
+            this.sortedBy.asc = true;
+
+            return sortedRows
+
+        }
+
+    }
+
+    rowsByNameAndDate = (): TransactionRow[] => {
+
+        return this.rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+
+            if (a.date.getDate() == b.date.getDate()) {
+                return a.name - b.name; 
+            }
+
+            return a.date.getDate() - b.date.getDate()
+        })
+
+    }
+
+    rowsByCategoryAndName = (): TransactionRow[] => {
+
+        return this.rows.toSorted((a: TransactionRow, b: TransactionRow) => {
 
             if (a.date.getDate() == b.date.getDate()) {
                 return a.name - b.name; 
@@ -553,9 +659,11 @@ class TransactionContainer implements ITransactionContainer {
 
 
 
+
+
     // EVENT HANDLER
 
-    clickTransactionRowBtns = async (e: EventTarget) => {
+    clickTransactionRowBtns = async (e: EventTarget): Promise<void> => {
 
         if (e?.target?.classList.contains('addTransRow')) {
 
@@ -585,8 +693,40 @@ class TransactionContainer implements ITransactionContainer {
 
         }
 
+    }
 
-        // what about edit?
+    clickHeaderSort = (e: EventTarget): void => {
+
+        console.log('TARGET: ', e.target)
+        console.log('CURRENTTARGET: ', e.currentTarget)
+        console.log(e.currentTarget.parentElement)
+        console.log(e.currentTarget.parentElement.children)
+
+        const transactionsRowsObject = e.currentTarget.parentElement.children[1].getObject()
+        console.log(transactionsRowsObject)
+
+        if (e?.target?.classList.contains('transaction-date')) {
+
+            console.log('clicked "day" column and ready for sorting...')
+
+            // getting the transaction rows container, sorts the rows and rerender rows
+            transactionsRowsObject.sortedBy.key = 'date';   
+
+            transactionsRowsObject.renderTransactions();
+
+
+        } else if (e?.target?.classList.contains('transaction-amount')) {
+
+            console.log('clicked "amount" column and ready for sorting...')
+
+            // getting the transaction rows container, sorts the rows and rerender rows
+            transactionsRowsObject.sortedBy.key = 'amount';
+
+            transactionsRowsObject.renderTransactions();
+
+
+        }
+
 
 
     }
@@ -599,10 +739,12 @@ class TransactionContainer implements ITransactionContainer {
         const transactionRowsElement = document.querySelector('.transaction-rows');
         
         // remove all children, if any
-        this.unrenderChildren(transactionRowsElement)
+        this.unrenderChildren(transactionRowsElement);
 
         // eventhandler for click on transactions rows buttons
-        transactionRowsElement?.addEventListener('click', this.clickTransactionRowBtns)
+        transactionRowsElement?.addEventListener('click', this.clickTransactionRowBtns);
+
+        
 
         // render transaction rows one by one. T.frozen()
         for (let row of this.rows) {
@@ -633,8 +775,11 @@ class TransactionContainer implements ITransactionContainer {
 
     }
 
-    renderHeader = (): HTMLElement => {
+    renderHeader = (): void => {
         /* 
+
+
+
 
         TARGET ELEMENT
 
@@ -647,22 +792,22 @@ class TransactionContainer implements ITransactionContainer {
 
         */
 
+        const transactionsRowsTitle = document.querySelector('.transaction-rows-title')
+
 
         // render header section of transaction columns
-        const dateChild = createHTMLElement('div', 'transaction-date', 'Date');
+        const dateChild = createHTMLElement('div', 'transaction-date', 'Day');
         const amountChild = createHTMLElement('div', 'transaction-amount', 'Amt');
         const descriptionChild = createHTMLElement('div', 'transaction-description', 'Name');
         const categoryChild = createHTMLElement('div', 'transaction-category', 'Category');
 
-        const header = createHTMLElement(
-            'div',
-            'transaction-row header',
-            undefined,
-            [dateChild, amountChild, descriptionChild, categoryChild]
-        )
+        transactionsRowsTitle?.appendChild(dateChild)
+        transactionsRowsTitle?.appendChild(amountChild)
+        transactionsRowsTitle?.appendChild(descriptionChild)
+        transactionsRowsTitle?.appendChild(categoryChild)
 
-        // return header element
-        return header
+        // eventhandler for sorting when clicking on column titles
+        transactionsRowsTitle.addEventListener('click', this.clickHeaderSort);    
 
     }
 

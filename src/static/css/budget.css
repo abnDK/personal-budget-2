@@ -139,6 +139,13 @@
     font-weight:bold;
 }
 
+.transaction-rows-title > .transaction-amount:hover, .transaction-category:hover, .transaction-date:hover, .transaction-description:hover {
+
+    cursor: pointer;
+    text-decoration: underline;
+
+}
+
 .transaction-rows > * {
 
     overflow: hidden;
