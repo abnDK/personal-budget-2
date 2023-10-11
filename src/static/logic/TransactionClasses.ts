@@ -434,7 +434,7 @@ class TransactionContainer implements ITransactionContainer {
 
         await this.fetchTransactionDomElement();
 
-        this._rows = await this.fetchTransactions();
+        this.rows = await this.fetchTransactions();
 
         this.renderHeader();
 
@@ -448,7 +448,7 @@ class TransactionContainer implements ITransactionContainer {
 
     get rows(): TransactionRow[] {
 
-        return this.rowsSorted()
+        return this._rows
 
     }
 
@@ -544,24 +544,32 @@ class TransactionContainer implements ITransactionContainer {
 
     // SORTING ROWS
 
-    rowsSorted = (key: string = this.sortedBy.key): TransactionRow[] => {
-
-        let rows: TransactionRow[];
+    sortRowsBy = (key: string = 'date'): void => {
 
         switch(key) {
             case 'date':
-                return this.rowsByDateAndName();
-            case 'amount':
-                return this.rowsByAmountAndName();    
-            default: 
-                console.log('hit default case')
+                this.sortRowsByDate();
                 break;
-
+            case 'amount':
+                this.sortRowsByAmount();
+                break;
+            case 'description':
+                this.sortRowsByDescription();
+                break;
+            case 'category':
+                this.sortRowsByCategory();
+                break;
+            default:
+                break;
         }
+    
+        this.renderTransactions()
 
-    }
 
-    rowsByDateAndName = (): TransactionRow[] => {
+    } 
+
+
+    sortRowsByDate = (): void => {
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
 
@@ -575,13 +583,13 @@ class TransactionContainer implements ITransactionContainer {
 
                 this.sortedBy.asc = true;
 
-                return sortedRows
+                this.rows = sortedRows
 
             } else {
 
                 this.sortedBy.asc = false
 
-                return sortedRows.reverse()
+                this.rows = sortedRows.reverse()
 
             }
             
@@ -590,18 +598,19 @@ class TransactionContainer implements ITransactionContainer {
             this.sortedBy.key = 'date';
             this.sortedBy.asc = true;
 
-            return sortedRows
+            this.rows = sortedRows
 
         }
 
     }
 
-    rowsByAmountAndName = (): TransactionRow[] => {
+    sortRowsByAmount = (): void => {
         console.log('SORT BY AMOUNT ')
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
 
             return a.amount - b.amount
+
         })
 
         if (this.sortedBy.key === 'amount') {
@@ -610,13 +619,13 @@ class TransactionContainer implements ITransactionContainer {
 
                 this.sortedBy.asc = true;
 
-                return sortedRows
+                this.rows = sortedRows
 
             } else {
 
                 this.sortedBy.asc = false
 
-                return sortedRows.reverse()
+                this.rows = sortedRows.reverse()
 
             }
             
@@ -625,35 +634,81 @@ class TransactionContainer implements ITransactionContainer {
             this.sortedBy.key = 'amount';
             this.sortedBy.asc = true;
 
-            return sortedRows
+            this.rows = sortedRows
 
         }
 
     }
 
-    rowsByNameAndDate = (): TransactionRow[] => {
+    sortRowsByDescription = (): void => {
 
-        return this.rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+        let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+            
+            // sort by name string without case sensitivity
+            return a.name.localeCompare(b.name, 'en', {sensitivity: 'base'})
 
-            if (a.date.getDate() == b.date.getDate()) {
-                return a.name - b.name; 
-            }
-
-            return a.date.getDate() - b.date.getDate()
         })
+
+        if (this.sortedBy.key === 'description') {
+
+            if (!this.sortedBy.asc) {
+
+                this.sortedBy.asc = true;
+
+                this.rows = sortedRows
+
+            } else {
+
+                this.sortedBy.asc = false
+
+                this.rows = sortedRows.reverse()
+
+            }
+            
+        } else {
+
+            this.sortedBy.key = 'description';
+            this.sortedBy.asc = true;
+
+            this.rows = sortedRows
+
+        }
 
     }
 
-    rowsByCategoryAndName = (): TransactionRow[] => {
+    sortRowsByCategory = (): void => {
 
-        return this.rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+        let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
+            
+            // sort by category name string without case sensitivity
+            return a.category_name.localeCompare(b.category_name, 'en', {sensitivity: 'base'})
 
-            if (a.date.getDate() == b.date.getDate()) {
-                return a.name - b.name; 
-            }
-
-            return a.date.getDate() - b.date.getDate()
         })
+
+        if (this.sortedBy.key === 'category') {
+
+            if (!this.sortedBy.asc) {
+
+                this.sortedBy.asc = true;
+
+                this.rows = sortedRows
+
+            } else {
+
+                this.sortedBy.asc = false
+
+                this.rows = sortedRows.reverse()
+
+            }
+            
+        } else {
+
+            this.sortedBy.key = 'category';
+            this.sortedBy.asc = true;
+
+            this.rows = sortedRows
+
+        }
 
     }
 
@@ -710,20 +765,35 @@ class TransactionContainer implements ITransactionContainer {
             console.log('clicked "day" column and ready for sorting...')
 
             // getting the transaction rows container, sorts the rows and rerender rows
-            transactionsRowsObject.sortedBy.key = 'date';   
-
-            transactionsRowsObject.renderTransactions();
+            transactionsRowsObject.sortRowsBy('date')   
 
 
-        } else if (e?.target?.classList.contains('transaction-amount')) {
+        }
+        
+        if (e?.target?.classList.contains('transaction-amount')) {
 
             console.log('clicked "amount" column and ready for sorting...')
 
             // getting the transaction rows container, sorts the rows and rerender rows
-            transactionsRowsObject.sortedBy.key = 'amount';
+            transactionsRowsObject.sortRowsBy('amount')   
 
-            transactionsRowsObject.renderTransactions();
+        }
 
+        if (e?.target?.classList.contains('transaction-description')) {
+
+            console.log('clicked "description" column and ready for sorting...')
+
+            // getting the transaction rows container, sorts the rows and rerender rows
+            transactionsRowsObject.sortRowsBy('description')   
+
+        }
+
+        if (e?.target?.classList.contains('transaction-category')) {
+
+            console.log('clicked "category" column and ready for sorting...')
+
+            // getting the transaction rows container, sorts the rows and rerender rows
+            transactionsRowsObject.sortRowsBy('category')   
 
         }
 

@@ -277,7 +277,7 @@ class TransactionContainer {
     constructor(budget_id, query, renderer) {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
-            this._rows = yield this.fetchTransactions();
+            this.rows = yield this.fetchTransactions();
             this.renderHeader();
             this.renderTransactions();
             this.renderAddTransRowBtn(true);
@@ -339,39 +339,46 @@ class TransactionContainer {
             // dont implement yet, but a CR for later
         };
         // SORTING ROWS
-        this.rowsSorted = (key = this.sortedBy.key) => {
-            let rows;
+        this.sortRowsBy = (key = 'date') => {
             switch (key) {
                 case 'date':
-                    return this.rowsByDateAndName();
+                    this.sortRowsByDate();
+                    break;
                 case 'amount':
-                    return this.rowsByAmountAndName();
+                    this.sortRowsByAmount();
+                    break;
+                case 'description':
+                    this.sortRowsByDescription();
+                    break;
+                case 'category':
+                    this.sortRowsByCategory();
+                    break;
                 default:
-                    console.log('hit default case');
                     break;
             }
+            this.renderTransactions();
         };
-        this.rowsByDateAndName = () => {
+        this.sortRowsByDate = () => {
             let sortedRows = this._rows.toSorted((a, b) => {
                 return a.date.getDate() - b.date.getDate();
             });
             if (this.sortedBy.key === 'date') {
                 if (!this.sortedBy.asc) {
                     this.sortedBy.asc = true;
-                    return sortedRows;
+                    this.rows = sortedRows;
                 }
                 else {
                     this.sortedBy.asc = false;
-                    return sortedRows.reverse();
+                    this.rows = sortedRows.reverse();
                 }
             }
             else {
                 this.sortedBy.key = 'date';
                 this.sortedBy.asc = true;
-                return sortedRows;
+                this.rows = sortedRows;
             }
         };
-        this.rowsByAmountAndName = () => {
+        this.sortRowsByAmount = () => {
             console.log('SORT BY AMOUNT ');
             let sortedRows = this._rows.toSorted((a, b) => {
                 return a.amount - b.amount;
@@ -379,34 +386,60 @@ class TransactionContainer {
             if (this.sortedBy.key === 'amount') {
                 if (!this.sortedBy.asc) {
                     this.sortedBy.asc = true;
-                    return sortedRows;
+                    this.rows = sortedRows;
                 }
                 else {
                     this.sortedBy.asc = false;
-                    return sortedRows.reverse();
+                    this.rows = sortedRows.reverse();
                 }
             }
             else {
                 this.sortedBy.key = 'amount';
                 this.sortedBy.asc = true;
-                return sortedRows;
+                this.rows = sortedRows;
             }
         };
-        this.rowsByNameAndDate = () => {
-            return this.rows.toSorted((a, b) => {
-                if (a.date.getDate() == b.date.getDate()) {
-                    return a.name - b.name;
-                }
-                return a.date.getDate() - b.date.getDate();
+        this.sortRowsByDescription = () => {
+            let sortedRows = this._rows.toSorted((a, b) => {
+                // sort by name string without case sensitivity
+                return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
             });
+            if (this.sortedBy.key === 'description') {
+                if (!this.sortedBy.asc) {
+                    this.sortedBy.asc = true;
+                    this.rows = sortedRows;
+                }
+                else {
+                    this.sortedBy.asc = false;
+                    this.rows = sortedRows.reverse();
+                }
+            }
+            else {
+                this.sortedBy.key = 'description';
+                this.sortedBy.asc = true;
+                this.rows = sortedRows;
+            }
         };
-        this.rowsByCategoryAndName = () => {
-            return this.rows.toSorted((a, b) => {
-                if (a.date.getDate() == b.date.getDate()) {
-                    return a.name - b.name;
-                }
-                return a.date.getDate() - b.date.getDate();
+        this.sortRowsByCategory = () => {
+            let sortedRows = this._rows.toSorted((a, b) => {
+                // sort by category name string without case sensitivity
+                return a.category_name.localeCompare(b.category_name, 'en', { sensitivity: 'base' });
             });
+            if (this.sortedBy.key === 'category') {
+                if (!this.sortedBy.asc) {
+                    this.sortedBy.asc = true;
+                    this.rows = sortedRows;
+                }
+                else {
+                    this.sortedBy.asc = false;
+                    this.rows = sortedRows.reverse();
+                }
+            }
+            else {
+                this.sortedBy.key = 'category';
+                this.sortedBy.asc = true;
+                this.rows = sortedRows;
+            }
         };
         // EVENT HANDLER
         this.clickTransactionRowBtns = (e) => __awaiter(this, void 0, void 0, function* () {
@@ -431,7 +464,7 @@ class TransactionContainer {
             }
         });
         this.clickHeaderSort = (e) => {
-            var _a, _b;
+            var _a, _b, _c, _d;
             console.log('TARGET: ', e.target);
             console.log('CURRENTTARGET: ', e.currentTarget);
             console.log(e.currentTarget.parentElement);
@@ -441,14 +474,22 @@ class TransactionContainer {
             if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('transaction-date')) {
                 console.log('clicked "day" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortedBy.key = 'date';
-                transactionsRowsObject.renderTransactions();
+                transactionsRowsObject.sortRowsBy('date');
             }
-            else if ((_b = e === null || e === void 0 ? void 0 : e.target) === null || _b === void 0 ? void 0 : _b.classList.contains('transaction-amount')) {
+            if ((_b = e === null || e === void 0 ? void 0 : e.target) === null || _b === void 0 ? void 0 : _b.classList.contains('transaction-amount')) {
                 console.log('clicked "amount" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortedBy.key = 'amount';
-                transactionsRowsObject.renderTransactions();
+                transactionsRowsObject.sortRowsBy('amount');
+            }
+            if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains('transaction-description')) {
+                console.log('clicked "description" column and ready for sorting...');
+                // getting the transaction rows container, sorts the rows and rerender rows
+                transactionsRowsObject.sortRowsBy('description');
+            }
+            if ((_d = e === null || e === void 0 ? void 0 : e.target) === null || _d === void 0 ? void 0 : _d.classList.contains('transaction-category')) {
+                console.log('clicked "category" column and ready for sorting...');
+                // getting the transaction rows container, sorts the rows and rerender rows
+                transactionsRowsObject.sortRowsBy('category');
             }
         };
         // RENDERING
@@ -579,7 +620,7 @@ class TransactionContainer {
     }
     // getters / setters
     get rows() {
-        return this.rowsSorted();
+        return this._rows;
     }
     set rows(rows) {
         this._rows = rows;
