@@ -448,7 +448,7 @@ class TransactionContainer implements ITransactionContainer {
 
     get rows(): TransactionRow[] {
 
-        return this._rows
+        return this.sortedRows()
 
     }
 
@@ -546,30 +546,49 @@ class TransactionContainer implements ITransactionContainer {
 
     sortRowsBy = (key: string = 'date'): void => {
 
-        switch(key) {
-            case 'date':
-                this.sortRowsByDate();
-                break;
-            case 'amount':
-                this.sortRowsByAmount();
-                break;
-            case 'description':
-                this.sortRowsByDescription();
-                break;
-            case 'category':
-                this.sortRowsByCategory();
-                break;
-            default:
-                break;
-        }
-    
-        this.renderTransactions()
+        // set config by logic
+        if (this.sortedBy.key === key) {
 
+            // if same key is used, make ascending = decending and vice versa
+            this.sortedBy.asc = !this.sortedBy.asc
+            
+        } else {
+
+            // if new key, set it and sort ascending
+            this.sortedBy.key = key;
+            this.sortedBy.asc = true;
+
+        }
+
+        // render transactions using the newly configured sorting options
+        this.renderTransactions()
 
     } 
 
+    private sortedRows = (): TransactionRow[] => {
 
-    sortRowsByDate = (): void => {
+        // call correct function based no this.sortedBy.key
+        switch(this.sortedBy.key) {
+            case 'date':
+                return this.sortRowsByDate();
+                
+            case 'amount':
+                return this.sortRowsByAmount();
+
+            case 'description':
+                return this.sortRowsByDescription();
+
+            case 'category':
+                return this.sortRowsByCategory();
+
+            default:
+                throw `Could not rows by the specified key ${this.sortedBy.key}`
+        }
+
+    }
+
+
+    private sortRowsByDate = (): TransactionRow[] => {
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
 
@@ -577,35 +596,19 @@ class TransactionContainer implements ITransactionContainer {
 
         })
 
-        if (this.sortedBy.key === 'date') {
+        if (!this.sortedBy.asc) {
 
-            if (!this.sortedBy.asc) {
-
-                this.sortedBy.asc = true;
-
-                this.rows = sortedRows
-
-            } else {
-
-                this.sortedBy.asc = false
-
-                this.rows = sortedRows.reverse()
-
-            }
-            
-        } else {
-
-            this.sortedBy.key = 'date';
-            this.sortedBy.asc = true;
-
-            this.rows = sortedRows
+            sortedRows.reverse();
 
         }
 
+        return sortedRows;
+
+
+
     }
 
-    sortRowsByAmount = (): void => {
-        console.log('SORT BY AMOUNT ')
+    private sortRowsByAmount = (): TransactionRow[] => {
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
 
@@ -613,34 +616,17 @@ class TransactionContainer implements ITransactionContainer {
 
         })
 
-        if (this.sortedBy.key === 'amount') {
+        if (!this.sortedBy.asc) {
 
-            if (!this.sortedBy.asc) {
-
-                this.sortedBy.asc = true;
-
-                this.rows = sortedRows
-
-            } else {
-
-                this.sortedBy.asc = false
-
-                this.rows = sortedRows.reverse()
-
-            }
-            
-        } else {
-
-            this.sortedBy.key = 'amount';
-            this.sortedBy.asc = true;
-
-            this.rows = sortedRows
+            sortedRows.reverse();
 
         }
 
+        return sortedRows;
+
     }
 
-    sortRowsByDescription = (): void => {
+    private sortRowsByDescription = (): TransactionRow[] => {
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
             
@@ -649,34 +635,17 @@ class TransactionContainer implements ITransactionContainer {
 
         })
 
-        if (this.sortedBy.key === 'description') {
+        if (!this.sortedBy.asc) {
 
-            if (!this.sortedBy.asc) {
-
-                this.sortedBy.asc = true;
-
-                this.rows = sortedRows
-
-            } else {
-
-                this.sortedBy.asc = false
-
-                this.rows = sortedRows.reverse()
-
-            }
-            
-        } else {
-
-            this.sortedBy.key = 'description';
-            this.sortedBy.asc = true;
-
-            this.rows = sortedRows
+            sortedRows.reverse();
 
         }
 
+        return sortedRows;
+
     }
 
-    sortRowsByCategory = (): void => {
+    private sortRowsByCategory = (): TransactionRow[] => {
 
         let sortedRows = this._rows.toSorted((a: TransactionRow, b: TransactionRow) => {
             
@@ -685,30 +654,13 @@ class TransactionContainer implements ITransactionContainer {
 
         })
 
-        if (this.sortedBy.key === 'category') {
+        if (!this.sortedBy.asc) {
 
-            if (!this.sortedBy.asc) {
-
-                this.sortedBy.asc = true;
-
-                this.rows = sortedRows
-
-            } else {
-
-                this.sortedBy.asc = false
-
-                this.rows = sortedRows.reverse()
-
-            }
-            
-        } else {
-
-            this.sortedBy.key = 'category';
-            this.sortedBy.asc = true;
-
-            this.rows = sortedRows
+            sortedRows.reverse();
 
         }
+
+        return sortedRows;
 
     }
 
@@ -752,6 +704,15 @@ class TransactionContainer implements ITransactionContainer {
 
     clickHeaderSort = (e: EventTarget): void => {
 
+        /**
+         * refactor sort:
+         * make function that 1) set config on container. 2) runs renderTransactions, which in turn 3) calls this.rows, that returns _rows through a sorting function that reads the config.
+         * 
+         * 
+         * 
+         */
+
+
         console.log('TARGET: ', e.target)
         console.log('CURRENTTARGET: ', e.currentTarget)
         console.log(e.currentTarget.parentElement)
@@ -765,14 +726,15 @@ class TransactionContainer implements ITransactionContainer {
         let columnTitleElements = Array.from(e.currentTarget.children)
 
         for (let element of columnTitleElements) {
-            console.log("x", element)
 
             element.classList.remove('sorted-by')
+            element.classList.remove('ascending')
+            element.classList.remove('descending')
+
 
         }
 
-        // set '.sorted-by' for new sorting column title
-        e?.target.classList.add('sorted-by')
+        
 
 
         if (e?.target?.classList.contains('transaction-date')) {
@@ -814,6 +776,11 @@ class TransactionContainer implements ITransactionContainer {
             
         }
 
+        // set '.sorted-by' for new sorting column title
+        e?.target.classList.add('sorted-by')
+
+        // set '.ascending/.descending' class for adding up/down icon
+        transactionsRowsObject.sortedBy.asc ? e?.target.classList.add('ascending') : e?.target.classList.add('descending')
 
 
     }

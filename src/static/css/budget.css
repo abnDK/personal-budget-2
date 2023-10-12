@@ -151,7 +151,38 @@
 
 .sorted-by {
 
-    color: green;
+    text-decoration: underline;
+    font-weight: bolder;
+
+}
+
+.ascending::after {
+
+    content: '';
+    background-image: url('../img/caret-down-fill.svg');
+    background-size: 100% 100%;
+    display: inline-block;
+
+
+    height: 7px;
+    width: 7px;
+
+    padding-left: 6px;
+
+}
+
+.descending::after {
+
+    content: '';
+    background-image: url('../img/caret-up-fill.svg');
+    background-size: 100% 100%;
+    display: inline-block;
+
+
+    height: 7px;
+    width: 7px;
+
+    padding-left: 6px;
 
 }
 

@@ -464,6 +464,13 @@ class TransactionContainer {
             }
         });
         this.clickHeaderSort = (e) => {
+            /**
+             * refactor sort:
+             * make function that 1) set config on container. 2) runs renderTransactions, which in turn 3) calls this.rows, that returns _rows through a sorting function that reads the config.
+             *
+             *
+             *
+             */
             var _a, _b, _c, _d;
             console.log('TARGET: ', e.target);
             console.log('CURRENTTARGET: ', e.currentTarget);
@@ -474,11 +481,10 @@ class TransactionContainer {
             // remove '.sorted-by' from previous sorting column title
             let columnTitleElements = Array.from(e.currentTarget.children);
             for (let element of columnTitleElements) {
-                console.log("x", element);
                 element.classList.remove('sorted-by');
+                element.classList.remove('ascending');
+                element.classList.remove('descending');
             }
-            // set '.sorted-by' for new sorting column title
-            e === null || e === void 0 ? void 0 : e.target.classList.add('sorted-by');
             if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('transaction-date')) {
                 console.log('clicked "day" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
@@ -499,6 +505,10 @@ class TransactionContainer {
                 // getting the transaction rows container, sorts the rows and rerender rows
                 transactionsRowsObject.sortRowsBy('category');
             }
+            // set '.sorted-by' for new sorting column title
+            e === null || e === void 0 ? void 0 : e.target.classList.add('sorted-by');
+            // set '.ascending/.descending' class for adding up/down icon
+            transactionsRowsObject.sortedBy.asc ? e === null || e === void 0 ? void 0 : e.target.classList.add('ascending') : e === null || e === void 0 ? void 0 : e.target.classList.add('descending');
         };
         // RENDERING
         this.renderTransactions = () => {
