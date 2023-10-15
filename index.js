@@ -13,7 +13,10 @@ app.use(bodyParser.urlencoded(
         extended: true
     }
 ))
+
+// set logging
 app.use(morgan('common'));
+
 
 
 // setting env-variable.
@@ -46,6 +49,31 @@ app.get('/', (req, res) => {
     )
 })
 
+app.all('*', (req, res, next) => {
+
+    const err = new Error(`${req.originalUrl} not found`)
+    err.statusCode = 404;
+    err.status = 'fail';
+
+    // note: whenever next is called with an argument, Expess assumes it is an error
+    // and sends it to the global error handling middleware
+    next(err)
+
+})
+
+
+
+// set up error messages (global error handling middleware)
+app.use((error, req, res, next) => {
+
+    error.statusCode = error.statusCode || 500;
+    error.status = error.status || 'error';
+    res.status(error.statusCode).json({
+        status: error.statusCode,
+        message: error.message
+    });
+
+})
 
 
 app.listen(port, ()=>{
