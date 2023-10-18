@@ -6,7 +6,8 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const app = express();
 const port = 3000;
- 
+const globalErrorHandler = require('./src/controllers/errorController')
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded(
     {
@@ -24,6 +25,8 @@ app.use(morgan('common'));
 // for more.
 require('dotenv').config();
 console.log(`Starting server with username ${process.env.USERNAME}`)
+console.log(`Starting server in mode "${process.env.NODE_ENV}"`)
+console.log("For running in either 'production' or 'development' mode: 'export NODE_ENV=<mode>' before running server")
 
 // setting up views and view engine
 //console.log(__dirname, __filename)
@@ -49,31 +52,10 @@ app.get('/', (req, res) => {
     )
 })
 
-app.all('*', (req, res, next) => {
-
-    const err = new Error(`${req.originalUrl} not found`)
-    err.statusCode = 404;
-    err.status = 'fail';
-
-    // note: whenever next is called with an argument, Expess assumes it is an error
-    // and sends it to the global error handling middleware
-    next(err)
-
-})
-
 
 
 // set up error messages (global error handling middleware)
-app.use((error, req, res, next) => {
-
-    error.statusCode = error.statusCode || 500;
-    error.status = error.status || 'error';
-    res.status(error.statusCode).json({
-        status: error.statusCode,
-        message: error.message
-    });
-
-})
+app.use(globalErrorHandler);
 
 
 app.listen(port, ()=>{

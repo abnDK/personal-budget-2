@@ -1,33 +1,29 @@
-
-
 interface ITransactionPage {
-    container: ITransactionContainer,
+    container: ITransactionContainer;
     title: {
-        value: string,
-        element: HTMLElement
-    }
-    controls: { // this is the "subheader" section with different global controls such as "add row" etc.
-        addRowBtn: HTMLElement
-    },
-    init(): void, // calls init on container and renders addRowBtn
-    renderAddTransRowBtn(active: boolean): void,
-    updateAddRowBtnState(): void,
-    getTitleElement(): HTMLElement,
-    getAddRowBtnElement(): HTMLElement
+        value: string;
+        element: HTMLElement;
+    };
+    controls: {
+        // this is the "subheader" section with different global controls such as "add row" etc.
+        addRowBtn: HTMLElement;
+    };
+    init(): void; // calls init on container and renders addRowBtn
+    renderAddTransRowBtn(active: boolean): void;
+    updateAddRowBtnState(): void;
+    getTitleElement(): HTMLElement;
+    getAddRowBtnElement(): HTMLElement;
 }
 
-
-
-
 interface ITransactionContainer {
-    _rows: TransactionRow[],
-    dom_element_ref: Element,
-    query: ITransactionQueries,
-    renderer: ITransactionContainerRender,
-    budget_id: number
-    editing: boolean
-    sortedBy: {key: string, asc: boolean}
-    page: ITransactionPage
+    _rows: TransactionRow[];
+    dom_element_ref: Element;
+    query: ITransactionQueries;
+    renderer: ITransactionContainerRender;
+    budget_id: number;
+    editing: boolean;
+    sortedBy: { key: string; asc: boolean };
+    page: ITransactionPage;
 
     // init
     init(): Promise<void>;
@@ -45,30 +41,19 @@ interface ITransactionContainer {
 
     // querying
     fetchTransactions(): Promise<TransactionRow[]>; // populate this.rows with Transaction data
-
-    
-
-    
-
-
-
 }
 
 interface ITransaction {
-    id:number, 
-    name:string, 
-    amount:number, 
-    date:Date, 
-    category_id: number | undefined,
-    category_name: string | undefined
+    id: number;
+    name: string;
+    amount: number;
+    date: Date;
+    category_id: number | undefined;
+    category_name: string | undefined;
 }
-    
-
-
 
 interface ITransactionRow extends ITransaction {
-    
-    renderer: ITransactionRowRender
+    renderer: ITransactionRowRender;
     dom_element_ref: HTMLElement;
     frozen: boolean;
 
@@ -79,7 +64,7 @@ interface ITransactionRow extends ITransaction {
     renderEditable(): HTMLElement;
     fetchEditableValues(): void; // fetches values from editable dom element and write to object
 
-    bindDomElementToObject(): void; // 2 way binding 
+    bindDomElementToObject(): void; // 2 way binding
 }
 
 interface ITransactionRowRender {
@@ -87,26 +72,39 @@ interface ITransactionRowRender {
     editable(row: TransactionRow): HTMLElement;
 }
 
-
 interface ITransactionContainerRender {
-    
     frozen(): Element; // render transactions in init state
     header(): Element;
-    
 }
 
 interface ITransactionQueries {
-
     getTransactions(budget_id: number): Promise<ITransaction[]>; // GET request api, filters on budget_id
 
     deleteTransaction(trans_id: number): Promise<boolean>; // return status?
 
-    postTransaction(transaction: ITransaction): {id: string, name: string, amount: string, date: string, category_id: string, recipient: string, comment:string}; // return status?
+    postTransaction(
+        transaction: ITransaction
+    ): Promise<{
+        id: string;
+        name: string;
+        amount: string;
+        date: string;
+        category_id: string;
+        recipient: string;
+        comment: string;
+    }>; // return status?
 
-    updateTransaction(transaction: ITransaction): {id: string, name: string, amount: string, date: string, category_id: string, recipient: string, comment:string};
+    updateTransaction(
+        transaction: ITransaction
+    ): Promise<{
+        id: string;
+        name: string;
+        amount: string;
+        date: string;
+        category_id: string;
+        recipient: string;
+        comment: string;
+    }>;
 
     getCategories(budgetId: number): Promise<Category[] | undefined>;
-
 }
-
-
