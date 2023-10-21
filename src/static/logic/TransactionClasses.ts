@@ -55,19 +55,11 @@ class TransactionRow implements ITransactionRow {
     isValid = (): boolean => {
         // name validation
         if (typeof this.name != "string") {
-            throw new CustomError(
-                "GENERIC",
-                500,
-                "Name has be be of type string"
-            );
+            throw new Error("Name has be be of type string");
         }
 
         if (this.name.length <= 3) {
-            throw new CustomError(
-                "GENERIC",
-                500,
-                "Name must be 4 characters or more"
-            );
+            throw new Error("Name must be 4 characters or more");
         }
 
         // amount validation
@@ -76,7 +68,7 @@ class TransactionRow implements ITransactionRow {
         }
 
         if (this.amount < 0) {
-            throw new Error("Amount canont be a negative value");
+            throw new Error("Amount must be a positive value");
         }
 
         if (Number.isNaN(this.amount)) {
@@ -421,7 +413,7 @@ class TransactionContainer implements ITransactionContainer {
     dom_element_ref: Element;
     budget_id: number;
     query: ITransactionQueries;
-    renderer: ITransactionContainerRender;
+    render: ITransactionContainerRender;
     editing: boolean;
     sortedBy: { key: string; asc: boolean };
 
@@ -431,7 +423,7 @@ class TransactionContainer implements ITransactionContainer {
         renderer: ITransactionContainerRender
     ) {
         this.query = query;
-        this.renderer = renderer;
+        this.render = renderer;
         this.budget_id = budget_id;
         this.editing = false;
         this.sortedBy = {
@@ -443,7 +435,9 @@ class TransactionContainer implements ITransactionContainer {
     init = async (): Promise<void> => {
         await this.fetchTransactionDomElement();
 
-        this.rows = await this.fetchTransactions();
+        this.rows = await this.fetchTransactions().catch((err: Error) => {
+            this.render.error(err.message);
+        });
 
         this.renderHeader();
 
@@ -496,6 +490,8 @@ class TransactionContainer implements ITransactionContainer {
             this.renderTransactions();
         }
 
+        this.render.succes("Row deleted!");
+
         /* 
         throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
         if (deleteRow.delete()) { 
@@ -511,34 +507,59 @@ class TransactionContainer implements ITransactionContainer {
         */
     };
 
-    saveRow = async (saveRow: TransactionRow): Promise<void> => {
+    saveRow = async (saveRow: TransactionRow): void => {
         // maybe we have to fetch values from the input fields first and write to object??
         saveRow.fetchEditableValues();
 
-        // TODO: VALIDATION
-        saveRow.isValid();
+        // validation of input
+        try {
+            saveRow.isValid();
+        } catch (err: any) {
+            this.render.error(err.message);
+            return;
+        }
 
         // Write row to db. Post if new (no id) and Put if known (id known)
         if (Number.isNaN(saveRow.id)) {
-            const newRow = await this.query
+            await this.query
                 .postTransaction(saveRow)
-                .catch((err) => console.error(err));
+                .then((newRow) => {
+                    // render succes message
+                    this.render.succes("New transaction added!");
 
-            if (newRow) {
+                    saveRow.sync(newRow);
+
+                    // render element frozen with updated values
+                    saveRow.renderFrozen();
+                })
+                .catch((err) => {
+                    this.render.error(err.message);
+                });
+
+            /* if (newRow) {
                 saveRow.sync(newRow);
-            }
+
+                // render element frozen with updated values
+                saveRow.renderFrozen();
+            } */
         } else {
-            const updatedRow = await this.query
+            await this.query
                 .updateTransaction(saveRow)
-                .catch((err) => console.error(err));
+                .then((updatedRow) => {
+                    // render succes message
+                    this.render.succes("Transaction updated!");
 
-            if (updatedRow) {
-                saveRow.sync(updatedRow);
-            }
+                    // sync db row to mem object row
+                    saveRow.sync(updatedRow);
+
+                    // render element frozen with updated values
+                    saveRow.renderFrozen();
+                })
+                .catch((err) => {
+                    // render error message in frontend
+                    this.render.error(err.message);
+                });
         }
-
-        // render element frozen with updated values
-        saveRow.renderFrozen();
     };
 
     splitRow = (id: number): void => {
@@ -844,6 +865,7 @@ class TransactionContainer implements ITransactionContainer {
             addTransRowBtn.addEventListener("click", () => {
                 this.addRow();
 
+                // THINK BELOW COMMENT HAS BEEN FIXED. CAN WE VERIFY THAT BTN WORKS AS INTENDED?
                 // why does this line not get called when clicking on the element?
                 // - i think to 2 way binding error is causing this not to be read.
                 // fix this and check if the update row button updates correctly...
@@ -879,9 +901,11 @@ class TransactionContainer implements ITransactionContainer {
     // QUERIES
 
     fetchTransactions = async (): Promise<TransactionRow[]> => {
-        const transByBudgetId = await this.query.getTransactions(
-            this.budget_id
-        );
+        const transByBudgetId = await this.query
+            .getTransactions(this.budget_id)
+            .catch((err) => {
+                throw err;
+            });
 
         const transByBudgetIdAndPeriod = transByBudgetId.filter(
             // datestring returned from db is interpreted as UTC and not our timezone
@@ -929,12 +953,80 @@ class TransactionContainerRender implements ITransactionContainerRender {
     header = (): Element => {
         return "new element";
     };
+
+    error = (msg: string): void => {
+        // render error message
+        const errorMessage = document.createElement("div");
+        errorMessage.innerText = msg;
+        errorMessage.className = "errorMessage";
+
+        // get #informationContainer
+        const informationContainer: HTMLElement | null = document.querySelector(
+            "#informationContainer"
+        );
+
+        // if informationContainer not found, just skip showing messages
+        if (!informationContainer) {
+            console.error(
+                "Cannot find #informationContainer for showing error message"
+            );
+            return;
+        }
+
+        // remove potential errorMessage or successMessage of informationContainer
+        while (informationContainer?.firstChild) {
+            informationContainer?.removeChild(informationContainer.firstChild);
+        }
+
+        // replace child with error message
+        informationContainer?.appendChild(errorMessage);
+    };
+
+    succes = (msg: string): void => {
+        // render success message
+        const succesMessage = document.createElement("div");
+        succesMessage.innerText = msg;
+        succesMessage.className = "succesMessage";
+
+        // get #informationContainer
+        const informationContainer: HTMLElement | null = document.querySelector(
+            "#informationContainer"
+        );
+
+        // if informationContainer not found, just skip showing messages
+        if (!informationContainer) {
+            console.error(
+                "Cannot find #informationContainer for showing succes message"
+            );
+            return;
+        }
+
+        // remove potential errorMessage or succesMessage of informationContainer
+        while (informationContainer?.firstChild) {
+            informationContainer.removeChild(informationContainer.firstChild);
+        }
+
+        // replace child with succes message
+        informationContainer.appendChild(succesMessage);
+
+        // add class .hide after 3 seconds (fades it out) and remove element efter 4 seconds
+        setTimeout(() => {
+            succesMessage.classList.add("hide");
+            setTimeout(() => {
+                succesMessage.parentElement?.removeChild(succesMessage);
+            }, 1000);
+        }, 3000);
+    };
 }
 
 class MockTransactionQueries implements ITransactionQueries {
     getTransactions = async (budget_id: number): Promise<ITransaction[]> => {
         // getting raw categories in json
-        const categoriesOfBudgetId = await this.getCategories(budget_id);
+        const categoriesOfBudgetId = await this.getCategories(budget_id).catch(
+            (err) => {
+                throw err;
+            }
+        );
 
         // make map with id as key, name as value
         const categoriesIdNameMap = new Map();
@@ -951,28 +1043,31 @@ class MockTransactionQueries implements ITransactionQueries {
         )
             .then((res) => {
                 if (!res.ok) {
-                    throw new Error(String(res.status));
+                    return res.json().then((err) => {
+                        console.error(err.description);
+                        throw new Error(err.message);
+                    });
                 }
                 return res.json();
             })
             .catch((err) => {
-                console.log(err);
+                throw err;
             });
 
         // filter transactions with category_id within relevant budget_id
-        const filteredTransactions = allTransactions.filter((transaction) =>
-            Array.from(categoriesIdNameMap.keys()).includes(
-                transaction.category_id
-            )
+        const filteredTransactions = allTransactions.filter(
+            (transaction: any) =>
+                Array.from(categoriesIdNameMap.keys()).includes(
+                    transaction.category_id
+                )
         );
 
         // add category name to each transaction
-        filteredTransactions.forEach(
-            (transaction) =>
-                (transaction.category_name = categoriesIdNameMap.get(
-                    transaction.category_id
-                ))
-        );
+        filteredTransactions.forEach((transaction: any) => {
+            transaction.category_name = categoriesIdNameMap.get(
+                transaction.category_id
+            );
+        });
 
         return filteredTransactions;
     };
@@ -1017,7 +1112,9 @@ class MockTransactionQueries implements ITransactionQueries {
         })
             .then((res) => {
                 if (!res.ok) {
-                    throw new Error(res.status);
+                    return res.json().then((err) => {
+                        throw new Error(err.message);
+                    });
                 }
                 return res.json();
             })
@@ -1050,10 +1147,15 @@ class MockTransactionQueries implements ITransactionQueries {
         })
             .then((res) => {
                 if (!res.ok) {
-                    throw res;
+                    return res.json().then((err) => {
+                        throw new Error(err.message);
+                    });
                 }
-                console.log("1: i just updated");
+
                 return res.json();
+            })
+            .then((result) => {
+                return result;
             })
             .catch((err) => {
                 throw err;
@@ -1071,8 +1173,8 @@ class MockTransactionQueries implements ITransactionQueries {
             return categoriesJson.filter(
                 (category) => category.budget_id == budgetId
             );
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            throw new Error("Cannot get categories!");
         }
     };
 }

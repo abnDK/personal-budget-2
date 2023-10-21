@@ -15,20 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // let customError: CustomError = require("../utils/errors/customError");
 const CustomError_1 = __importDefault(require("../utils/errors/CustomError"));
 const devErrors = (res, error) => {
+    console.log("SENDING DEV ERROR");
     if (error instanceof CustomError_1.default) {
-        res.status(error.statusCode).json({
+        console.log("SENDING CUSTOMERROR");
+        console.log(error);
+        console.log(error.message);
+        console.log(error.stack);
+        return res.status(error.statusCode).json({
             status: error.statusCode,
             message: error.message,
             stackTrace: error.stack,
             error: error,
         });
     }
-    res.status(500).json({
-        // status: error.statusCode,
-        message: error.message,
-        stackTrace: error.stack,
-        error: error,
-    });
+    else {
+        return res.status(500).json({
+            // status: error.statusCode,
+            message: error.message,
+            stackTrace: error.stack,
+            error: error,
+        });
+    }
 };
 const prodErrors = (res, error) => __awaiter(void 0, void 0, void 0, function* () {
     // if error raised is CustomError, it will be operational and we sent detailed error msg

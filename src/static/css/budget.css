@@ -93,16 +93,53 @@
 
     grid-column: content-start / content-end;
     grid-row: subheader-start / subheader-end;
-    justify-self: end;
     align-self: center;
+
+    display: grid;
+    grid-template-columns: [information-start] 1fr [information-end addTrans-start] 15px [addTrans-end]
 
 }
 
-#addTransRow {
+#informationContainer {
+    grid-column: information-start / information-end;   
+}
 
+.errorMessage, .succesMessage {
+    padding: 5px;
+    padding-left: 10px;
+
+    border-radius: 4px;
+    width: 90%;
+}
+
+.errorMessage {
+    color: rgb(106, 0, 0);
+    background-color: rgb(239, 229, 229);
+    border: 1px darkred solid;
+}
+
+.succesMessage {
+    color: rgb(0, 106, 26);
+    background-color: rgb(229, 239, 230);
+    border: 1px rgb(0, 92, 6) solid;   
+}
+
+.hide {
+    /* fade out before element is removed from page */
+    opacity: 0;
+    transition: opacity;
+    transition-duration: 500ms;
+    transition-timing-function: ease-in;
+}
+
+
+
+#addTransRow {
+    grid-column: addTrans-start / addTrans-end;
     font-size: 12px;
     color: green;
-
+    margin: auto;
+    margin-right: 0px;
 }
 
 #addTransRow:hover {

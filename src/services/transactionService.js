@@ -17,7 +17,18 @@ class TransactionService {
     static getTransactions() {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transactions in database
-            let data = yield pool.query("SELECT * FROM transaction ORDER BY id ASC");
+            let data = yield pool
+                .query("SELECT * FROM transaction ORDER BY id ASC")
+                .catch((err) => {
+                if (err.code === "42P01") {
+                    const error = new Error("Cannot find table for transactions");
+                    error.description = err.message;
+                    throw error;
+                }
+                else {
+                    throw new Error("Something wen't wrong. Please try again!");
+                }
+            });
             // build array of transactions
             let transactions = data.rows.map((resTransaction) => {
                 let date = resTransaction.date
@@ -31,9 +42,14 @@ class TransactionService {
     static getTransactionById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transaction in database
-            let data = yield pool.query("SELECT * FROM transaction WHERE id = $1", [
-                id,
-            ]);
+            let data = yield pool
+                .query("SELECT * FROM transaction WHERE id = $1", [id])
+                .catch((err) => {
+                throw new Error(err.message);
+            });
+            if (data.rowCount === 0) {
+                throw new Error("Id of transaction unknown!");
+            }
             // init transaction as Transaction object
             let transaction_in_array = data.rows.map((resTransaction) => {
                 let date = resTransaction.date
@@ -42,10 +58,6 @@ class TransactionService {
                 return new transaction_1.Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
             });
             let transaction = transaction_in_array[0];
-            // if transaction unknown / id not known
-            if (transaction == undefined) {
-                throw new Error("Id not known");
-            }
             return transaction;
         });
     }
@@ -58,19 +70,16 @@ class TransactionService {
             }
             else {
                 // if category_id; check validity
-                category = yield CategoryService.getCategoryById(category_id);
+                category = yield CategoryService.getCategoryById(category_id).catch((err) => {
+                    throw new CustomError(err.message, err.statusCode);
+                });
             }
             // create transaction
-            let data_trans = yield pool.query("INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [name, amount, date, category_id, recipient, comment]);
-            console.log("transaction was posted to db, returned this: ", data_trans);
-            // verify only 1 transaction has been created and returned from db
-            if (!data_trans.rows.length) {
-                throw new Error("no new transaction has been created, for some reason?");
-            }
-            else if (data_trans.rows.length > 1) {
-                console.log(data_trans.rows);
-                throw new Error("more than one transaction has been created in db. Something is not right...");
-            }
+            let data_trans = yield pool
+                .query("INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [name, amount, date, category_id, recipient, comment])
+                .catch((err) => {
+                throw new CustomError(err.message, 404);
+            });
             // init transaction object
             let transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id);
             // return transaction object
@@ -82,14 +91,15 @@ class TransactionService {
             // parse id
             const id = parseInt(delete_id);
             // query db
-            const to_be_deleted_transaction_sql_object = yield pool.query("SELECT * FROM transaction WHERE id = $1", [id]);
+            const to_be_deleted_transaction_sql_object = yield pool
+                .query("SELECT * FROM transactions WHERE id = $1", [id])
+                .catch((err) => {
+                throw new CustomError(err.message, 404);
+            });
             // verify id only equals 1 transaction
             if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
-                const err = new CustomError("id unknown", 404);
-                throw err;
-            }
-            if (to_be_deleted_transaction_sql_object["rows"].length > 1) {
-                throw new Error("Multiple rows to be deleted - id should be unique");
+                const error = new CustomError("Transaction id unknown", 404);
+                throw error;
             }
             // delete transaction in db
             const deleted_transaction_sql_object = yield pool.query("DELETE FROM transaction WHERE id = $1 RETURNING *", [id]);
@@ -115,7 +125,8 @@ class TransactionService {
                 throw err;
             });
             if (pre_updated_trans_response.rowCount === 0) {
-                throw new Error("unknown id");
+                const error = new CustomError("Unknown id of transaction", 404);
+                throw error;
             }
             const pre_updated_trans = pre_updated_trans_response["rows"][0];
             // setting previous values, if no new is given.
@@ -129,6 +140,11 @@ class TransactionService {
             let updated_trans = yield pool
                 .query("UPDATE transaction SET name = $2, amount = $3, date = $4, category_id = $5, recipient = $6, comment = $7 WHERE id = $1 RETURNING *", [id, name, amount, date, category_id, recipient, comment])
                 .catch((err) => {
+                if (err.code === "23503") {
+                    // code 23503 is thrown when category id is not in category table
+                    const error = new CustomError("Unknown category id of transaction", 404);
+                    err = error;
+                }
                 throw err;
             });
             // init transaction object

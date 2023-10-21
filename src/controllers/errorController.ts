@@ -2,21 +2,27 @@
 import CustomError from "../utils/errors/CustomError";
 
 const devErrors = (res: Response, error: Error) => {
+    console.log("SENDING DEV ERROR");
     if (error instanceof CustomError) {
-        res.status(error.statusCode).json({
+        console.log("SENDING CUSTOMERROR");
+        console.log(error);
+        console.log(error.message);
+        console.log(error.stack);
+
+        return res.status(error.statusCode).json({
             status: error.statusCode,
             message: error.message,
             stackTrace: error.stack,
             error: error,
         });
+    } else {
+        return res.status(500).json({
+            // status: error.statusCode,
+            message: error.message,
+            stackTrace: error.stack,
+            error: error,
+        });
     }
-
-    res.status(500).json({
-        // status: error.statusCode,
-        message: error.message,
-        stackTrace: error.stack,
-        error: error,
-    });
 };
 
 const prodErrors = async (res: Response, error: Error) => {

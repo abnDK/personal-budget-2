@@ -75,6 +75,8 @@ interface ITransactionRowRender {
 interface ITransactionContainerRender {
     frozen(): Element; // render transactions in init state
     header(): Element;
+    error(msg: string): void;
+    succes(msg: string): void;
 }
 
 interface ITransactionQueries {
@@ -82,9 +84,7 @@ interface ITransactionQueries {
 
     deleteTransaction(trans_id: number): Promise<boolean>; // return status?
 
-    postTransaction(
-        transaction: ITransaction
-    ): Promise<{
+    postTransaction(transaction: ITransaction): Promise<{
         id: string;
         name: string;
         amount: string;
@@ -94,9 +94,7 @@ interface ITransactionQueries {
         comment: string;
     }>; // return status?
 
-    updateTransaction(
-        transaction: ITransaction
-    ): Promise<{
+    updateTransaction(transaction: ITransaction): Promise<{
         id: string;
         name: string;
         amount: string;

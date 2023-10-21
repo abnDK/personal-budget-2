@@ -27,50 +27,54 @@ router.get("/add", async (req, res) => {
 });
 
 // CRUD
-router.get(
-    "/",
-    asyncErrorHandler(async (req, res, next) => {
-        let transactions = await TransactionService.getTransactions();
-        res.status(200).json(transactions);
-    })
-);
+router.get("/", async (req, res, next) => {
+    await TransactionService.getTransactions()
+        .then((transactions: Transaction[]) =>
+            res.status(200).json(transactions)
+        )
+        .catch((err: Error) => {
+            res.status(404).json({
+                message: err.message,
+                description: err.description,
+            });
+        });
+});
+
 router.get("/:id", async (req, res) => {
     let transaction = await TransactionService.getTransactionById(
         req.params.id
-    );
+    ).catch((err: Error) => {
+        res.status(404).json({ message: err.message });
+    });
     res.status(200).json(transaction);
 });
 
 router.post("/", async (req, res) => {
     const { name, amount, date, category_id, recipient, comment } = req.body;
-    const transaction = await TransactionService.createTransaction(
+    await TransactionService.createTransaction(
         name,
         amount,
         date,
         category_id,
         recipient,
         comment
-    );
-    //res.status(res.statusCode).json(transaction);
-
-    res.status(res.statusCode).send(transaction);
-
-    /*
-    const categories = await CategoryService.getCategories();
-    if (res.statusCode === 200) {
-        res.render('add_transaction', {
-            "categories": categories,
-            "prev_added_transaction": transaction
+    )
+        .then((transaction: Transaction) => {
+            res.status(res.statusCode).send(transaction);
         })
-    } else {
-        res.status(res.statuseCode)
-    }
-    */
+        .catch((err: CustomError) => {
+            res.status(err.statusCode).json({ message: err.message });
+        });
 });
 
 router.delete("/:id", async (req, res) => {
-    let transaction = await TransactionService.deleteTransaction(req.params.id);
-    res.status(200).json(transaction);
+    await TransactionService.deleteTransaction(req.params.id)
+        .then((transaction: Transaction) => {
+            res.status(200).json(transaction);
+        })
+        .catch((err: CustomError) => {
+            res.status(err.statusCode).json({ message: err.message });
+        });
 });
 
 router.put("/:id", (req: Request, res: Response, next: any) => {

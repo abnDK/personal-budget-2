@@ -29,34 +29,40 @@ router.get("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     });
 }));
 // CRUD
-router.get("/", asyncErrorHandler((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    let transactions = yield TransactionService.getTransactions();
-    res.status(200).json(transactions);
-})));
+router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    yield TransactionService.getTransactions()
+        .then((transactions) => res.status(200).json(transactions))
+        .catch((err) => {
+        res.status(404).json({
+            message: err.message,
+            description: err.description,
+        });
+    });
+}));
 router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let transaction = yield TransactionService.getTransactionById(req.params.id);
+    let transaction = yield TransactionService.getTransactionById(req.params.id).catch((err) => {
+        res.status(404).json({ message: err.message });
+    });
     res.status(200).json(transaction);
 }));
 router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, amount, date, category_id, recipient, comment } = req.body;
-    const transaction = yield TransactionService.createTransaction(name, amount, date, category_id, recipient, comment);
-    //res.status(res.statusCode).json(transaction);
-    res.status(res.statusCode).send(transaction);
-    /*
-    const categories = await CategoryService.getCategories();
-    if (res.statusCode === 200) {
-        res.render('add_transaction', {
-            "categories": categories,
-            "prev_added_transaction": transaction
-        })
-    } else {
-        res.status(res.statuseCode)
-    }
-    */
+    yield TransactionService.createTransaction(name, amount, date, category_id, recipient, comment)
+        .then((transaction) => {
+        res.status(res.statusCode).send(transaction);
+    })
+        .catch((err) => {
+        res.status(err.statusCode).json({ message: err.message });
+    });
 }));
 router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let transaction = yield TransactionService.deleteTransaction(req.params.id);
-    res.status(200).json(transaction);
+    yield TransactionService.deleteTransaction(req.params.id)
+        .then((transaction) => {
+        res.status(200).json(transaction);
+    })
+        .catch((err) => {
+        res.status(err.statusCode).json({ message: err.message });
+    });
 }));
 router.put("/:id", (req, res, next) => {
     console.log("entered the transaction PUT route");
@@ -67,6 +73,7 @@ router.put("/:id", (req, res, next) => {
         res.status(200).json(transaction);
     })
         .catch((err) => {
+        console.log("ERROR - ROUTER: ", err);
         next(err);
     });
 });

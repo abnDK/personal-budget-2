@@ -14,9 +14,20 @@ interface resTransaction {
 class TransactionService {
     static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
-        let data = await pool.query(
-            "SELECT * FROM transaction ORDER BY id ASC"
-        );
+        let data = await pool
+            .query("SELECT * FROM transaction ORDER BY id ASC")
+            .catch((err: Error) => {
+                if (err.code === "42P01") {
+                    const error = new Error(
+                        "Cannot find table for transactions"
+                    );
+                    error.description = err.message;
+                    throw error;
+                } else {
+                    throw new Error("Something wen't wrong. Please try again!");
+                }
+            });
+
         // build array of transactions
         let transactions = data.rows.map((resTransaction: resTransaction) => {
             let date: Date = resTransaction.date
@@ -37,9 +48,15 @@ class TransactionService {
 
     static async getTransactionById(id: number): Promise<Transaction> {
         // get Transaction in database
-        let data = await pool.query("SELECT * FROM transaction WHERE id = $1", [
-            id,
-        ]);
+        let data = await pool
+            .query("SELECT * FROM transaction WHERE id = $1", [id])
+            .catch((err: Error) => {
+                throw new Error(err.message);
+            });
+
+        if (data.rowCount === 0) {
+            throw new Error("Id of transaction unknown!");
+        }
 
         // init transaction as Transaction object
         let transaction_in_array = data.rows.map(
@@ -60,11 +77,6 @@ class TransactionService {
 
         let transaction = transaction_in_array[0];
 
-        // if transaction unknown / id not known
-        if (transaction == undefined) {
-            throw new Error("Id not known");
-        }
-
         return transaction;
     }
 
@@ -83,29 +95,22 @@ class TransactionService {
             category_id = undefined;
         } else {
             // if category_id; check validity
-            category = await CategoryService.getCategoryById(category_id);
+            category = await CategoryService.getCategoryById(category_id).catch(
+                (err: CustomError) => {
+                    throw new CustomError(err.message, err.statusCode);
+                }
+            );
         }
 
         // create transaction
-        let data_trans = await pool.query(
-            "INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-            [name, amount, date, category_id, recipient, comment]
-        );
-        console.log(
-            "transaction was posted to db, returned this: ",
-            data_trans
-        );
-        // verify only 1 transaction has been created and returned from db
-        if (!data_trans.rows.length) {
-            throw new Error(
-                "no new transaction has been created, for some reason?"
-            );
-        } else if (data_trans.rows.length > 1) {
-            console.log(data_trans.rows);
-            throw new Error(
-                "more than one transaction has been created in db. Something is not right..."
-            );
-        }
+        let data_trans = await pool
+            .query(
+                "INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+                [name, amount, date, category_id, recipient, comment]
+            )
+            .catch((err: Error) => {
+                throw new CustomError(err.message, 404);
+            });
 
         // init transaction object
         let transaction = new Transaction(
@@ -125,19 +130,16 @@ class TransactionService {
         const id: number = parseInt(delete_id);
 
         // query db
-        const to_be_deleted_transaction_sql_object: { rows: [] } =
-            await pool.query("SELECT * FROM transaction WHERE id = $1", [id]);
+        const to_be_deleted_transaction_sql_object: { rows: [] } = await pool
+            .query("SELECT * FROM transaction WHERE id = $1", [id])
+            .catch((err: Error) => {
+                throw new CustomError(err.message, 404);
+            });
 
         // verify id only equals 1 transaction
         if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
-            const err = new CustomError("id unknown", 404);
-            throw err;
-        }
-
-        if (to_be_deleted_transaction_sql_object["rows"].length > 1) {
-            throw new Error(
-                "Multiple rows to be deleted - id should be unique"
-            );
+            const error = new CustomError("Transaction id unknown", 404);
+            throw error;
         }
 
         // delete transaction in db
@@ -190,7 +192,8 @@ class TransactionService {
             });
 
         if (pre_updated_trans_response.rowCount === 0) {
-            throw new Error("unknown id");
+            const error = new CustomError("Unknown id of transaction", 404);
+            throw error;
         }
 
         const pre_updated_trans = pre_updated_trans_response["rows"][0];
@@ -209,6 +212,14 @@ class TransactionService {
                 [id, name, amount, date, category_id, recipient, comment]
             )
             .catch((err: Error) => {
+                if (err.code === "23503") {
+                    // code 23503 is thrown when category id is not in category table
+                    const error = new CustomError(
+                        "Unknown category id of transaction",
+                        404
+                    );
+                    err = error;
+                }
                 throw err;
             });
 

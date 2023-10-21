@@ -15,17 +15,17 @@ class TransactionRow {
         this.isValid = () => {
             // name validation
             if (typeof this.name != "string") {
-                throw new CustomError("GENERIC", 500, "Name has be be of type string");
+                throw new Error("Name has be be of type string");
             }
             if (this.name.length <= 3) {
-                throw new CustomError("GENERIC", 500, "Name must be 4 characters or more");
+                throw new Error("Name must be 4 characters or more");
             }
             // amount validation
             if (typeof this.amount != "number") {
                 throw new Error("Amount must be of type number");
             }
             if (this.amount < 0) {
-                throw new Error("Amount canont be a negative value");
+                throw new Error("Amount must be a positive value");
             }
             if (Number.isNaN(this.amount)) {
                 throw new Error("Amount cannot be NaN");
@@ -277,7 +277,9 @@ class TransactionContainer {
     constructor(budget_id, query, renderer) {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
-            this.rows = yield this.fetchTransactions();
+            this.rows = yield this.fetchTransactions().catch((err) => {
+                this.render.error(err.message);
+            });
             this.renderHeader();
             this.renderTransactions();
             this.renderAddTransRowBtn(true);
@@ -303,6 +305,7 @@ class TransactionContainer {
                 this.rows = this.rows.filter((row) => row !== deleteRow);
                 this.renderTransactions();
             }
+            this.render.succes("Row deleted!");
             /*
             throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
             if (deleteRow.delete()) {
@@ -320,27 +323,51 @@ class TransactionContainer {
         this.saveRow = (saveRow) => __awaiter(this, void 0, void 0, function* () {
             // maybe we have to fetch values from the input fields first and write to object??
             saveRow.fetchEditableValues();
-            // TODO: VALIDATION
-            saveRow.isValid();
+            // validation of input
+            try {
+                saveRow.isValid();
+            }
+            catch (err) {
+                this.render.error(err.message);
+                return;
+            }
             // Write row to db. Post if new (no id) and Put if known (id known)
             if (Number.isNaN(saveRow.id)) {
-                const newRow = yield this.query
+                yield this.query
                     .postTransaction(saveRow)
-                    .catch((err) => console.error(err));
-                if (newRow) {
+                    .then((newRow) => {
+                    // render succes message
+                    this.render.succes("New transaction added!");
                     saveRow.sync(newRow);
-                }
+                    // render element frozen with updated values
+                    saveRow.renderFrozen();
+                })
+                    .catch((err) => {
+                    this.render.error(err.message);
+                });
+                /* if (newRow) {
+                    saveRow.sync(newRow);
+    
+                    // render element frozen with updated values
+                    saveRow.renderFrozen();
+                } */
             }
             else {
-                const updatedRow = yield this.query
+                yield this.query
                     .updateTransaction(saveRow)
-                    .catch((err) => console.error(err));
-                if (updatedRow) {
+                    .then((updatedRow) => {
+                    // render succes message
+                    this.render.succes("Transaction updated!");
+                    // sync db row to mem object row
                     saveRow.sync(updatedRow);
-                }
+                    // render element frozen with updated values
+                    saveRow.renderFrozen();
+                })
+                    .catch((err) => {
+                    // render error message in frontend
+                    this.render.error(err.message);
+                });
             }
-            // render element frozen with updated values
-            saveRow.renderFrozen();
         });
         this.splitRow = (id) => {
             // dont implement yet, but a CR for later
@@ -559,6 +586,7 @@ class TransactionContainer {
                 addTransRowBtn.className = "bi bi-plus-circle-fill active";
                 addTransRowBtn.addEventListener("click", () => {
                     this.addRow();
+                    // THINK BELOW COMMENT HAS BEEN FIXED. CAN WE VERIFY THAT BTN WORKS AS INTENDED?
                     // why does this line not get called when clicking on the element?
                     // - i think to 2 way binding error is causing this not to be read.
                     // fix this and check if the update row button updates correctly...
@@ -587,7 +615,11 @@ class TransactionContainer {
         };
         // QUERIES
         this.fetchTransactions = () => __awaiter(this, void 0, void 0, function* () {
-            const transByBudgetId = yield this.query.getTransactions(this.budget_id);
+            const transByBudgetId = yield this.query
+                .getTransactions(this.budget_id)
+                .catch((err) => {
+                throw err;
+            });
             const transByBudgetIdAndPeriod = transByBudgetId.filter(
             // datestring returned from db is interpreted as UTC and not our timezone
             // so date will be day - 1. Parsing it with new Date() this is
@@ -607,7 +639,7 @@ class TransactionContainer {
             (trans) => new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true));
         });
         this.query = query;
-        this.renderer = renderer;
+        this.render = renderer;
         this.budget_id = budget_id;
         this.editing = false;
         this.sortedBy = {
@@ -631,13 +663,61 @@ class TransactionContainerRender {
         this.header = () => {
             return "new element";
         };
+        this.error = (msg) => {
+            // render error message
+            const errorMessage = document.createElement("div");
+            errorMessage.innerText = msg;
+            errorMessage.className = "errorMessage";
+            // get #informationContainer
+            const informationContainer = document.querySelector("#informationContainer");
+            // if informationContainer not found, just skip showing messages
+            if (!informationContainer) {
+                console.error("Cannot find #informationContainer for showing error message");
+                return;
+            }
+            // remove potential errorMessage or successMessage of informationContainer
+            while (informationContainer === null || informationContainer === void 0 ? void 0 : informationContainer.firstChild) {
+                informationContainer === null || informationContainer === void 0 ? void 0 : informationContainer.removeChild(informationContainer.firstChild);
+            }
+            // replace child with error message
+            informationContainer === null || informationContainer === void 0 ? void 0 : informationContainer.appendChild(errorMessage);
+        };
+        this.succes = (msg) => {
+            // render success message
+            const succesMessage = document.createElement("div");
+            succesMessage.innerText = msg;
+            succesMessage.className = "succesMessage";
+            // get #informationContainer
+            const informationContainer = document.querySelector("#informationContainer");
+            // if informationContainer not found, just skip showing messages
+            if (!informationContainer) {
+                console.error("Cannot find #informationContainer for showing succes message");
+                return;
+            }
+            // remove potential errorMessage or succesMessage of informationContainer
+            while (informationContainer === null || informationContainer === void 0 ? void 0 : informationContainer.firstChild) {
+                informationContainer.removeChild(informationContainer.firstChild);
+            }
+            // replace child with succes message
+            informationContainer.appendChild(succesMessage);
+            // add class .hide after 3 seconds (fades it out) and remove element efter 4 seconds
+            setTimeout(() => {
+                succesMessage.classList.add("hide");
+                setTimeout(() => {
+                    var _a;
+                    (_a = succesMessage.parentElement) === null || _a === void 0 ? void 0 : _a.removeChild(succesMessage);
+                }, 1000);
+            }, 3000);
+        };
     }
 }
 class MockTransactionQueries {
     constructor() {
         this.getTransactions = (budget_id) => __awaiter(this, void 0, void 0, function* () {
             // getting raw categories in json
-            const categoriesOfBudgetId = yield this.getCategories(budget_id);
+            const categoriesOfBudgetId = yield this.getCategories(budget_id).catch((err) => {
+                throw err;
+            });
             // make map with id as key, name as value
             const categoriesIdNameMap = new Map();
             categoriesOfBudgetId === null || categoriesOfBudgetId === void 0 ? void 0 : categoriesOfBudgetId.forEach((category) => categoriesIdNameMap.set(category.id, category.name));
@@ -647,17 +727,22 @@ class MockTransactionQueries {
             })
                 .then((res) => {
                 if (!res.ok) {
-                    throw new Error(String(res.status));
+                    return res.json().then((err) => {
+                        console.error(err.description);
+                        throw new Error(err.message);
+                    });
                 }
                 return res.json();
             })
                 .catch((err) => {
-                console.log(err);
+                throw err;
             });
             // filter transactions with category_id within relevant budget_id
             const filteredTransactions = allTransactions.filter((transaction) => Array.from(categoriesIdNameMap.keys()).includes(transaction.category_id));
             // add category name to each transaction
-            filteredTransactions.forEach((transaction) => (transaction.category_name = categoriesIdNameMap.get(transaction.category_id)));
+            filteredTransactions.forEach((transaction) => {
+                transaction.category_name = categoriesIdNameMap.get(transaction.category_id);
+            });
             return filteredTransactions;
         });
         this.deleteTransaction = (trans_id) => __awaiter(this, void 0, void 0, function* () {
@@ -695,7 +780,9 @@ class MockTransactionQueries {
             })
                 .then((res) => {
                 if (!res.ok) {
-                    throw new Error(res.status);
+                    return res.json().then((err) => {
+                        throw new Error(err.message);
+                    });
                 }
                 return res.json();
             })
@@ -723,10 +810,14 @@ class MockTransactionQueries {
             })
                 .then((res) => {
                 if (!res.ok) {
-                    throw res;
+                    return res.json().then((err) => {
+                        throw new Error(err.message);
+                    });
                 }
-                console.log("1: i just updated");
                 return res.json();
+            })
+                .then((result) => {
+                return result;
             })
                 .catch((err) => {
                 throw err;
@@ -738,8 +829,8 @@ class MockTransactionQueries {
                 const categoriesJson = yield categoriesRaw.json();
                 return categoriesJson.filter((category) => category.budget_id == budgetId);
             }
-            catch (error) {
-                console.error(error);
+            catch (err) {
+                throw new Error("Cannot get categories!");
             }
         });
     }
