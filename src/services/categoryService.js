@@ -32,7 +32,7 @@ class CategoryService {
             let data = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 404);
+                throw new CustomError(err.message, 500);
             });
             if (data.rowCount === 0) {
                 throw new CustomError("Category id unknown", 404);
@@ -47,14 +47,17 @@ class CategoryService {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("ready to insert new cat into db: ", name, amount);
             // create budget
-            let data_category = yield pool.query("INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *", [name, amount, parent_id, budget_id]);
+            let data_category = yield pool
+                .query("INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *", [name, amount, parent_id, budget_id])
+                .catch((err) => {
+                throw new CustomError(err.message, 500);
+            });
             // verify only 1 budget has been created and returned from db
-            if (!data_category.rows.length) {
-                throw new Error("no new category has been created, for some reason?"); // WILL THIS ERROR BE THROWN WHEN QUERING DB?
+            if (data_category.rowCount === 0) {
+                throw new CustomError("No new category row was created in db", 404);
             }
-            else if (data_category.rows.length > 1) {
-                console.log(data_category.rows);
-                throw new Error("more than one category has been created in db. Something is not right...");
+            if (data_category.rowCount !== 1) {
+                throw new CustomError("Created more than 1 new category in db", 404);
             }
             // init category object
             let category = new category_1.Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
@@ -62,28 +65,23 @@ class CategoryService {
             return category;
         });
     }
-    static deleteCategory(delete_id) {
+    static deleteCategory(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO
-            // - What to do if category fkeys to to_be_deleted category?
-            // --- deleted children as well?
-            // --- delete category and remove fkey rel on category (setting parent_id fkey to null will leave category with budget_id, this making it a primary category of the budget)
-            // --- throw error, and delete parent category first (CURRENT CHOICE)
-            // parse id
-            const id = parseInt(delete_id);
             // query db - verify category exists, and only returns one unique row from db
-            const to_be_deleted_category_sql_object = yield pool.query("SELECT * FROM category WHERE id = $1", [id]);
-            // verify id only equals 1 category
-            if (to_be_deleted_category_sql_object["rows"].length === 0) {
-                throw new Error("id unknown");
-            }
-            if (to_be_deleted_category_sql_object["rows"].length > 1) {
-                throw new Error("Multiple rows to be deleted - id should be unique");
+            const to_be_deleted_category_sql_object = yield pool
+                .query("SELECT * FROM category WHERE id = $1", [id])
+                .catch((err) => {
+                throw new CustomError(err.message, 500);
+            });
+            if (to_be_deleted_category_sql_object.rowCount === 0) {
+                throw new CustomError("Category id unknown!", 404);
             }
             // delete category in db
-            const deleted_category_sql_object = yield pool.query("DELETE FROM category WHERE id = $1 RETURNING *", [
-                id,
-            ]);
+            const deleted_category_sql_object = yield pool
+                .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
+                .catch((err) => {
+                throw new CustomError(err.message, 500);
+            });
             // create category object
             const deleted_category = new category_1.Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
             // send response
@@ -91,11 +89,16 @@ class CategoryService {
         });
     }
     static updateCategory(id, name, amount, parent_id, budget_id) {
-        return __awaiter(this, arguments, void 0, function* () {
-            let previous_category = yield pool.query("SELECT * FROM category WHERE id = $1", [id]);
+        return __awaiter(this, void 0, void 0, function* () {
+            let previous_category = yield pool
+                .query("SELECT * FROM category WHERE id = $1", [id])
+                .catch((err) => {
+                throw new CustomError(err.message, 500);
+            });
             previous_category = previous_category.rows[0];
             // update category
-            let updated_category = yield pool.query("UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *", 
+            let updated_category = yield pool
+                .query("UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *", 
             // we need to keep checking parent_id for truthy or falsy, as updating categories name and value will be sent with parent_id == null and keep previous parent_id
             [
                 id,
@@ -103,20 +106,12 @@ class CategoryService {
                 amount || previous_category.amount,
                 parent_id || previous_category.parent_id,
                 budget_id || previous_category.budget_id,
-            ]);
-            console.log(arguments);
-            console.log(name || previous_category.name, amount || previous_category.amount, parent_id || previous_category.parent_id, budget_id || previous_category.budget_id);
-            console.log("PUT category before ", previous_category);
-            console.log("PUT category after ", updated_category.rows[0]);
-            // verify only 1 category has been returned and returned from db
-            if (!updated_category.rows.length) {
-                throw new Error("no new category has been created, for some reason. Maybe id was unknown?" +
-                    " id: " +
-                    id);
-            }
-            else if (updated_category.rows.length > 1) {
-                console.log(updated_category.rows);
-                throw new Error("more than one category has been created in db. Something is not right...");
+            ])
+                .catch((err) => {
+                throw new CustomError(err.message, 500);
+            });
+            if (updated_category.rowCount === 0) {
+                throw new CustomError("Category id unknown", 404);
             }
             // init category object
             let category = new category_1.Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);

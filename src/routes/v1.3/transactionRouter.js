@@ -22,7 +22,7 @@ router.get("/show", asyncErrorHandler((req, res, next) => __awaiter(void 0, void
         transactions: transactions,
     });
 })));
-router.get("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/add", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const categories = yield CategoryService.getCategories();
     res.render("add_transaction", {
         categories: categories,
@@ -32,49 +32,38 @@ router.get("/add", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     yield TransactionService.getTransactions()
         .then((transactions) => res.status(200).json(transactions))
-        .catch((err) => {
-        res.status(404).json({
-            message: err.message,
-            description: err.description,
-        });
-    });
+        .catch(next);
 }));
-router.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let transaction = yield TransactionService.getTransactionById(req.params.id).catch((err) => {
-        res.status(404).json({ message: err.message });
-    });
-    res.status(200).json(transaction);
+router.get("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    yield TransactionService.getTransactionById(req.params.id)
+        .then((transaction) => {
+        res.status(200).json(transaction);
+    })
+        .catch(next);
 }));
-router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, amount, date, category_id, recipient, comment } = req.body;
     yield TransactionService.createTransaction(name, amount, date, category_id, recipient, comment)
         .then((transaction) => {
         res.status(res.statusCode).send(transaction);
     })
-        .catch((err) => {
-        res.status(err.statusCode).json({ message: err.message });
-    });
+        .catch(next);
 }));
-router.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     yield TransactionService.deleteTransaction(req.params.id)
         .then((transaction) => {
         res.status(200).json(transaction);
     })
-        .catch((err) => {
-        res.status(err.statusCode).json({ message: err.message });
-    });
+        .catch(next);
 }));
-router.put("/:id", (req, res, next) => {
+router.put("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("entered the transaction PUT route");
     const id = req.params.id;
     const { name, amount, date, category_id, recipient, comment } = req.body;
-    TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment)
+    yield TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment)
         .then((transaction) => {
         res.status(200).json(transaction);
     })
-        .catch((err) => {
-        console.log("ERROR - ROUTER: ", err);
-        next(err);
-    });
-});
+        .catch(next);
+}));
 module.exports = router;

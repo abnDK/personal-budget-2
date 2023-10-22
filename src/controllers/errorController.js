@@ -17,10 +17,6 @@ const CustomError_1 = __importDefault(require("../utils/errors/CustomError"));
 const devErrors = (res, error) => {
     console.log("SENDING DEV ERROR");
     if (error instanceof CustomError_1.default) {
-        console.log("SENDING CUSTOMERROR");
-        console.log(error);
-        console.log(error.message);
-        console.log(error.stack);
         return res.status(error.statusCode).json({
             status: error.statusCode,
             message: error.message,

@@ -11,7 +11,7 @@ const asyncErrorHandler = require("../../controllers/asyncErrorHandler");
 // VIEWS
 router.get(
     "/show",
-    asyncErrorHandler(async (req, res, next) => {
+    asyncErrorHandler(async (req: Request, res: Response, next: any) => {
         let transactions = await TransactionService.getTransactions();
         res.render("transactions", {
             transactions: transactions,
@@ -19,7 +19,7 @@ router.get(
     })
 );
 
-router.get("/add", async (req, res) => {
+router.get("/add", async (req: Request, res: Response, next: any) => {
     const categories = await CategoryService.getCategories();
     res.render("add_transaction", {
         categories: categories,
@@ -27,29 +27,23 @@ router.get("/add", async (req, res) => {
 });
 
 // CRUD
-router.get("/", async (req, res, next) => {
+router.get("/", async (req: Request, res: Response, next: any) => {
     await TransactionService.getTransactions()
         .then((transactions: Transaction[]) =>
             res.status(200).json(transactions)
         )
-        .catch((err: Error) => {
-            res.status(404).json({
-                message: err.message,
-                description: err.description,
-            });
-        });
+        .catch(next);
 });
 
-router.get("/:id", async (req, res) => {
-    let transaction = await TransactionService.getTransactionById(
-        req.params.id
-    ).catch((err: Error) => {
-        res.status(404).json({ message: err.message });
-    });
-    res.status(200).json(transaction);
+router.get("/:id", async (req: Request, res: Response, next: any) => {
+    await TransactionService.getTransactionById(req.params.id)
+        .then((transaction: Transaction) => {
+            res.status(200).json(transaction);
+        })
+        .catch(next);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response, next: any) => {
     const { name, amount, date, category_id, recipient, comment } = req.body;
     await TransactionService.createTransaction(
         name,
@@ -62,28 +56,24 @@ router.post("/", async (req, res) => {
         .then((transaction: Transaction) => {
             res.status(res.statusCode).send(transaction);
         })
-        .catch((err: CustomError) => {
-            res.status(err.statusCode).json({ message: err.message });
-        });
+        .catch(next);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: any, res: any, next: any) => {
     await TransactionService.deleteTransaction(req.params.id)
         .then((transaction: Transaction) => {
             res.status(200).json(transaction);
         })
-        .catch((err: CustomError) => {
-            res.status(err.statusCode).json({ message: err.message });
-        });
+        .catch(next);
 });
 
-router.put("/:id", (req: Request, res: Response, next: any) => {
+router.put("/:id", async (req: Request, res: Response, next: any) => {
     console.log("entered the transaction PUT route");
 
     const id = req.params.id;
     const { name, amount, date, category_id, recipient, comment } = req.body;
 
-    TransactionService.updateTransaction(
+    await TransactionService.updateTransaction(
         id,
         name,
         amount,
@@ -95,9 +85,7 @@ router.put("/:id", (req: Request, res: Response, next: any) => {
         .then((transaction: object) => {
             res.status(200).json(transaction);
         })
-        .catch((err: Error) => {
-            next(err);
-        });
+        .catch(next);
 });
 
 module.exports = router;
