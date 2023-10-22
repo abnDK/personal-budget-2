@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const category_1 = require("../models/1.3/category");
 const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
+const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 class CategoryService {
     static getCategories() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28,14 +29,14 @@ class CategoryService {
     }
     static getCategoryById(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            // get Budget in database
+            // get category in database
             let data = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError("Category id unknown", 404);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
             }
             // init budget as Budget object
             let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
@@ -45,19 +46,14 @@ class CategoryService {
     }
     static createCategory(name, amount, parent_id, budget_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("ready to insert new cat into db: ", name, amount);
             // create budget
             let data_category = yield pool
                 .query("INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *", [name, amount, parent_id, budget_id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
-            // verify only 1 budget has been created and returned from db
             if (data_category.rowCount === 0) {
                 throw new CustomError("No new category row was created in db", 404);
-            }
-            if (data_category.rowCount !== 1) {
-                throw new CustomError("Created more than 1 new category in db", 404);
             }
             // init category object
             let category = new category_1.Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
@@ -71,7 +67,7 @@ class CategoryService {
             const to_be_deleted_category_sql_object = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             if (to_be_deleted_category_sql_object.rowCount === 0) {
                 throw new CustomError("Category id unknown!", 404);
@@ -80,7 +76,7 @@ class CategoryService {
             const deleted_category_sql_object = yield pool
                 .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             // create category object
             const deleted_category = new category_1.Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
@@ -93,7 +89,7 @@ class CategoryService {
             let previous_category = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             previous_category = previous_category.rows[0];
             // update category
@@ -108,7 +104,7 @@ class CategoryService {
                 budget_id || previous_category.budget_id,
             ])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             if (updated_category.rowCount === 0) {
                 throw new CustomError("Category id unknown", 404);

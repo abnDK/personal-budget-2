@@ -1,6 +1,7 @@
 import { Category } from "../models/1.3/category";
 const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
+const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 
 class CategoryService {
     static async getCategories(): Promise<Array<Category>> {
@@ -33,7 +34,7 @@ class CategoryService {
     }
 
     static async getCategoryById(id: number): Promise<Category> {
-        // get Budget in database
+        // get category in database
         let data = await pool
             .query("SELECT * FROM category WHERE id = $1", [id])
             .catch((err: Error) => {
@@ -41,7 +42,10 @@ class CategoryService {
             });
 
         if (data.rowCount === 0) {
-            throw new CustomError("Category id unknown", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // init budget as Budget object

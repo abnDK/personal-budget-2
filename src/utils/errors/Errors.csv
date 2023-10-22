@@ -1,0 +1,2 @@
+TRANSACTION.READ.ERROR.INVALIDID;Unknown transaction id!
+CATEGORY.GET.ERROR.INVALIDID;Unknown category id!

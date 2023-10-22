@@ -13,12 +13,13 @@ const CategoryService = require("./categoryService");
 const transaction_1 = require("../models/1.3/transaction");
 const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
+const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 class TransactionService {
     static getTransactions() {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transactions in database
             let data = yield pool
-                .query("SELECT * FROM transactionz ORDER BY id ASC")
+                .query("SELECT * FROM transaction ORDER BY id ASC")
                 .catch((err) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown
@@ -48,7 +49,8 @@ class TransactionService {
                 throw new CustomError(err.message, 500, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError("Id of transaction unknown!", 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"), 404);
+                // throw new CustomError("Id of transaction unknown!", 404);
             }
             // init transaction as Transaction object
             let transaction_in_array = data.rows.map((resTransaction) => {
@@ -142,10 +144,10 @@ class TransactionService {
                 .catch((err) => {
                 if (err.code === "23503") {
                     // code 23503 is thrown when category id is not in category table
-                    const error = new CustomError("Unknown category id of transaction", 404);
+                    const error = new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
                     err = error;
                 }
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, err.statusCode || 500, false);
             });
             // init transaction object
             let transaction = new transaction_1.Transaction(updated_trans.rows[0].id, updated_trans.rows[0].name, updated_trans.rows[0].amount, updated_trans.rows[0].date, updated_trans.rows[0].category_id);

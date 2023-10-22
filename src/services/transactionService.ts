@@ -2,6 +2,7 @@ const CategoryService = require("./categoryService");
 import { Transaction } from "../models/1.3/transaction";
 const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
+const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 
 interface resTransaction {
     id: number;
@@ -57,7 +58,12 @@ class TransactionService {
             });
 
         if (data.rowCount === 0) {
-            throw new CustomError("Id of transaction unknown!", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                404
+            );
+
+            // throw new CustomError("Id of transaction unknown!", 404);
         }
 
         // init transaction as Transaction object
@@ -220,12 +226,16 @@ class TransactionService {
                 if (err.code === "23503") {
                     // code 23503 is thrown when category id is not in category table
                     const error = new CustomError(
-                        "Unknown category id of transaction",
+                        ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"),
                         404
                     );
                     err = error;
                 }
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(
+                    err.message,
+                    err.statusCode || 500,
+                    false
+                );
             });
 
         // init transaction object

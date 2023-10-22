@@ -20,7 +20,7 @@ class BudgetService {
             let data = yield pool
                 .query("SELECT * FROM budget ORDER BY id ASC")
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             // make budgets array
             let budgets = data.rows.map(function (res) {
@@ -35,10 +35,10 @@ class BudgetService {
             let data = yield pool
                 .query("SELECT * FROM budget WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError("Budget id unknown!", 500);
+                throw new CustomError("Budget id unknown!", 404);
             }
             // init budget as Budget object
             let budget_in_array = data.rows.map(function (res) {
@@ -54,10 +54,10 @@ class BudgetService {
             let data_budget = yield pool
                 .query("INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *", [name, date_start, date_end])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             if (data_budget.rowCount === 0) {
-                throw new CustomError("No new budgets has been created", 500);
+                throw new CustomError("No new budgets has been created", 404);
             }
             // init budget object
             let budget = new budget_1.Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id);
@@ -67,16 +67,11 @@ class BudgetService {
     }
     static deleteBudget(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            // TODO
-            // - What to do if category fkeys to to_be_deleted budget?
-            // --- deleted all
-            // --- delete budget, and remove fkey rel on category
-            // --- throw error, and delete category first (CURRENT CHOICE)
             // query db
             const to_be_deleted_budget_sql_object = yield pool
                 .query("SELECT * FROM budget WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             // verify id only equals 1 budget
             if (to_be_deleted_budget_sql_object.rowCount === 0) {
@@ -86,7 +81,7 @@ class BudgetService {
             const deleted_budget_sql_object = yield pool
                 .query("DELETE FROM budget WHERE id = $1 RETURNING *", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500);
+                throw new CustomError(err.message, 500, false);
             });
             // create budget object
             const deleted_budget = new budget_1.Budget(deleted_budget_sql_object["rows"][0].name, deleted_budget_sql_object["rows"][0].date_start, deleted_budget_sql_object["rows"][0].date_end, deleted_budget_sql_object["rows"][0].id);
