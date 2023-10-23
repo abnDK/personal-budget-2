@@ -48,6 +48,13 @@ class CategoryService {
             );
         }
 
+        if (data.rowCount > 1) {
+            throw new CustomError(
+                ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"),
+                404
+            );
+        }
+
         // init budget as Budget object
         let category_in_array = data.rows.map(
             (res: {
@@ -198,6 +205,16 @@ class CategoryService {
 
         // return transaction object
         return category;
+    }
+
+    static async exists(id: number): Promise<boolean> {
+        return await this.getCategoryById(id)
+            .then(() => {
+                return true;
+            })
+            .catch((err: Error) => {
+                throw err;
+            });
     }
 }
 

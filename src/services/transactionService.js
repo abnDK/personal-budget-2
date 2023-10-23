@@ -71,8 +71,8 @@ class TransactionService {
                 category_id = undefined;
             }
             else {
-                // if category_id; check validity
-                category = yield CategoryService.getCategoryById(category_id).catch((err) => {
+                // verify category_id if given
+                yield CategoryService.exists(category_id).catch((err) => {
                     throw err;
                 });
             }
@@ -130,12 +130,16 @@ class TransactionService {
             if (pre_updated_trans_response.rowCount === 0) {
                 throw new CustomError("Unknown id of transaction", 404);
             }
+            // verify category_id
+            yield CategoryService.exists(category_id).catch((err) => {
+                throw err;
+            });
             const pre_updated_trans = pre_updated_trans_response["rows"][0];
             // setting previous values, if no new is given.
             name = name ? name : pre_updated_trans.name;
             amount = amount ? amount : pre_updated_trans.amount;
             date = date ? date : pre_updated_trans.date;
-            category_id = category_id ? category_id : null; //pre_updated_trans.category_id;
+            category_id = category_id ? category_id : null; //pre_updated_trans.category_id; // WHY ARE WE SETTING TO NULL ?
             recipient = recipient ? recipient : pre_updated_trans.recipient;
             comment = comment ? comment : pre_updated_trans.comment;
             // update transaction

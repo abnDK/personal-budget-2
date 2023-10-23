@@ -102,12 +102,10 @@ class TransactionService {
         if (!category_id) {
             category_id = undefined;
         } else {
-            // if category_id; check validity
-            category = await CategoryService.getCategoryById(category_id).catch(
-                (err: CustomError) => {
-                    throw err;
-                }
-            );
+            // verify category_id if given
+            await CategoryService.exists(category_id).catch((err: Error) => {
+                throw err;
+            });
         }
 
         // create transaction
@@ -207,12 +205,17 @@ class TransactionService {
             throw new CustomError("Unknown id of transaction", 404);
         }
 
+        // verify category_id
+        await CategoryService.exists(category_id).catch((err: Error) => {
+            throw err;
+        });
+
         const pre_updated_trans = pre_updated_trans_response["rows"][0];
         // setting previous values, if no new is given.
         name = name ? name : pre_updated_trans.name;
         amount = amount ? amount : pre_updated_trans.amount;
         date = date ? date : pre_updated_trans.date;
-        category_id = category_id ? category_id : null; //pre_updated_trans.category_id;
+        category_id = category_id ? category_id : null; //pre_updated_trans.category_id; // WHY ARE WE SETTING TO NULL ?
         recipient = recipient ? recipient : pre_updated_trans.recipient;
         comment = comment ? comment : pre_updated_trans.comment;
 

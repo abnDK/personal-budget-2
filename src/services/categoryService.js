@@ -38,6 +38,9 @@ class CategoryService {
             if (data.rowCount === 0) {
                 throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
             }
+            if (data.rowCount > 1) {
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"), 404);
+            }
             // init budget as Budget object
             let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
             let category = category_in_array[0];
@@ -113,6 +116,17 @@ class CategoryService {
             let category = new category_1.Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
             // return transaction object
             return category;
+        });
+    }
+    static exists(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.getCategoryById(id)
+                .then(() => {
+                return true;
+            })
+                .catch((err) => {
+                throw new CustomError("tada", 405);
+            });
         });
     }
 }

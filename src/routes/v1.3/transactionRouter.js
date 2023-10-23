@@ -57,7 +57,6 @@ router.delete("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, func
         .catch(next);
 }));
 router.put("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("entered the transaction PUT route");
     const id = req.params.id;
     const { name, amount, date, category_id, recipient, comment } = req.body;
     yield TransactionService.updateTransaction(id, name, amount, date, category_id, recipient, comment)

@@ -68,8 +68,6 @@ router.delete("/:id", async (req: any, res: any, next: any) => {
 });
 
 router.put("/:id", async (req: Request, res: Response, next: any) => {
-    console.log("entered the transaction PUT route");
-
     const id = req.params.id;
     const { name, amount, date, category_id, recipient, comment } = req.body;
 
