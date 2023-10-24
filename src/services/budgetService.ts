@@ -1,8 +1,9 @@
 import { Budget } from "../models/1.3/budget";
 const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
+const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 
-("use strict"); // CAN WE DELETE THIS?
+// ("use strict"); // CAN WE DELETE THIS? Commented out since 24/10-2023
 
 class BudgetService {
     static async getBudgets(): Promise<Array<Budget>> {
@@ -10,7 +11,7 @@ class BudgetService {
         let data = await pool
             .query("SELECT * FROM budget ORDER BY id ASC")
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // make budgets array
@@ -31,11 +32,14 @@ class BudgetService {
         let data = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data.rowCount === 0) {
-            throw new CustomError("Budget id unknown!", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // init budget as Budget object
@@ -65,11 +69,14 @@ class BudgetService {
                 [name, date_start, date_end]
             )
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data_budget.rowCount === 0) {
-            throw new CustomError("No new budgets has been created", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("BUDGET.CREATE.ERROR.NOROWCREATED"),
+                400
+            );
         }
 
         // init budget object
@@ -86,22 +93,32 @@ class BudgetService {
 
     static async deleteBudget(id: number): Promise<Budget> {
         // query db
-        const to_be_deleted_budget_sql_object: Object = await pool
+        const to_be_deleted_budget_sql_object: any = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // verify id only equals 1 budget
         if (to_be_deleted_budget_sql_object.rowCount === 0) {
-            throw new CustomError("Budget id unknown!", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // delete budget in db
-        const deleted_budget_sql_object: Object = await pool
+        const deleted_budget_sql_object: {
+            rows: Array<{
+                name: string;
+                date_start: Date;
+                date_end: Date;
+                id: number;
+            }>;
+        } = await pool
             .query("DELETE FROM budget WHERE id = $1 RETURNING *", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // create budget object

@@ -38,19 +38,12 @@ class CategoryService {
         let data = await pool
             .query("SELECT * FROM category WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"),
-                404
-            );
-        }
-
-        if (data.rowCount > 1) {
-            throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"),
+                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -90,11 +83,14 @@ class CategoryService {
                 [name, amount, parent_id, budget_id]
             )
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data_category.rowCount === 0) {
-            throw new CustomError("No new category row was created in db", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("CATEGORY.CREATE.ERROR.NOROWCREATED"),
+                400
+            );
         }
 
         // init category object
@@ -124,11 +120,14 @@ class CategoryService {
         } = await pool
             .query("SELECT * FROM category WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (to_be_deleted_category_sql_object.rowCount === 0) {
-            throw new CustomError("Category id unknown!", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // delete category in db
@@ -143,7 +142,7 @@ class CategoryService {
         } = await pool
             .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // create category object
@@ -169,7 +168,7 @@ class CategoryService {
         let previous_category = await pool
             .query("SELECT * FROM category WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
         previous_category = previous_category.rows[0];
 
@@ -187,11 +186,14 @@ class CategoryService {
                 ]
             )
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (updated_category.rowCount === 0) {
-            throw new CustomError("Category id unknown", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // init category object

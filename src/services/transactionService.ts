@@ -4,6 +4,10 @@ const pool = require("../configs/queries");
 const CustomError = require("../utils/errors/CustomError");
 const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
 
+interface pgError extends Error {
+    code: string;
+}
+
 interface resTransaction {
     id: number;
     name: string;
@@ -16,18 +20,24 @@ class TransactionService {
     static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
         let data = await pool
-            .query("SELECT * FROM transaction ORDER BY id ASC")
-            .catch((err: Error) => {
+            .query("SELECT * FROM transactionz ORDER BY id ASC")
+            .catch((err: pgError) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown
+                    let errorMessage = ErrorTextHelper.get(
+                        "TRANSACTION.READ.ERROR.INVALIDTABLENAME"
+                    ).split("<");
+
+                    // splitting to add the tablename to errormessage
+                    errorMessage[1] = err.message.split('"')[1];
                     const error = new CustomError(
-                        err.message.replace("relation", "table"),
+                        `${errorMessage.join()}`, //err.message.replace("relation", "table"),
                         500,
                         false
                     );
                     throw error;
                 } else {
-                    throw new CustomError(err.message, 500);
+                    throw new CustomError(err.message, 400);
                 }
             });
 
@@ -54,7 +64,7 @@ class TransactionService {
         let data = await pool
             .query("SELECT * FROM transaction WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data.rowCount === 0) {
@@ -62,8 +72,6 @@ class TransactionService {
                 ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
                 404
             );
-
-            // throw new CustomError("Id of transaction unknown!", 404);
         }
 
         // init transaction as Transaction object
@@ -115,19 +123,21 @@ class TransactionService {
                 [name, amount, date, category_id, recipient, comment]
             )
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (data_trans.rowCount === 0) {
             throw new CustomError(
-                "No new transaction row was created in db",
-                404
+                ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"),
+                400
             );
         }
         if (data_trans.rowCount !== 1) {
             throw new CustomError(
-                "Created more than 1 new transaction in db",
-                404
+                ErrorTextHelper.get(
+                    "TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"
+                ),
+                400
             );
         }
 
@@ -152,12 +162,15 @@ class TransactionService {
         const to_be_deleted_transaction_sql_object: { rows: [] } = await pool
             .query("SELECT * FROM transaction WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // verify id only equals 1 transaction
         if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
-            throw new CustomError("Transaction id unknown", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // delete transaction in db
@@ -171,7 +184,7 @@ class TransactionService {
         } = await pool
             .query("DELETE FROM transaction WHERE id = $1 RETURNING *", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         // create Transaction object
@@ -198,11 +211,14 @@ class TransactionService {
         let pre_updated_trans_response = await pool
             .query("SELECT * FROM transaction WHERE id = $1", [id])
             .catch((err: Error) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
 
         if (pre_updated_trans_response.rowCount === 0) {
-            throw new CustomError("Unknown id of transaction", 404);
+            throw new CustomError(
+                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                404
+            );
         }
 
         // verify category_id
@@ -226,19 +242,7 @@ class TransactionService {
                 [id, name, amount, date, category_id, recipient, comment]
             )
             .catch((err: Error) => {
-                if (err.code === "23503") {
-                    // code 23503 is thrown when category id is not in category table
-                    const error = new CustomError(
-                        ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"),
-                        404
-                    );
-                    err = error;
-                }
-                throw new CustomError(
-                    err.message,
-                    err.statusCode || 500,
-                    false
-                );
+                throw new CustomError(err.message, 400, false);
             });
 
         // init transaction object

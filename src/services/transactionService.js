@@ -19,15 +19,19 @@ class TransactionService {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transactions in database
             let data = yield pool
-                .query("SELECT * FROM transaction ORDER BY id ASC")
+                .query("SELECT * FROM transactionz ORDER BY id ASC")
                 .catch((err) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown
-                    const error = new CustomError(err.message.replace("relation", "table"), 500, false);
+                    let errorMessage = ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDTABLENAME").split("<");
+                    // splitting to add the tablename to errormessage
+                    errorMessage[1] = err.message.split('"')[1];
+                    const error = new CustomError(`${errorMessage.join()}`, //err.message.replace("relation", "table"),
+                    500, false);
                     throw error;
                 }
                 else {
-                    throw new CustomError(err.message, 500);
+                    throw new CustomError(err.message, 400);
                 }
             });
             // build array of transactions
@@ -46,11 +50,10 @@ class TransactionService {
             let data = yield pool
                 .query("SELECT * FROM transaction WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (data.rowCount === 0) {
                 throw new CustomError(ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"), 404);
-                // throw new CustomError("Id of transaction unknown!", 404);
             }
             // init transaction as Transaction object
             let transaction_in_array = data.rows.map((resTransaction) => {
@@ -80,13 +83,13 @@ class TransactionService {
             let data_trans = yield pool
                 .query("INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [name, amount, date, category_id, recipient, comment])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (data_trans.rowCount === 0) {
-                throw new CustomError("No new transaction row was created in db", 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"), 404);
             }
             if (data_trans.rowCount !== 1) {
-                throw new CustomError("Created more than 1 new transaction in db", 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"), 400);
             }
             // init transaction object
             let transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id);
@@ -102,17 +105,17 @@ class TransactionService {
             const to_be_deleted_transaction_sql_object = yield pool
                 .query("SELECT * FROM transaction WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             // verify id only equals 1 transaction
             if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
-                throw new CustomError("Transaction id unknown", 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"), 404);
             }
             // delete transaction in db
             const deleted_transaction_sql_object = yield pool
                 .query("DELETE FROM transaction WHERE id = $1 RETURNING *", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             // create Transaction object
             const deleted_transaction = new transaction_1.Transaction(deleted_transaction_sql_object["rows"][0].id, deleted_transaction_sql_object["rows"][0].name, deleted_transaction_sql_object["rows"][0].amount, deleted_transaction_sql_object["rows"][0].date);
@@ -125,10 +128,10 @@ class TransactionService {
             let pre_updated_trans_response = yield pool
                 .query("SELECT * FROM transaction WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (pre_updated_trans_response.rowCount === 0) {
-                throw new CustomError("Unknown id of transaction", 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"), 404);
             }
             // verify category_id
             yield CategoryService.exists(category_id).catch((err) => {
@@ -146,12 +149,7 @@ class TransactionService {
             let updated_trans = yield pool
                 .query("UPDATE transaction SET name = $2, amount = $3, date = $4, category_id = $5, recipient = $6, comment = $7 WHERE id = $1 RETURNING *", [id, name, amount, date, category_id, recipient, comment])
                 .catch((err) => {
-                if (err.code === "23503") {
-                    // code 23503 is thrown when category id is not in category table
-                    const error = new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
-                    err = error;
-                }
-                throw new CustomError(err.message, err.statusCode || 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             // init transaction object
             let transaction = new transaction_1.Transaction(updated_trans.rows[0].id, updated_trans.rows[0].name, updated_trans.rows[0].amount, updated_trans.rows[0].date, updated_trans.rows[0].category_id);

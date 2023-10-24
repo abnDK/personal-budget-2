@@ -33,13 +33,13 @@ class CategoryService {
             let data = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (data.rowCount === 0) {
                 throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
             }
             if (data.rowCount > 1) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"), 404);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"), 400);
             }
             // init budget as Budget object
             let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
@@ -125,7 +125,7 @@ class CategoryService {
                 return true;
             })
                 .catch((err) => {
-                throw new CustomError("tada", 405);
+                throw err;
             });
         });
     }
