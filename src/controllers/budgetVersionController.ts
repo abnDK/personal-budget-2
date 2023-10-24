@@ -229,6 +229,7 @@ const mockCategoryService: tCategoryService = {
      * it might as well just return the budget with a root and
      * the tree structure.
      *
+     * When this functions, we should write some tests on the methods of tCategoryService
      */
 
     _budgets: {
