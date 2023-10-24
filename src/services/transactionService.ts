@@ -20,7 +20,7 @@ class TransactionService {
     static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
         let data = await pool
-            .query("SELECT * FROM transactionz ORDER BY id ASC")
+            .query("SELECT * FROM transaction ORDER BY id ASC")
             .catch((err: pgError) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown

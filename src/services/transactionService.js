@@ -19,7 +19,7 @@ class TransactionService {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transactions in database
             let data = yield pool
-                .query("SELECT * FROM transactionz ORDER BY id ASC")
+                .query("SELECT * FROM transaction ORDER BY id ASC")
                 .catch((err) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown
@@ -86,7 +86,7 @@ class TransactionService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data_trans.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"), 404);
+                throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"), 400);
             }
             if (data_trans.rowCount !== 1) {
                 throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"), 400);

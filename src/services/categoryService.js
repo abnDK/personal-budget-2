@@ -36,10 +36,7 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.INVALIDID"), 404);
-            }
-            if (data.rowCount > 1) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.GET.ERROR.MULTIPLEROWS"), 400);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // init budget as Budget object
             let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
@@ -53,10 +50,10 @@ class CategoryService {
             let data_category = yield pool
                 .query("INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *", [name, amount, parent_id, budget_id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (data_category.rowCount === 0) {
-                throw new CustomError("No new category row was created in db", 404);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.CREATE.ERROR.NOROWCREATED"), 400);
             }
             // init category object
             let category = new category_1.Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
@@ -70,16 +67,16 @@ class CategoryService {
             const to_be_deleted_category_sql_object = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (to_be_deleted_category_sql_object.rowCount === 0) {
-                throw new CustomError("Category id unknown!", 404);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // delete category in db
             const deleted_category_sql_object = yield pool
                 .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             // create category object
             const deleted_category = new category_1.Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
@@ -92,7 +89,7 @@ class CategoryService {
             let previous_category = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             previous_category = previous_category.rows[0];
             // update category
@@ -107,10 +104,10 @@ class CategoryService {
                 budget_id || previous_category.budget_id,
             ])
                 .catch((err) => {
-                throw new CustomError(err.message, 500, false);
+                throw new CustomError(err.message, 400, false);
             });
             if (updated_category.rowCount === 0) {
-                throw new CustomError("Category id unknown", 404);
+                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // init category object
             let category = new category_1.Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
