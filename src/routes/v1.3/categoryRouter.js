@@ -1,65 +1,44 @@
-const router = require('@root/async-router').Router();
-const CategoryService = require('../../services/categoryService')
-
-
-router.get('/', async (req, res) => {
-    let categories = await CategoryService.getCategories();
-    res.status(200).json(categories)
-
-})
-
-
-
-router.get('/:id', async (req, res) => {
-    let category = await CategoryService.getCategoryById(req.params.id)
-    res.status(200).json(category)
-})
-
-
-
-router.post('/', async (req, res) => {
-
-    console.log('now posting: ', req.body)
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const router = require("@root/async-router").Router();
+const CategoryService = require("../../services/categoryService");
+router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    yield CategoryService.getCategories()
+        .then((categories) => res.status(200).json(categories))
+        .catch(next);
+}));
+router.get("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    yield CategoryService.getCategoryById(req.params.id)
+        .then((category) => res.status(200).json(category))
+        .catch(next);
+}));
+router.post("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("now posting: ", req.body);
     const { name, amount, parent_id, budget_id } = req.body;
-
-    let newCategory = await CategoryService.createCategory(name, amount, parent_id, budget_id);
-    
-    res.status(200).json(newCategory)
-})
-
-
-router.delete('/:id', async (req, res, next) => {
-    /*
-    let category = await CategoryService.deleteCategory(req.params.id)
-    res.status(200).send(category)
-    */
-    
-    /*
-    try {
-        let category = await CategoryService.deleteCategory(req.params.id)
-        res.status(200).send(category)
-    } catch (err) {
-        return next(err)
-    }
-    */
-
-    let category = CategoryService.deleteCategory(req.params.id)
-    category
+    yield CategoryService.createCategory(name, amount, parent_id, budget_id)
+        .then((newCategory) => res.status(200).json(newCategory))
+        .catch(next);
+}));
+router.delete("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    CategoryService.deleteCategory(parseInt(req.params.id))
         .then((category) => res.status(200).send(category))
-        .catch((error) => next(error))
-            
-})
-
-router.put('/:id', async (req, res) => {
-
+        .catch(next);
+}));
+router.put("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, amount, parent_id, budget_id } = req.body;
-
     const id = req.params.id;
-
-    const category = await CategoryService.updateCategory(id, name, amount, parent_id, budget_id);
-
-    res.status(200).json(category);
-})
-
-module.exports = router
+    yield CategoryService.updateCategory(id, name, amount, parent_id, budget_id)
+        .then((category) => {
+        res.status(200).json(category);
+    })
+        .catch(next);
+}));
+module.exports = router;

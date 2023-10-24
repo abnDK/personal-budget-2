@@ -6,14 +6,18 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const app = express();
 const port = 3000;
- 
+const globalErrorHandler = require('./src/controllers/errorController')
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded(
     {
         extended: true
     }
 ))
+
+// set logging
 app.use(morgan('common'));
+
 
 
 // setting env-variable.
@@ -21,6 +25,8 @@ app.use(morgan('common'));
 // for more.
 require('dotenv').config();
 console.log(`Starting server with username ${process.env.USERNAME}`)
+console.log(`Starting server in mode "${process.env.NODE_ENV}"`)
+console.log("For running in either 'production' or 'development' mode: 'export NODE_ENV=<mode>' before running server")
 
 // setting up views and view engine
 //console.log(__dirname, __filename)
@@ -46,6 +52,10 @@ app.get('/', (req, res) => {
     )
 })
 
+
+
+// set up error messages (global error handling middleware)
+app.use(globalErrorHandler);
 
 
 app.listen(port, ()=>{

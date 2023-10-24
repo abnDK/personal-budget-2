@@ -976,10 +976,6 @@ class Budget {
 
     renderBudgetSum = (): void => {
 
-        // dont forget this
-
-        console.log('rendering sum...')
-
         document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
 
     }
@@ -987,4 +983,15 @@ class Budget {
 
 
     
+}
+
+
+
+class BudgetPage {
+
+    static renderTitles = (): void => {
+        document.querySelector('.budget-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`
+        document.querySelector('.transactions-header-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`
+    }
+
 }

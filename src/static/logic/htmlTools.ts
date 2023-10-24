@@ -1,12 +1,21 @@
 function createHTMLElement(tag: string, className?: string | undefined, innerText?: string | undefined, children?: HTMLElement[] | undefined): HTMLElement {
-    let element: HTMLElement = document.createElement(tag);
+    
+    let element: HTMLElement = document.createElement(tag)
 
 
-    if (className) {
+
+
+    // set className as id if start with # // should be renamed to selector!
+    if (className && className[0] === '#') {
+        element.id = className.substring(1)
+    } else if (className) {        
         element.className = className;
     }
     
-    if (innerText) {
+    if (innerText && tag == 'input') {
+        element.value = innerText
+    }
+    else if (innerText) {
         element.innerText = innerText;
     }
     

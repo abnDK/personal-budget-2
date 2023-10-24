@@ -1,0 +1,11 @@
+TRANSACTION.READ.ERROR.INVALIDID;Unknown transaction id!
+TRANSACTION.READ.ERROR.INVALIDTABLENAME;Cannot find table <table<!
+TRANSACTION.CREATE.ERROR.NOROWCREATED;No new transaction row was created in db!
+TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED;Created more than 1 new transaction in db!
+TRANSACTION.UPDATE.ERROR.GENERAL;Something wen't wrong when updating transaction!
+CATEGORY.READ.ERROR.INVALIDID;Unknown category id!
+CATEGORY.CREATE.ERROR.NOROWCREATED;No new category row was created in db!
+BUDGET.READ.ERROR.INVALIDID;Unknown budget id!
+BUDGET.CREATE.ERROR.NOROWCREATED;No new budget row was created in db!
+
+

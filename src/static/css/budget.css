@@ -57,7 +57,7 @@
 
     display: grid;
     grid-template-columns: [page-border] 15px [content-start] 1fr [content-end] 15px [page-center];
-    grid-template-rows: [page-top] 10px [header-start] 30px [header-end content-start] 1fr [content-end] 10px [page-bottom];
+    grid-template-rows: [page-top] 10px [header-start] 20px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
 
     place-self: center end;
 
@@ -75,7 +75,7 @@
 
 
 
-.transaction-header {
+.transactions-header {
     grid-column: content-start / content-end;
     grid-row: header-start / header-end;
 
@@ -89,7 +89,66 @@
     
 }
 
-.transaction-rows {
+.transactions-subheader {
+
+    grid-column: content-start / content-end;
+    grid-row: subheader-start / subheader-end;
+    align-self: center;
+
+    display: grid;
+    grid-template-columns: [information-start] 1fr [information-end addTrans-start] 15px [addTrans-end]
+
+}
+
+#informationContainer {
+    grid-column: information-start / information-end;   
+}
+
+.errorMessage, .succesMessage {
+    padding: 5px;
+    padding-left: 10px;
+
+    border-radius: 4px;
+    width: 90%;
+}
+
+.errorMessage {
+    color: rgb(106, 0, 0);
+    background-color: rgb(239, 229, 229);
+    border: 1px darkred solid;
+}
+
+.succesMessage {
+    color: rgb(0, 106, 26);
+    background-color: rgb(229, 239, 230);
+    border: 1px rgb(0, 92, 6) solid;   
+}
+
+.hide {
+    /* fade out before element is removed from page */
+    opacity: 0;
+    transition: opacity;
+    transition-duration: 500ms;
+    transition-timing-function: ease-in;
+}
+
+
+
+#addTransRow {
+    grid-column: addTrans-start / addTrans-end;
+    font-size: 12px;
+    color: green;
+    margin: auto;
+    margin-right: 0px;
+}
+
+#addTransRow:hover {
+    color: rgb(0, 158, 0);
+    cursor: pointer;
+
+}
+
+.transaction-rows-table {
     grid-column: content-start / content-end;
     grid-row: content-start / content-end;
 
@@ -101,39 +160,162 @@
 }
 
 
-.transaction-row {
+.transaction-row, .transaction-rows-title {
     grid-column: row-start;
     grid-row: span 1;
 
     display: grid;
-    grid-template-columns: [row-start date-start] 1fr [amount-start] 1fr [description-start] 3fr [category-start] 1fr [row-end];
+    grid-template-columns: [row-start date-start] 4fr [amount-start] 4fr [description-start] 6fr [category-start] 10fr [add-btn-start] 1fr [del-btn-start] 1fr [row-end];
     grid-template-rows: 10px;
-    column-gap: 10px;
+    column-gap: 6px;
+
 }
 
-.transaction-rows > .header {
+
+.transaction-rows-title {
     font-weight:bold;
 }
 
+.transaction-rows-title .transaction-amount:hover, 
+.transaction-rows-title .transaction-category:hover, 
+.transaction-rows-title .transaction-date:hover, 
+.transaction-rows-title .transaction-description:hover {
+
+    cursor: pointer;
+    text-decoration: underline;
+
+}
+
+.sorted-by {
+
+    text-decoration: underline;
+    font-weight: bolder;
+
+}
+
+.ascending::after {
+
+    content: '';
+    background-image: url('../img/caret-down-fill.svg');
+    background-size: 100% 100%;
+    display: inline-block;
+
+
+    height: 7px;
+    width: 7px;
+
+    padding-left: 6px;
+
+}
+
+.descending::after {
+
+    content: '';
+    background-image: url('../img/caret-up-fill.svg');
+    background-size: 100% 100%;
+    display: inline-block;
+
+
+    height: 7px;
+    width: 7px;
+
+    padding-left: 6px;
+
+}
+
+.transaction-rows > * {
+
+    overflow: hidden;
+
+}
+
 .transaction-date {
-    grid-column: date-start / span 1;
+    grid-column: date-start / amount-start;
+
+
 
 }
 
 .transaction-amount {
-    grid-column: amount-start / span 1;
+    grid-column: amount-start / description-start;
 
 }
 
 .transaction-description {
-    grid-column: description-start / span 1;
+    grid-column: description-start / category-start;
 
 }
 
 .transaction-category {
-    grid-column: category-start / span 1;
+    grid-column: category-start / add-btn-start;
 
 }
+
+.transaction-edit {
+    grid-column: del-btn-start / row-end;
+    justify-self: center;
+    color:#263d5e;
+    transition: all 0.5s ease;
+}
+
+.transaction-edit:hover {
+
+    cursor: pointer;
+    
+    color: rgb(36, 106, 244);
+
+    transform: rotate(10deg);
+
+}
+
+.addTransRow {
+
+    grid-column: add-btn-start / del-btn-start;
+    justify-self: center;
+    color:#3A5431;
+    transition: all 0.5s ease;
+
+}
+
+.addTransRow:hover {
+
+    cursor: pointer;
+    
+    
+    color: rgb(1, 203, 1);
+
+    transform: rotate(20deg);
+
+
+}
+
+.delTransRow {
+    grid-column: del-btn-start / row-end;
+    justify-self: center;
+    color:#A0522D;
+    transition: all 0.5s ease;
+
+}
+
+.delTransRow:hover {
+
+    cursor: pointer;
+    color: rgb(221, 0, 0);
+    transform: rotate(20deg);
+
+}
+
+input.transaction-date, input.transaction-amount, input.transaction-description, input.transaction-category {
+    all: unset;
+    
+    overflow: hidden;
+    
+    background-color: #feffd1;
+    border-bottom: 1px solid #3d321f;
+    height: 8px;
+    justify-self: stretch;
+}
+
 
 
 /** BUDGET PAGE **/
@@ -145,7 +327,7 @@
 
     display: grid;
     grid-template-columns: [page-border] 15px [content-start] 1fr [content-end] 15px [page-center];
-    grid-template-rows: [page-top] 10px [header-start] 30px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
+    grid-template-rows: [page-top] 10px [header-start] 20px [header-end subheader-start] 30px [subheader-end content-start] 1fr [content-end] 10px [page-bottom];
 
     /* H/W ratio: 420/260 = 1,615 */
 
@@ -184,12 +366,12 @@
     grid-template-rows: [start] 1fr [center] 1fr [end];
 }
 
-.budget-subheader > .start-date {
-    grid-column: info-start / span 1;
-}
 
 .budget-subheader > .budget-sum {
     grid-column: info-start / span 1;
+    grid-row: center / end;
+
+    justify-self: start;
 }
 
 .budget-subheader > .button-add {
@@ -276,8 +458,6 @@
     grid-column: category-start / category-end;
 }
 
-.category-row > .category-parent {
-}
 
 
 
