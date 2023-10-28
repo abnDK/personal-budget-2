@@ -1,16 +1,6 @@
-/// TYPES ///
+import { VerifyJsonWebKeyInput } from "crypto";
 
-type _oldBudget = {
-    id: number;
-    name: string;
-    root: _Category;
-    // nodes
-    getRoot(filterDate?: Date): _Category; // return _Category root only with children with date < filterDate
-
-    // values
-    calcSum(): number; // return sum of all children
-};
-
+// BUDGET INTERFACES
 interface baseBudget {
     id: number;
     name: string;
@@ -18,9 +8,9 @@ interface baseBudget {
 }
 
 interface dbBudget extends baseBudget {
-    categories: dbCategory[];
+    categories?: dbCategory[] | undefined;
 
-    parseVersionBudget(): _VersionBudget | null; // if no categories, null is returned
+    parseVersionBudget(): _VersionBudget; // if no categories, null is returned (not nescessary as BudgetService return null if no categories match  budgetId)
 }
 
 interface _Budget extends baseBudget {
@@ -28,14 +18,14 @@ interface _Budget extends baseBudget {
 }
 
 interface _VersionBudget extends baseBudget {
-    root: _VersionCategory
+    root: _VersionCategory;
 
-    flattenBudget(filterDate: Date): _Budget | null; // returns flattened budget by filterDate. If no nodes besides root is available, null is returned
-
+    flattenBudget(filterDate?: Date): _Budget; // returns flattened budget by filterDate. If no nodes besides root is available, null is returned
 }
 
+// CATEGORY INTERFACES
 interface baseCategory {
-    id: number;
+    id?: number;
     name: string;
     amount: number;
     endOfLife: boolean;
@@ -44,329 +34,481 @@ interface baseCategory {
 }
 
 interface dbCategory extends baseCategory {
-    prevId?: number;
-    nextId?: number;
-    parentId?: number;
-    childrenIds?: number[];
+    prevId?: number | null;
+    nextId?: number | null;
+    parentId?: number | null;
+    childrenIds?: number[] | null;
 }
 
 interface _Category extends baseCategory {
-    parent?: _Category;
-    children?: _Category[];
+    parent?: _Category | null;
+    children?: _Category[] | null;
 
-    getParent(): _Category | null; // returns parent
-    makeChild(child: _Category): _Category; // add child to node and sets .parent of child to this node
+    // getParent(): _Category | null; // returns parent
+    // makeChild(child: _Category): _Category; // add child to node and sets .parent of child to this node
 
     // end of life
-    kill(): void;
-    isDead(): boolean;
+    // kill(): void;
+    // isDead(): boolean;
 }
-
 
 interface _VersionCategory extends baseCategory {
-    parent?: _VersionCategory;
-    children?: _VersionCategory[];
-    prev?: _VersionCategory;
-    next?: _VersionCategory;    
+    parent?: _VersionCategory | null;
+    children?: _VersionCategory[] | null;
+    prev?: _VersionCategory | null;
+    next?: _VersionCategory | null;
 
-    addNewVersion(newVersion: _Category): _Category;
-    latestVersion(filterDate: Date): _Category | null;
-    firstVersion(): _Category;
+    addNewVersion(newVersion: _VersionCategory): _VersionCategory; //
+    latestVersion(filterDate?: Date): _VersionCategory | undefined; // if no next, return this
+    firstVersion(): _VersionCategory; // if no first, return this
 
-    getParent(): _VersionCategory | null; // returns parent of the first version of a node (is this is where the parent will be referenced)
-    makeChild(child: _VersionCategory): _VersionCategory; // add child to latest version node and sets .parent of child to latest version node
-    
-    nextVersion(): _VersionCategory | null; // returns .next object if any    
-    prevVersion(): _VersionCategory | null; // returns .prev object if any
+    getParent(): _VersionCategory | undefined; // returns parent of the first version of a node (as this is where the parent will be referenced)
+    makeChild(child: _VersionCategory): _VersionCategory; // add child to this and sets .parent to child
 
     // end of life
     kill(): void;
     isDead(): boolean;
 }
 
+// SERVICE INTERFACES
+interface _BudgetService {
+    budgets: { [key: string]: dbBudget }; // mock a database
+    categoryService: _CategoryService;
 
+    // Public
+    getBudget(id: number): dbBudget; // return dbBudget if match on id and if any categories
 
+    // Private
+    getCategories(budgetId?: number): dbCategory[] | undefined; // used internally by getBudget to get categories by budgetId
+}
 
+interface _CategoryService {
+    categories: dbCategory[]; // mock a database
+    getCategories(budgetId?: number): dbCategory[] | undefined; // returns dbCategories in array. if no categories error is thrown (i.e. if budgetId is provided and no returns in db)
+}
 
+// FACTORIES
 
-type _oldCategory = {
-    id: number;
+const createDbBudget = (
+    id: number,
+    name: string,
+    createDate: Date
+): dbBudget => {
+    return {
+        id: id,
+        name: name,
+        createDate: createDate,
+        categories: undefined,
+        parseVersionBudget(): _VersionBudget {
+            const root = createVersionCategory({
+                name: "root",
+                amount: 0,
+                endOfLife: false,
+                budgetId: this.id,
+                date: this.createDate,
+            });
+
+            const baseCategories = this.categories?.filter(
+                (cat) => !cat.parentId && !cat.prevId
+            );
+            if (!baseCategories) {
+                throw new Error(
+                    "Cannot parse versionBudget, when categories is empty!"
+                );
+            }
+
+            const visited: _VersionCategory[] = [];
+            const toVisit: dbCategory[] = [...baseCategories];
+            console.log(baseCategories);
+            console.log(this.categories);
+            for (let category of toVisit) {
+                console.log("CATEGORY OF TOVISIT: ", category);
+                const versionCategory = createVersionCategory({
+                    id: category?.id,
+                    name: category.name,
+                    amount: category.amount,
+                    endOfLife: category.endOfLife,
+                    budgetId: category.budgetId,
+                    date: category.date,
+                });
+
+                // if no parents or prev nodes, add this to the root element
+                if (!category.parentId && !category.prevId) {
+                    root.makeChild(versionCategory);
+                }
+
+                if (category.childrenIds) {
+                    // if any children ids, add the dbCategory with child id to toVisit
+                    for (let id of category.childrenIds) {
+                        const child = this.categories?.filter(
+                            (cat) => cat.id === id
+                        );
+
+                        child?.length === 1 ? toVisit.push(child[0]) : false;
+
+                        // dont think it's nescessary to create child as version cat when we
+                        // also do it later when looking for a visisted note with
+                        // parent id matching the id of the current category being matched
+                        // and here add it as a VersionCategory.
+
+                        /* const childVersionCategory = createVersionCategory({
+                                id: child?.id,
+                                name: child.name,
+                                amount: child.amount,
+                                endOfLife: child.endOfLife,
+                                budgetId: child.budgetId,
+                                date: child.date,
+                            });
+
+                            versionCategory.makeChild(childVersionCategory); */
+                    }
+                }
+
+                if (category.nextId) {
+                    // if nextId matches dbCategory in this.categoris, add to toVisit
+                    const next = this.categories?.filter(
+                        (cat) => cat.id === category.nextId
+                    );
+                    next?.length === 1 ? toVisit.push(next[0]) : false;
+                }
+
+                // if VersionCategory in visited has an id matching the current dbCategory parentId, add current versionCategory to parent and vice versa
+                const parent = visited.filter(
+                    (versionCat) => versionCat.id === category.parentId
+                );
+                parent.length === 1
+                    ? parent[0].makeChild(versionCategory)
+                    : false;
+
+                // if VersionCategory in visisted has an id matching the current category prev.id, make current versionCategory a new version of the versionCategory in visited
+                const prev = visited.filter(
+                    (prevVersionCat) => prevVersionCat.id === category.prevId
+                );
+                console.log("CURRENT CAT: ", category);
+                console.log("PREV ID: ", category.prevId);
+                console.log("IF PREV DBCATEGORY: ", prev[0]);
+                prev.length === 1
+                    ? prev[0].addNewVersion(versionCategory)
+                    : false;
+
+                console.log("AFTER MAKE NEW VERSION: ", prev[0]);
+                visited.push(versionCategory); // might be better to shift() - DFS or BFS? - maybe not relevant
+            }
+
+            return createVersionBudget({
+                id: this.id,
+                name: this.name,
+                createDate: this.createDate,
+                root: root,
+            }); // create versionBudget and add root to it
+        },
+    };
+};
+
+const createDbCategory = (category: dbCategory): dbCategory => {
+    return {
+        id: category.id,
+        name: category.name,
+        amount: category.amount,
+        endOfLife: category.endOfLife,
+        budgetId: category.budgetId,
+        date: category.date,
+        prevId: category.prevId,
+        nextId: category.nextId,
+        parentId: category.parentId,
+        childrenIds: category.childrenIds,
+    };
+};
+
+const createVersionCategory = (category: {
+    id?: number;
     name: string;
     amount: number;
     endOfLife: boolean;
     budgetId: number;
     date: Date;
-    prev?: _Category;
-    next?: _Category;
-    parent?: _Category;
-    children?: _Category[];
+}): _VersionCategory => {
+    return {
+        id: category.id,
+        name: category.name,
+        amount: category.amount,
+        endOfLife: category.endOfLife,
+        budgetId: category.budgetId,
+        date: category.date,
+        /* prev: category.prev,
+        next: category.next,
+        parent: category.parent,
+        children: category.children, */
+        addNewVersion(newVersion): _VersionCategory {
+            // get latest version with some filterDate = newVersion.date
+            // set as next of this.
+            // if latest version has a next, set this as next on this (this will insert newVersion inbetween.)
 
-    // versions
-    addNewVersion(newCat: _Category): _Category; // returns new _Category with this set as prev. This.next is set to returned _Category.
-    latestVersion(filterDate?: Date): _Category | null; // get the latest version of this node. Returns this if no next version and no filterDate. If this.date > filterDate, return null.
-    nextVersion(): _Category | null; // get the next version of this node, if any
-    prevVersion(): _Category | null; // get the previous version of this node, if any
+            console.log("MAKING NEW VERSION!");
+            console.log("PREV: ", this);
+            console.log("NEXT: ", newVersion);
 
-    // parent / child
-    getParent(): _Category | null; // get the parent category of the first version of this node. If no, this is level 0 category
-    makeChild(child: _Category): _Category; // return _Category with this as parent
+            const latestVersion = this.firstVersion().latestVersion(
+                newVersion.date
+            );
+            console.log("LATEST VERSION: ", latestVersion);
+            if (!latestVersion) {
+                // if no version exists with date <= filterDate
+                // we insert the new version as the first node
+                // in the linked list, becoming the new first version.
+                // The new version thus get the parent
+                // of the first version and has it's
+                // .next set to the previous first version
 
-    // end of life
-    kill(): boolean; // sets endOfLife boolean to true on the latest version of this node
-    isDead(filterDate?: Date | undefined): boolean; // checks if endOfLife boolean is true or false of the latest version of this node
+                const firstVersion = this.firstVersion();
+                newVersion.parent = firstVersion.parent;
+                firstVersion.parent = null;
+                newVersion.next = firstVersion;
+            } else {
+                newVersion.prev = latestVersion;
+
+                newVersion.next = latestVersion.next
+                    ? latestVersion.next
+                    : undefined;
+
+                latestVersion.next = newVersion;
+            }
+
+            console.log("AFTER NEW VERSION! (before return)");
+            console.log("PREV: ", this);
+            console.log("NEXT: ", newVersion);
+
+            return newVersion;
+        },
+        latestVersion(filterDate?: Date): _VersionCategory | undefined {
+            if (filterDate && this.date > filterDate) return undefined;
+
+            return this.next
+                ? filterDate
+                    ? this.next.date <= filterDate
+                        ? this.next.latestVersion(filterDate)
+                        : this
+                    : this.next.latestVersion()
+                : this;
+        },
+        firstVersion(): _VersionCategory {
+            return this.prev ? this.prev.firstVersion() : this;
+        },
+        getParent(): _VersionCategory | undefined {
+            // gets parent of the first version
+            const firstVersion = this.firstVersion();
+
+            return firstVersion.parent ? firstVersion.parent : undefined;
+        },
+        makeChild(child): _VersionCategory {
+            child.parent = this;
+            this.children
+                ? this.children?.push(child)
+                : (this.children = [child]);
+            return child;
+        },
+        kill() {
+            this.endOfLife = true;
+        },
+        isDead() {
+            return this.endOfLife;
+        },
+    };
 };
 
-interface dbCategory {
-    // as _Category but with id's to emulate data coming from db
-    // and can work as foundation for parser, that converts to _Category
-    // and when tree is made with _Category and all versions,
-    // this can be filtered and returned as a "flat" tree filtered by date.ˇ
-}
-
-type _CategoryParser = {
-    parseData(data: Array<_Category>): _Budget; // returns budget with _Category as root of tree.
-};
-
-// simulate the service layer connection to db and getting data for us
-type _CategoryService = {
-    _budgets: { [id: string]: Array<_Category> };
-    budgets(id: string): Array<_Category>;
-    getData(budgetId: string): Promise<Array<dbCategory>>; // reads all rows from db and returns in array of objects
-    parseVersionBudget(): // builds tree with all versions of categories etc. in type _Category
-    parseFlatBudget(filterDate: Date): // filters version budget into budget with no history of category nodes. Only the latest version that is not filtered by filterDate
+const createVersionBudget = (budget: {
+    id: number;
+    name: string;
+    createDate: Date;
+    root: _VersionCategory;
+}): _VersionBudget => {
+    return {
+        id: budget.id,
+        name: budget.name,
+        createDate: budget.createDate,
+        root: budget.root,
+        flattenBudget(filterDate?: Date): _Budget {
+            throw new Error("Not implemented");
+        },
+    };
 };
 
 /// TESTING THE CODE ///
 
-const _CategoryFactory = (
-    id: number,
-    name: string,
-    amount: number,
-    endOfLife: boolean = false,
-    budgetId: number,
-    date: Date = new Date(),
-    prev?: _Category,
-    next?: _Category,
-    parent?: _Category,
-    children?: _Category[]
-): _Category => {
-    let tCat: _Category = {
-        id: id,
-        name: name,
-        amount: amount,
-        endOfLife: endOfLife,
-        budgetId: budgetId,
-        date: date,
-        addNewVersion(newCat: _Category): _Category {
-            newCat.budgetId = this.budgetId;
-            if (newCat.date < this.date)
-                throw new Error(
-                    "Date of new version has to be equal or later than it's previous version"
-                );
-            this.next = newCat;
-            newCat.prev = this;
-            return newCat;
-        },
-        latestVersion(filterDate?: Date | undefined): _Category | null {
-            console.log("entered latestVersion..");
-            if (filterDate) {
-                console.log("with filterDate: ", filterDate);
-                console.log("and this.date: ", this.date);
-
-                if (this.date > filterDate) {
-                    return null;
-                }
-
-                if (this.next && this.next.date <= filterDate) {
-                    return this.next.latestVersion(filterDate);
-                }
-
-                return this;
-            }
-
-            if (this.next) {
-                return this.next.latestVersion();
-            }
-
-            return this;
-        },
-        nextVersion(): _Category | null {
-            if (this.next) return this.next;
-            return null;
-        },
-        prevVersion(): _Category | null {
-            if (this.prev) return this.prev;
-            return null;
-        },
-        getParent(): _Category | null {
-            if (this.parent) return this.parent;
-            return null;
-        },
-        makeChild(child: _Category): _Category {
-            child.parent = this;
-            if (!this.children) this.children = [];
-            this.children.push(child);
-            return child;
-        },
-        kill(): boolean {
-            this.endOfLife = true;
-            return this.endOfLife;
-        },
-        isDead(filterDate?: Date | undefined): boolean {
-            // this was originally supposed to look for latest version
-            // and return true if anywhere in the future, endOfLife
-            // was set to true. But this does not work as budgets in
-            // the past suddenly will miss nodes, if a later version
-            // is killed. So isDead will have to work with some kind
-            // of filterDate as we do with latestVersion().
-
-            if (filterDate) {
-                console.log(
-                    "returning endOfLife with a filterDate: ",
-                    filterDate
-                );
-
-                const latestVersion = this.latestVersion(filterDate);
-
-                if (!latestVersion)
-                    throw new Error(
-                        "Neither this or any possible next versions has a date before filterdate!"
-                    );
-
-                console.log(
-                    "... and the latest version was: ",
-                    latestVersion?.name,
-                    " with date: ",
-                    latestVersion?.date
-                );
-
-                return latestVersion.endOfLife;
-            }
-            const latestVersion = this.latestVersion();
-            if (latestVersion) {
-                console.log("returning endOfLife without a filterDate");
-                // if no filterDate, latestVersion will always return a _Category (if no .next, it return itself)
-                return latestVersion.endOfLife;
-            }
-
-            return this.endOfLife; // will never be reached, but in order to satisfy return type
-        },
-    };
-
-    prev ? (tCat.prev = prev) : false;
-    next ? (tCat.next = next) : false;
-    parent ? (tCat.parent = parent) : false;
-    children ? (tCat.children = children) : false;
-
-    return tCat;
-};
-
-let testCatA = _CategoryFactory(
-    1,
-    "testCatA",
-    5,
-    false,
-    1,
-    new Date(2000, 5, 1)
-);
-let testCatAA1 = _CategoryFactory(
-    1,
-    "testCatAA1",
-    5,
-    false,
-    1,
-    new Date(2010, 5, 1)
-);
-let testCatAA2 = _CategoryFactory(
-    1,
-    "testCatAA2",
-    5,
-    false,
-    1,
-    new Date(2020, 5, 1)
-);
-
-testCatA.makeChild(testCatAA1);
-// console.log(testCatAA1);
-
-testCatAA1.addNewVersion(testCatAA2);
-// console.log(testCatAA1);
-// console.log(testCatAA2);
-
-console.log(testCatAA1.latestVersion());
-console.log(testCatAA1.latestVersion(new Date(2015, 1, 1)));
-
-console.log(testCatAA1.isDead());
-testCatAA2.kill();
-console.log(testCatAA1.isDead());
-console.log(testCatAA1.isDead(new Date(2015, 1, 1)));
-
-// console.log(testCatA);
-// console.log(testCatAA1);
-
 const mockCategoryService: _CategoryService = {
-    /**
-     * TODO:
-     *
-     * categories below has not been linked properly.
-     * before returning them from the service,
-     * we need to properly link them with .makeChild and .addNewVersion
-     *
-     * if CategoryService is to return the budgets with proper relationships
-     * it might as well just return the budget with a root and
-     * the tree structure.
-     *
-     * the tree returned does not reveal previous versions, but only the
-     * latest versions with a date <= filterdate.
-     *
-     * When this functions, we should write some tests on the methods of _CategoryService
-     * 
-     * 
-     * STATES OF CATEGORY
-     * 
-     * read from db: dbCategory (id's of neighbours)
-     * parsed into versioning budget: _CategoryVersion (object ref of neighbours, next/prev..)
-     * flattened budget: _Category (object ref of neighbours, but no next/prev, only parent/child)
-     *      - same format as UI uses today
-     * 
-     * 
-     * 
-     */
+    // PERIOD 1 = january, PERIOD 2 = february
+    categories: [
+        // BUDGET ID 1
+        /* createDbCategory({
+            id: 0,
+            name: "root",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 1,
+            date: new Date(2023, 0, 1),
+            nextId: 1,
+        }), */
+        createDbCategory({
+            id: 1,
+            name: "A1",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 1,
+            date: new Date(2023, 0, 15),
+            nextId: 2,
+        }),
+        createDbCategory({
+            id: 2,
+            name: "A2",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 1,
+            date: new Date(2023, 1, 15),
+            prevId: 1,
+        }),
+        // BUDGET ID 2
+        /* createDbCategory({
+            id: 0,
+            name: "root",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 2,
+            date: new Date(2023, 0, 1),
+            nextId: 1,
+        }), */
+        createDbCategory({
+            id: 1,
+            name: "A1",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 2,
+            date: new Date(2023, 0, 15),
+            nextId: 3,
+        }),
+        createDbCategory({
+            id: 2,
+            name: "A2",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 2,
+            date: new Date(2023, 1, 15),
+            prevId: 3,
+        }),
+        createDbCategory({
+            id: 3,
+            name: "A3",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 2,
+            date: new Date(2023, 0, 31),
+            nextId: 2,
+            prevId: 1,
+        }),
+        // BUDGET ID 3
+        /* createDbCategory({
+            id: 0,
+            name: "root",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 3,
+            date: new Date(2023, 0, 1),
+            nextId: 1,
+        }), */
+        createDbCategory({
+            id: 1,
+            name: "A1",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 3,
+            date: new Date(2023, 0, 15),
+            nextId: 3,
+        }),
+        createDbCategory({
+            id: 2,
+            name: "A2",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 3,
+            date: new Date(2023, 1, 15),
+            prevId: 4,
+        }),
+        createDbCategory({
+            id: 3,
+            name: "A3",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 3,
+            date: new Date(2023, 0, 31),
+            nextId: 4,
+            prevId: 1,
+        }),
+        createDbCategory({
+            id: 4,
+            name: "A4",
+            amount: 0,
+            endOfLife: false,
+            budgetId: 3,
+            date: new Date(2023, 0, 31),
+            nextId: 2,
+            prevId: 3,
+        }),
+    ],
 
-    _budgets: {
-        "1": [
-            // a parent and a child in 2 versions.
-            _CategoryFactory(1, "testCatA", 5, false, 1, new Date(2000, 5, 1)),
-            _CategoryFactory(2, "testCatAA1", 5, false, 1, new Date(2010, 5, 1)),
-            _CategoryFactory(3, "testCatAA2", 5, false, 1, new Date(2020, 5, 1)),
-        ],
-        "2": [
-            // a parent and a child in 2 versions. Latest child is dead.
-            _CategoryFactory(1, "testCatA", 5, false, 1, new Date(2000, 5, 1)),
-            _CategoryFactory(2, "testCatAA1", 5, false, 1, new Date(2010, 5, 1)),
-            _CategoryFactory(3, "testCatAA2", 5, true, 1, new Date(2020, 5, 1)),
-        ],
-        "3": [
-            // a grandparent, a parent in 2 versions (latest is dead) and a child.
-            // verify that child is now a child of the grandparent
-            _CategoryFactory(1, "testCatA", 5, false, 1, new Date(2000, 5, 1)),
-            _CategoryFactory(2, "testCatAA1", 5, false, 1, new Date(2010, 5, 1)),
-            _CategoryFactory(3, "testCatAA2", 5, true, 1, new Date(2020, 5, 1)),
-            _CategoryFactory(4, "testCatAAA", 5, false, 1, new Date(2015, 5, 1)),
-        ],
-    },
-    budgets(id: string) {
-        return this._budgets[id];
-    },
+    getCategories(budgetId?: number): dbCategory[] | undefined {
+        const categories = budgetId
+            ? this.categories.filter((category) => {
+                  return category.budgetId === budgetId;
+              })
+            : this.categories;
 
-    getData(budgetId: string): Promise<Array<_Category>> {
-        return new Promise((resolve, onReject) => {
-            resolve(this.budgets[budgetId]);
-        });
+        if (!categories) {
+            return undefined;
+        }
+
+        return categories;
     },
 };
 
-mockCategoryService
-    .getData("1")
-    .then((data) => console.log(data))
-    .catch((err) => console.error(err));
+const mockBudgetService: _BudgetService = {
+    // 1-6 tests when we create categories back in time after newer categories have been made
+    // See "Versioning budget.drawio" - page "Creating new version back in time".
+    budgets: {
+        "1": createDbBudget(1, "budget1", new Date(2023, 1, 1)),
+        "2": createDbBudget(2, "budget2", new Date(2023, 1, 1)),
+        "3": createDbBudget(3, "budget3", new Date(2023, 1, 1)),
+    },
+    categoryService: mockCategoryService,
+
+    getBudget(id: number): dbBudget {
+        const budget: dbBudget = this.budgets[id.toString()]; // mock db call to table budget
+        const categories = this.getCategories(id); // mock db call to table categories
+
+        if (!categories)
+            throw new Error("No categories match the provied budget id!");
+
+        budget.categories = categories;
+
+        return budget;
+    },
+
+    getCategories(budgetId?: number): dbCategory[] | undefined {
+        return budgetId
+            ? this.categoryService.getCategories(budgetId)
+            : this.categoryService.getCategories();
+    },
+};
+
+// console.log(mockBudgetService.getBudget(1));
+// console.log(mockBudgetService.getBudget(2));
+// console.log(mockBudgetService.getBudget(3));
+const root = mockBudgetService.getBudget(3).parseVersionBudget().root;
+
+const childrenOfRoot = root.children;
+console.log("ROOT: ", root);
+console.log("CHILDREN: ", childrenOfRoot);
+console.log("VERSIONS OF CHILD 1: ", childrenOfRoot[0]);
+
+console.log("A1 ", childrenOfRoot[0]);
+console.log("A2 ", childrenOfRoot[0].next?.next?.next);
+console.log("A3 ", childrenOfRoot[0].next);
+console.log("A4 ", childrenOfRoot[0].next.next);
