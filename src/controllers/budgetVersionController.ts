@@ -87,7 +87,6 @@ interface _CategoryService {
 }
 
 // FACTORIES
-
 const createDbBudget = (
     id: number,
     name: string,
@@ -395,8 +394,8 @@ const createVersionBudget = (budget: {
 
                     visited.push(latestVersionAsCategory);
 
-                    // first version of category has no parent it belongs to the root
-                    if (!category.firstVersion().parent) {
+                    // if first version of category has parent it belongs to the root
+                    if (category.firstVersion().parent) {
                         flatBudget.root.push(latestVersionAsCategory);
                     }
 
@@ -457,7 +456,17 @@ const createBudget = (budget: {
     name: string;
     createDate: Date;
     root?: _Category[];
-}): _Budget => {};
+}): _Budget => {
+    return {
+        id: budget.id,
+        name: budget.name,
+        createDate: budget.createDate,
+        root: [],
+        getCategoryById(id: number) {
+            throw new Error("Not implemented yet!");
+        },
+    };
+};
 
 /// TESTING THE CODE ///
 
@@ -623,45 +632,46 @@ const TEST_DATA_CATEGORIES = [
         endOfLife: false,
         budgetId: 5,
         date: new Date(2023, 0, 15),
-        nextId: 2,
-    }),
-    createDbCategory({
-        id: 2,
-        name: "A2",
-        amount: 0,
-        endOfLife: false,
-        budgetId: 5,
-        date: new Date(2023, 0, 20),
-        prevId: 1,
         nextId: 4,
     }),
     createDbCategory({
-        id: 3,
-        name: "A3",
-        amount: 0,
-        endOfLife: true,
-        budgetId: 4,
-        date: new Date(2023, 1, 20),
-        prevId: 4,
-    }),
-    createDbCategory({
-        id: 4,
-        name: "A4",
-        amount: 0,
-        endOfLife: false,
-        budgetId: 5,
-        date: new Date(2023, 0, 31),
-        nextId: 3,
-        prevId: 2,
-    }),
-    createDbCategory({
-        id: 5,
+        id: 2,
         name: "B1",
         amount: 0,
         endOfLife: false,
         budgetId: 5,
-        date: new Date(2023, 0, 31),
+        date: new Date(2023, 0, 20),
         nextId: 6,
+    }),
+    createDbCategory({
+        id: 3,
+        name: "C1",
+        amount: 0,
+        endOfLife: false,
+        budgetId: 5,
+        date: new Date(2023, 1, 10),
+        nextId: 5,
+        parentId: 2,
+    }),
+    createDbCategory({
+        id: 4,
+        name: "A2",
+        amount: 0,
+        endOfLife: false,
+        budgetId: 5,
+        date: new Date(2023, 2, 10),
+        prevId: 1,
+        nextId: 7,
+    }),
+
+    createDbCategory({
+        id: 5,
+        name: "C2",
+        amount: 0,
+        endOfLife: true,
+        budgetId: 5,
+        date: new Date(2023, 2, 15),
+        prevId: 3,
     }),
     createDbCategory({
         id: 6,
@@ -669,13 +679,21 @@ const TEST_DATA_CATEGORIES = [
         amount: 0,
         endOfLife: false,
         budgetId: 5,
-        date: new Date(2023, 2, 1),
-        prevId: 5,
+        date: new Date(2023, 3, 15),
+        prevId: 2,
+    }),
+    createDbCategory({
+        id: 7,
+        name: "A4",
+        amount: 0,
+        endOfLife: true,
+        budgetId: 5,
+        date: new Date(2023, 4, 15),
+        prevId: 4,
     }),
 ];
 
 const mockCategoryService: _CategoryService = {
-    // PERIOD 1 = january, PERIOD 2 = february
     categories: TEST_DATA_CATEGORIES,
 
     getCategories(budgetId?: number): dbCategory[] | undefined {
@@ -734,6 +752,7 @@ const assertSomething = (a: any, b: any) => {
 };
 
 // ASSERTING BUDGET 3 VERSIONING BUDGET
+console.log("BUDGET 3");
 assertSomething(root_3.name, "root");
 assertSomething(root_3.children[0].name, "A1");
 assertSomething(root_3.children[0].next.name, "A3");
@@ -741,8 +760,8 @@ assertSomething(root_3.children[0].next.next.name, "A4");
 assertSomething(root_3.children[0].next.next.next.name, "A2");
 
 // ASSERTING BUDGET 4 VERSIONING BUDGET
+console.log("BUDGET 4");
 assertSomething(root_4.children[0].name, "A1");
-console.log(root_4.children[0]);
 assertSomething(root_4.children[0].next.children[0].name, "a3B1");
 assertSomething(root_4.children[0].next.children[0].next.name, "a3B2");
 assertSomething(root_4.children[0].next?.next?.next.name, "A2");
@@ -762,9 +781,91 @@ assertSomething(root_3.children[0].next.next.next?.firstVersion().name, "A1");
 // ASSERTING BUDGET 4 FLATTENED
 
 // ASSERTING BUDGET 5 FLATTENED
-const root_5_flat: _Category[] = mockBudgetService
+const budget_5_flat_date1: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget().root;
+    .flattenBudget(new Date(2023, 0, 31)).root; // this date somehow encounters an error - no data is found before this date?
 
-assertSomething(root_5_flat.children[0].next.name, "B2");
+const budget_5_flat_date2: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(new Date(2023, 1, 28)).root;
+
+const budget_5_flat_date3: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(new Date(2023, 2, 31)).root;
+
+const budget_5_flat_date4: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(new Date(2023, 3, 30)).root;
+
+const budget_5_flat_date5: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(new Date(2023, 4, 31)).root;
+
+assertSomething(budget_5_flat_date1.children[0].name, "A1");
+assertSomething(budget_5_flat_date1.children[0].parent, undefined);
+assertSomething(budget_5_flat_date1.children[1].name, "B1");
+
+assertSomething(budget_5_flat_date2.children[0].name, "A1"); // pre A3 insert
+assertSomething(budget_5_flat_date2.children[1].name, "B1"); // pre A3 insert
+assertSomething(budget_5_flat_date2.children[1].children[0].name, "C1"); // pre A3 insert
+
+// insert A3 here
+// INSERT A3
+mockBudgetService.getBudget(5).categories?.push(
+    createDbCategory({
+        id: 8,
+        name: "A3",
+        amount: 0,
+        endOfLife: false,
+        budgetId: 5,
+        date: new Date(2023, 1, 28),
+        prevId: 1,
+        nextId: 4,
+    })
+);
+
+// Update A1 and A2
+
+const budget_5_categories = mockBudgetService.getBudget(5).categories;
+console.log(
+    "Before insert of A3 in budget_5_categories: ",
+    budget_5_categories
+);
+
+budget_5_categories
+    ? (budget_5_categories.filter((cat) => cat.name === "A1)")[0].nextId = 8)
+    : false;
+budget_5_categories
+    ? (budget_5_categories.filter((cat) => cat.name === "A2)")[0].prevId = 8)
+    : false;
+
+console.log("After insert of A3 in budget_5_categories", budget_5_categories);
+
+const budget_5_flat_date2_post_a3_insert: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(new Date(2023, 4, 31)).root;
+
+// test all 5 dates of budget 5 - update with A3 before testing for date 4. A2 should still show, but also test that A3 has been injected between A1 and A2.
+// when A3 inserted: Test budget 5 for date 2. Shoyld be Budget > Root > A3, B1 as children. C1 as child of B1
+
+assertSomething(budget_5_flat_date2_post_a3_insert.children[0].name, "A3"); // post A3 insert
+assertSomething(budget_5_flat_date2_post_a3_insert.children[1].name, "B1"); // post A3 insert
+assertSomething(
+    budget_5_flat_date2_post_a3_insert.children[1].children[0].name,
+    "C1"
+); // post A3 insert
+
+assertSomething(budget_5_flat_date3.children[0].name, "A2");
+assertSomething(budget_5_flat_date3.children[1].name, "B1");
+assertSomething(budget_5_flat_date3.children[1].children[0].length, 0);
+
+assertSomething(budget_5_flat_date4.children[0].name, "A2");
+assertSomething(budget_5_flat_date4.children[1].name, "B2");
+
+assertSomething(budget_5_flat_date5.children.length, 0);
