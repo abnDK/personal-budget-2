@@ -66,7 +66,7 @@ interface _VersionCategory extends baseCategory {
     makeChild(child: _VersionCategory): _VersionCategory; // add child to this and sets .parent to child
     getChildren(): _VersionCategory[]; // scans all versions and returns a list of all children. Returns empty list if no children.
 
-    isDead(filterDate?: Date): boolean;
+    isDead(filterDate?: Date): boolean | undefined;
 }
 
 // SERVICE INTERFACES
@@ -284,15 +284,28 @@ const createVersionCategory = (category: {
             return newVersion;
         },
         latestVersion(filterDate?: Date): _VersionCategory | undefined {
+            filterDate
+                ? console.log(
+                      "latestVersion called with filterDate: ",
+                      filterDate,
+                      "on object: ",
+                      this
+                  )
+                : console.log(
+                      "latestVersion called without filterDate on object: ",
+                      this
+                  );
             if (filterDate && this.date > filterDate) return undefined;
 
-            return this.next
+            let returnValue = this.next
                 ? filterDate
                     ? this.next.date <= filterDate
                         ? this.next.latestVersion(filterDate)
                         : this
                     : this.next.latestVersion()
                 : this;
+            console.log("returning: ", returnValue);
+            return returnValue;
         },
         firstVersion(): _VersionCategory {
             return this.prev ? this.prev.firstVersion() : this;
@@ -328,15 +341,13 @@ const createVersionCategory = (category: {
         kill() {
             this.endOfLife = true;
         },
-        isDead(filterDate?: Date) {
+        isDead(filterDate?: Date): boolean | undefined {
             const latestVersion = filterDate
                 ? this.latestVersion(filterDate)
                 : this.latestVersion();
 
             if (!latestVersion) {
-                throw new Error(
-                    "Cannot verify endOfLife with filterDate before any of the category versions!"
-                );
+                return undefined; // if no version exist with date <= filterDate
             }
 
             return latestVersion.endOfLife;
@@ -356,6 +367,7 @@ const createVersionBudget = (budget: {
         createDate: budget.createDate,
         root: budget.root,
         flattenBudget(filterDate?: Date): _Budget {
+            console.log("flattenBudget called with filterDate: ", filterDate);
             const flatBudget: _Budget = createBudget({
                 id: this.id,
                 name: this.name,
@@ -370,13 +382,40 @@ const createVersionBudget = (budget: {
 
             const visited: _Category[] = [];
             let toVisit: _VersionCategory[] = this.root.children;
+            console.log("Original toVisit: ", toVisit);
+            console.log("Original visited: ", visited);
 
             flatBudget.root = [] as _Category[];
 
             for (const category of toVisit) {
-                if (!category.isDead(filterDate)) {
+                /**
+                 * Gentænk denne:
+                 * for hver node:
+                 * - findes der en version inden filter date?
+                 * - er den version død/levende?
+                 * - hvilke børn har noden fra start til og med filterdate?
+                 * - har den første version af noden en forælder?
+                 *
+                 * hvis noden findes og er levende, tilføj til visisted
+                 * - hvis den ikke har en forælder (se first version), tilføj til root.
+                 * - hvis den har en forælder, tilføj den til forælderen (find i visited)
+                 *
+                 * - hvis børn, så indstil børnenes parent id (eller tilføj et parentId) til id'et for den version af noden vi har her (latest version)
+                 *
+                 */
+                if (
+                    category.isDead(filterDate) !== undefined &&
+                    !category.isDead(filterDate)
+                ) {
                     const latestVersion: _VersionCategory | undefined =
                         category.latestVersion(filterDate);
+
+                    console.log(
+                        "Looking for the latest version of :",
+                        category,
+                        "and found: ",
+                        latestVersion
+                    );
 
                     if (!latestVersion)
                         throw new Error(
@@ -392,12 +431,20 @@ const createVersionBudget = (budget: {
                         date: latestVersion.date,
                     });
 
-                    visited.push(latestVersionAsCategory);
+                    console.log(
+                        "Visited before adding latest version: ",
+                        visited
+                    );
+                    console.log("Adding: ", latestVersionAsCategory);
 
-                    // if first version of category has parent it belongs to the root
-                    if (category.firstVersion().parent) {
+                    // we need parent potential parent id of first version
+                    // to build the tree later. Parent is placed on latestVersion
+
+                    // if first version of category has no parent it belongs to the root
+                    if (!category.firstVersion().parent) {
                         flatBudget.root.push(latestVersionAsCategory);
                     }
+                    console.log("flatBudget.root: ", flatBudget.root);
 
                     // children / parent
                     const potentialChildren: _VersionCategory[] = category
@@ -410,8 +457,15 @@ const createVersionBudget = (budget: {
                             : false; // this sets the parent.id for future iterations to match the category node already parsed. This means, that all other fields on child.parent cannot be trusted.
                         toVisit.push(child);
                     }
-
+                    console.log("a");
+                    console.log(visited);
                     if (category.parent?.id) {
+                        console.log(
+                            "making child on ",
+                            category.parent,
+                            "inserting this as child: ",
+                            latestVersionAsCategory
+                        );
                         visited
                             .filter((cat) => cat.id === category.parent?.id)[0]
                             .makeChild(latestVersionAsCategory);
@@ -781,11 +835,32 @@ assertSomething(root_3.children[0].next.next.next?.firstVersion().name, "A1");
 // ASSERTING BUDGET 4 FLATTENED
 
 // ASSERTING BUDGET 5 FLATTENED
+console.log(mockBudgetService.getBudget(5).parseVersionBudget().root);
+console.log(new Date(2023, 0, 31));
+assertSomething(new Date(2023, 0, 31) >= new Date(2023, 0, 20), true);
+assertSomething(new Date(2023, 0, 31) >= new Date(2023, 0, 31), true);
+assertSomething(new Date(2023, 0, 31) >= new Date(2023, 1, 1), false);
+assertSomething(
+    mockBudgetService
+        .getBudget(5)
+        .parseVersionBudget()
+        .root.children[0].getChildren().length,
+    0
+);
+assertSomething(
+    mockBudgetService
+        .getBudget(5)
+        .parseVersionBudget()
+        .root.children[1].getChildren().length,
+    1
+);
+
 const budget_5_flat_date1: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
     .flattenBudget(new Date(2023, 0, 31)).root; // this date somehow encounters an error - no data is found before this date?
-
+// TRY CONSOLE LOGGING CATEGORIES AVAILABLE...
+console.log("a");
 const budget_5_flat_date2: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
