@@ -18,7 +18,7 @@ interface _Budget extends baseBudget {
 }
 
 interface _VersionBudget extends baseBudget {
-    root: _VersionCategory;
+    root: _VersionCategory[];
 
     flattenBudget(filterDate?: Date): _Budget; // returns flattened budget by filterDate. If no nodes besides root is available, null is returned
 }
@@ -45,8 +45,8 @@ interface dbCategory extends baseCategory {
 }
 
 interface _Category extends baseCategory {
-    parent?: _Category | null;
-    children?: _Category[] | null;
+    parent?: _Category | undefined;
+    children?: _Category[] | undefined;
 
     // getParent(): _Category | null; // returns parent
     makeChild(child: _Category): _Category; // add child to node and sets .parent of child to this node
@@ -66,7 +66,7 @@ interface _VersionCategory extends baseCategory {
     makeChild(child: _VersionCategory): _VersionCategory; // add child to this and sets .parent to child
     getChildren(): _VersionCategory[]; // scans all versions and returns a list of all children. Returns empty list if no children.
 
-    isDead(filterDate?: Date): boolean | undefined;
+    isDead(): boolean;
 }
 
 // SERVICE INTERFACES
@@ -98,13 +98,7 @@ const createDbBudget = (
         createDate: createDate,
         categories: undefined,
         parseVersionBudget(): _VersionBudget {
-            const root = createVersionCategory({
-                name: "root",
-                amount: 0,
-                endOfLife: false,
-                budgetId: this.id,
-                date: this.createDate,
-            });
+            let root = [] as _VersionCategory[];
 
             const baseCategories = this.categories?.filter(
                 (cat) => !cat.parentId && !cat.prevId
@@ -130,7 +124,7 @@ const createDbBudget = (
 
                 // if no parents or prev nodes, add this to the root element
                 if (!category.parentId && !category.prevId) {
-                    root.makeChild(versionCategory);
+                    root.push(versionCategory);
                 }
 
                 const children = this.categories?.filter(
@@ -284,7 +278,7 @@ const createVersionCategory = (category: {
             return newVersion;
         },
         latestVersion(filterDate?: Date): _VersionCategory | undefined {
-            filterDate
+            /* filterDate
                 ? console.log(
                       "latestVersion called with filterDate: ",
                       filterDate,
@@ -294,7 +288,7 @@ const createVersionCategory = (category: {
                 : console.log(
                       "latestVersion called without filterDate on object: ",
                       this
-                  );
+                  ); */
             if (filterDate && this.date > filterDate) return undefined;
 
             let returnValue = this.next
@@ -304,7 +298,7 @@ const createVersionCategory = (category: {
                         : this
                     : this.next.latestVersion()
                 : this;
-            console.log("returning: ", returnValue);
+            // console.log("returning: ", returnValue);
             return returnValue;
         },
         firstVersion(): _VersionCategory {
@@ -341,16 +335,8 @@ const createVersionCategory = (category: {
         kill() {
             this.endOfLife = true;
         },
-        isDead(filterDate?: Date): boolean | undefined {
-            const latestVersion = filterDate
-                ? this.latestVersion(filterDate)
-                : this.latestVersion();
-
-            if (!latestVersion) {
-                return undefined; // if no version exist with date <= filterDate
-            }
-
-            return latestVersion.endOfLife;
+        isDead(): boolean {
+            return this.endOfLife;
         },
     };
 };
@@ -359,7 +345,7 @@ const createVersionBudget = (budget: {
     id: number;
     name: string;
     createDate: Date;
-    root: _VersionCategory; // CHANGE TO _VersionCategory[] instead of making fake root versionCategory
+    root: _VersionCategory[];
 }): _VersionBudget => {
     return {
         id: budget.id,
@@ -367,27 +353,78 @@ const createVersionBudget = (budget: {
         createDate: budget.createDate,
         root: budget.root,
         flattenBudget(filterDate?: Date): _Budget {
-            console.log("flattenBudget called with filterDate: ", filterDate);
+            /**
+             * tilføj alle non parent first versions fra root til tovisit
+             * for hver cat i tovisit
+             *      har du en senere version end filterdate? brug denne og placer i visited
+             *      har du nogen børn inden filterdate? tilføj disse til tovisit
+             *      hvis first version har et parent, placer denne på
+             *
+             *
+             *
+             */
+
+            // console.log("flattenBudget called with filterDate: ", filterDate);
             const flatBudget: _Budget = createBudget({
                 id: this.id,
                 name: this.name,
                 createDate: this.createDate,
             });
 
-            if (!this.root.children) {
+            if (!this.root) {
                 throw new Error(
                     "Cannot flatten a budget with no category nodes!"
                 );
             }
 
             const visited: _Category[] = [];
-            let toVisit: _VersionCategory[] = this.root.children;
-            console.log("Original toVisit: ", toVisit);
-            console.log("Original visited: ", visited);
-
+            let toVisit: _VersionCategory[] & { flatParentId?: number } =
+                filterDate
+                    ? this.root.filter((VerCat) => VerCat.date <= filterDate)
+                    : this.root;
+            // console.log("Original toVisit: ", toVisit);
+            // console.log("Original visited: ", visited);
+            console.log("Name: ", this.name);
+            console.log("Filtering date: ", filterDate);
+            toVisit.map((cat) => {
+                console.log(
+                    "name: ",
+                    cat.name,
+                    "next.name: ",
+                    cat.next?.name,
+                    "children: ",
+                    cat.children?.map((cat) => cat.name)
+                );
+            });
             flatBudget.root = [] as _Category[];
 
             for (const category of toVisit) {
+                // console.log("Acesssing toVisit 1 at the time");
+                // console.log("Category: ", category.name);
+                // console.log(
+                //     "Category.date ",
+                //     category.date,
+                //     "Filtered out (",
+                //     category.date > filterDate,
+                //     ")"
+                // );
+                // console.log(
+                //     "Category.next: ",
+                //     category.next?.name,
+                //     "Filtered out (",
+                //     category.next?.date > filterDate,
+                //     ")"
+                // );
+                // console.log(
+                //     "Children: ",
+                //     category
+                //         .getChildren()
+                //         .map((child) =>
+                //             child.date > filterDate
+                //                 ? `!-${child.name}`
+                //                 : `${child.name}`
+                //         )
+                // );
                 /**
                  * Gentænk denne:
                  * for hver node:
@@ -403,7 +440,95 @@ const createVersionBudget = (budget: {
                  * - hvis børn, så indstil børnenes parent id (eller tilføj et parentId) til id'et for den version af noden vi har her (latest version)
                  *
                  */
-                if (
+
+                const latestVersion: _VersionCategory | undefined =
+                    category.latestVersion(filterDate);
+                console.log(
+                    category.name,
+                    " has latestVersion: ",
+                    latestVersion?.name
+                );
+                // latestVersion
+                //     ? console.log("latestVersion.name", latestVersion.name)
+                //     : false;
+                // latestVersion
+                //     ? console.log(
+                //           "latestVersion.endOfLife ",
+                //           latestVersion?.endOfLife
+                //       )
+                //     : false;
+                // latestVersion
+                //     ? console.log(
+                //           "latestVersion.isDead() ",
+                //           latestVersion?.isDead()
+                //       )
+                //     : false;
+                if (latestVersion && !latestVersion.isDead()) {
+                    const latestVersionAsCategory: _Category = createCategory({
+                        id: latestVersion.id,
+                        name: latestVersion.name,
+                        amount: latestVersion.amount,
+                        endOfLife: latestVersion.endOfLife,
+                        budgetId: latestVersion.budgetId,
+                        date: latestVersion.date,
+                    });
+
+                    visited.push(latestVersionAsCategory);
+                    // console.log("parent: ", category.firstVersion().parent);
+                    if (!category.firstVersion().parent) {
+                        flatBudget.root.push(latestVersionAsCategory);
+                    }
+
+                    // console.log(latestVersionAsCategory.name);
+                    // console.log(flatBudget.root);
+
+                    const children = category
+                        .firstVersion()
+                        .getChildren()
+                        .filter((child) => child.date <= filterDate);
+                    // console.log("children: ", children);
+
+                    for (let child of children) {
+                        let flatChild: typeof child & {
+                            flatParentId?: number;
+                        } = child;
+
+                        flatChild.flatParentId = latestVersionAsCategory.id;
+                        toVisit.push(flatChild);
+                    }
+                    // console.log("toVisit after push(child) ", toVisit);
+                    // console.log("visited: ", visited);
+                    // console.log("category: ", category);
+                    // console.log("latestVersion: ", latestVersion);
+                    // console.log(
+                    //     "latestVersionAsCategory",
+                    //     latestVersionAsCategory
+                    // );
+
+                    if (category.flatParentId) {
+                        // console.log(
+                        //     "looking for parent for ",
+                        //     latestVersionAsCategory.name
+                        // );
+                        // console.log("flatParentId: ", category.flatParentId);
+                        const parent = visited.filter(
+                            (cat) => cat.id === category.flatParentId
+                        )[0];
+                        // console.log("parent: ", parent);
+                        // console.log("parent type: ", typeof parent);
+
+                        parent.makeChild(latestVersionAsCategory);
+                    }
+                    /* category.flatParentId
+                        ? visited
+                              .filter(
+                                  (_cat) => _cat.id === category.flatParentId
+                              )[0]
+                              .makeChild(latestVersionAsCategory)
+                        : false; */
+                }
+
+                /* if (
                     category.isDead(filterDate) !== undefined &&
                     !category.isDead(filterDate)
                 ) {
@@ -472,7 +597,7 @@ const createVersionBudget = (budget: {
                     }
 
                     visited.push(latestVersionAsCategory);
-                }
+                } */
             }
 
             return flatBudget;
@@ -495,6 +620,14 @@ const createCategory = (category: {
         endOfLife: category.endOfLife,
         budgetId: category.budgetId,
         date: category.date,
+        makeChild(child: _Category): _Category {
+            child.parent = this;
+            if (!this.children) {
+                this.children = [child];
+            } else {
+                this.children.push(child);
+            }
+        },
 
         kill() {
             this.endOfLife = true;
@@ -747,6 +880,14 @@ const TEST_DATA_CATEGORIES = [
     }),
 ];
 
+const TEST_DATA_DATES = {
+    date1: new Date(2023, 0, 31),
+    date2: new Date(2023, 1, 28),
+    date3: new Date(2023, 2, 31),
+    date4: new Date(2023, 3, 30),
+    date5: new Date(2023, 4, 31),
+};
+
 const mockCategoryService: _CategoryService = {
     categories: TEST_DATA_CATEGORIES,
 
@@ -807,87 +948,91 @@ const assertSomething = (a: any, b: any) => {
 
 // ASSERTING BUDGET 3 VERSIONING BUDGET
 console.log("BUDGET 3");
-assertSomething(root_3.name, "root");
-assertSomething(root_3.children[0].name, "A1");
-assertSomething(root_3.children[0].next.name, "A3");
-assertSomething(root_3.children[0].next.next.name, "A4");
-assertSomething(root_3.children[0].next.next.next.name, "A2");
+// assertSomething(root_3.name, "root");
+assertSomething(root_3[0].name, "A1");
+assertSomething(root_3[0].next.name, "A3");
+assertSomething(root_3[0].next.next.name, "A4");
+assertSomething(root_3[0].next.next.next.name, "A2");
 
 // ASSERTING BUDGET 4 VERSIONING BUDGET
 console.log("BUDGET 4");
-assertSomething(root_4.children[0].name, "A1");
-assertSomething(root_4.children[0].next.children[0].name, "a3B1");
-assertSomething(root_4.children[0].next.children[0].next.name, "a3B2");
-assertSomething(root_4.children[0].next?.next?.next.name, "A2");
+assertSomething(root_4[0].name, "A1");
+assertSomething(root_4[0].next.children[0].name, "a3B1");
+assertSomething(root_4[0].next.children[0].next.name, "a3B2");
+assertSomething(root_4[0].next?.next?.next.name, "A2");
 assertSomething(
-    root_4.children[0].next?.next?.next?.prev?.prev.children[0].next.name,
+    root_4[0].next?.next?.next?.prev?.prev.children[0].next.name,
     "a3B2"
 );
-assertSomething(
-    root_4.children[0].next.children[0].next?.getParent().name,
-    "A3"
-);
-assertSomething(root_4.children[0].next.children[0].next.isDead(), false);
-assertSomething(root_3.children[0].next.next.next?.firstVersion().name, "A1");
+assertSomething(root_4[0].next.children[0].next?.getParent().name, "A3");
+assertSomething(root_4[0].next.children[0].next.isDead(), false);
+assertSomething(root_3[0].next.next.next?.firstVersion().name, "A1");
 
 // ASSERTING BUDGET 3 FLATTENED
 
 // ASSERTING BUDGET 4 FLATTENED
 
 // ASSERTING BUDGET 5 FLATTENED
-console.log(mockBudgetService.getBudget(5).parseVersionBudget().root);
-console.log(new Date(2023, 0, 31));
-assertSomething(new Date(2023, 0, 31) >= new Date(2023, 0, 20), true);
-assertSomething(new Date(2023, 0, 31) >= new Date(2023, 0, 31), true);
-assertSomething(new Date(2023, 0, 31) >= new Date(2023, 1, 1), false);
+
+console.log("BUDGET 5 - no date - versionBudget");
+
 assertSomething(
-    mockBudgetService
-        .getBudget(5)
-        .parseVersionBudget()
-        .root.children[0].getChildren().length,
+    mockBudgetService.getBudget(5).parseVersionBudget().root[0].getChildren()
+        .length,
     0
 );
 assertSomething(
-    mockBudgetService
-        .getBudget(5)
-        .parseVersionBudget()
-        .root.children[1].getChildren().length,
+    mockBudgetService.getBudget(5).parseVersionBudget().root[1].getChildren()
+        .length,
     1
 );
 
 const budget_5_flat_date1: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 0, 31)).root; // this date somehow encounters an error - no data is found before this date?
+    .flattenBudget(TEST_DATA_DATES["date1"]); // this date somehow encounters an error - no data is found before this date?
 // TRY CONSOLE LOGGING CATEGORIES AVAILABLE...
-console.log("a");
 const budget_5_flat_date2: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 1, 28)).root;
+    .flattenBudget(TEST_DATA_DATES["date2"]);
 
 const budget_5_flat_date3: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 2, 31)).root;
+    .flattenBudget(TEST_DATA_DATES["date3"]);
 
 const budget_5_flat_date4: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 3, 30)).root;
+    .flattenBudget(TEST_DATA_DATES["date4"]);
 
 const budget_5_flat_date5: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 4, 31)).root;
+    .flattenBudget(TEST_DATA_DATES["date5"]);
 
-assertSomething(budget_5_flat_date1.children[0].name, "A1");
-assertSomething(budget_5_flat_date1.children[0].parent, undefined);
-assertSomething(budget_5_flat_date1.children[1].name, "B1");
+console.log("BUDGET 5, date 1 flat");
 
-assertSomething(budget_5_flat_date2.children[0].name, "A1"); // pre A3 insert
-assertSomething(budget_5_flat_date2.children[1].name, "B1"); // pre A3 insert
-assertSomething(budget_5_flat_date2.children[1].children[0].name, "C1"); // pre A3 insert
+assertSomething(budget_5_flat_date1.root[0].name, "A1");
+assertSomething(budget_5_flat_date1.root[0].parent, undefined);
+assertSomething(budget_5_flat_date1.root[1].name, "B1");
+console.log("BUDGET 5, date 2 flat - pre insert");
+
+assertSomething(budget_5_flat_date2.root[0].name, "A1"); // pre A3 insert
+assertSomething(budget_5_flat_date2.root[1].name, "B1"); // pre A3 insert
+assertSomething(budget_5_flat_date2.root[1].children[0].name, "C1"); // pre A3 insert
+
+assertSomething(budget_5_flat_date3.root[0].name, "A2");
+assertSomething(budget_5_flat_date3.root[1].name, "B1");
+console.log(budget_5_flat_date3.root);
+// console.log(budget_5_flat_date3.root[1]?.children[0]);
+assertSomething(budget_5_flat_date3.root[1].children ? true : false, false);
+
+assertSomething(budget_5_flat_date4.root[0].name, "A2");
+assertSomething(budget_5_flat_date4.root[1].name, "B2");
+
+assertSomething(budget_5_flat_date5.root.length, 0);
 
 // insert A3 here
 // INSERT A3
@@ -906,41 +1051,56 @@ mockBudgetService.getBudget(5).categories?.push(
 
 // Update A1 and A2
 
-const budget_5_categories = mockBudgetService.getBudget(5).categories;
+const budget_5_categories_pre = mockBudgetService.getBudget(5).categories;
 console.log(
     "Before insert of A3 in budget_5_categories: ",
-    budget_5_categories
+    budget_5_categories_pre
 );
 
-budget_5_categories
-    ? (budget_5_categories.filter((cat) => cat.name === "A1)")[0].nextId = 8)
+budget_5_categories_pre
+    ? (budget_5_categories_pre.filter((cat) => cat.name === "A1")[0].nextId = 8)
     : false;
-budget_5_categories
-    ? (budget_5_categories.filter((cat) => cat.name === "A2)")[0].prevId = 8)
+budget_5_categories_pre
+    ? (budget_5_categories_pre.filter((cat) => cat.name === "A2")[0].prevId = 8)
     : false;
 
-console.log("After insert of A3 in budget_5_categories", budget_5_categories);
-
+const budget_5_categories_post = mockBudgetService.getBudget(5).categories;
+TEST_DATA_CATEGORIES.push(
+    createDbCategory({
+        id: 8,
+        name: "A3",
+        amount: 0,
+        endOfLife: false,
+        budgetId: 5,
+        date: new Date(2023, 1, 25),
+        prevId: 1,
+        nextId: 4,
+    })
+);
+console.log(
+    "After insert of A3 in budget_5_categories",
+    mockBudgetService.getBudget(5).categories
+);
 const budget_5_flat_date2_post_a3_insert: _Category[] = mockBudgetService
     .getBudget(5)
     .parseVersionBudget()
-    .flattenBudget(new Date(2023, 4, 31)).root;
+    .flattenBudget(TEST_DATA_DATES["date2"]);
 
 // test all 5 dates of budget 5 - update with A3 before testing for date 4. A2 should still show, but also test that A3 has been injected between A1 and A2.
 // when A3 inserted: Test budget 5 for date 2. Shoyld be Budget > Root > A3, B1 as children. C1 as child of B1
+console.log("BUDGET 5, date 2 flat - post insert");
 
-assertSomething(budget_5_flat_date2_post_a3_insert.children[0].name, "A3"); // post A3 insert
-assertSomething(budget_5_flat_date2_post_a3_insert.children[1].name, "B1"); // post A3 insert
+assertSomething(budget_5_flat_date2_post_a3_insert.root[0].name, "A3"); // post A3 insert
+assertSomething(budget_5_flat_date2_post_a3_insert.root[1].name, "B1"); // post A3 insert
 assertSomething(
-    budget_5_flat_date2_post_a3_insert.children[1].children[0].name,
+    budget_5_flat_date2_post_a3_insert.root[1].children[0].name,
     "C1"
 ); // post A3 insert
 
-assertSomething(budget_5_flat_date3.children[0].name, "A2");
-assertSomething(budget_5_flat_date3.children[1].name, "B1");
-assertSomething(budget_5_flat_date3.children[1].children[0].length, 0);
+const budget_5_flat_date5_post_a3_insert: _Category[] = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(TEST_DATA_DATES["date5"]);
 
-assertSomething(budget_5_flat_date4.children[0].name, "A2");
-assertSomething(budget_5_flat_date4.children[1].name, "B2");
-
-assertSomething(budget_5_flat_date5.children.length, 0);
+assertSomething(budget_5_flat_date5_post_a3_insert.root[0].name, "B2");
+console.log(budget_5_flat_date5_post_a3_insert);
