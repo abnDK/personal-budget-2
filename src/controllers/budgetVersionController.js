@@ -317,16 +317,17 @@ var createVersionBudget = function (budget) {
                         date: latestVersion.date,
                     });
                     visited.push(latestVersionAsCategory);
-                    // console.log("parent: ", category.firstVersion().parent);
                     if (!category.firstVersion().parent) {
                         flatBudget.root.push(latestVersionAsCategory);
                     }
                     // console.log(latestVersionAsCategory.name);
                     // console.log(flatBudget.root);
-                    var children = category
-                        .firstVersion()
-                        .getChildren()
-                        .filter(function (child) { return child.date <= filterDate; });
+                    var children = filterDate
+                        ? category
+                            .firstVersion()
+                            .getChildren()
+                            .filter(function (child) { return child.date <= filterDate; })
+                        : category.firstVersion().getChildren();
                     // console.log("children: ", children);
                     for (var _a = 0, children_2 = children; _a < children_2.length; _a++) {
                         var child = children_2[_a];
@@ -789,4 +790,13 @@ var budget_5_flat_date5_post_a3_insert = mockBudgetService
     .parseVersionBudget()
     .flattenBudget(TEST_DATA_DATES["date5"]);
 assertSomething(budget_5_flat_date5_post_a3_insert.root[0].name, "B2");
-console.log(budget_5_flat_date5_post_a3_insert);
+var budget_5_flat_date4_post_a3_insert = mockBudgetService
+    .getBudget(5)
+    .parseVersionBudget()
+    .flattenBudget(TEST_DATA_DATES["date4"]);
+assertSomething(budget_5_flat_date4_post_a3_insert.root[0].name, "A2");
+assertSomething(budget_5_flat_date4_post_a3_insert.root[1].name, "B2");
+console.log(budget_5_flat_date4_post_a3_insert);
+var budget_5_flat_no_filterDate_post_a3_insert = mockBudgetService.getBudget(5).parseVersionBudget().flattenBudget();
+assertSomething(budget_5_flat_no_filterDate_post_a3_insert.root.length, 1);
+assertSomething(budget_5_flat_no_filterDate_post_a3_insert.root[0].name, "B2");
