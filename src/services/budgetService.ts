@@ -1,13 +1,26 @@
-import { Budget } from "../models/1.3/budget.js";
+// THIS IS THE 1.3 VERSION
+// MUST BE UPDATED TO RUN WITH 1.4
+
 import { pool } from "../configs/queries.js";
+
+import { Budget } from "../models/1.3/budget.js";
+import { IBudget } from "../models/1.4/budget";
+
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 const ETH = new ErrorTextHelper();
 
 // ("use strict"); // CAN WE DELETE THIS? Commented out since 24/10-2023
 
-export class BudgetService {
-    static async getBudgets(): Promise<Array<Budget>> {
+interface IBudgetService {
+    getBudgets(): Promise<IBudget[] | undefined>;
+    getBudgetById(id: number): Promise<IBudget | undefined>;
+    createBudget(name: string, create_date: Date): Promise<IBudget>;
+    deleteBudgetById(id: number): Promise<boolean>;
+}
+
+export const BudgetService: IBudgetService = {
+    async getBudgets(): Promise<IBudget[] | undefined> {
         // get Budgets in database
         let data = await pool
             .query("SELECT * FROM budget ORDER BY id ASC")
@@ -26,9 +39,9 @@ export class BudgetService {
         });
 
         return budgets;
-    }
+    },
 
-    static async getBudgetById(id: number): Promise<Budget> {
+    async getBudgetById(id: number): Promise<IBudget | undefined> {
         // get Budget in database
         let data = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])
@@ -53,13 +66,9 @@ export class BudgetService {
         let budget = budget_in_array[0];
 
         return budget;
-    }
+    },
 
-    static async createBudget(
-        name: string,
-        date_start: Date,
-        date_end: Date
-    ): Promise<Budget> {
+    createBudget(name: string, create_date: Date): Promise<IBudget> {
         // create budget
         let data_budget = await pool
             .query(
@@ -87,9 +96,9 @@ export class BudgetService {
 
         // return budget object
         return budget;
-    }
+    },
 
-    static async deleteBudget(id: number): Promise<Budget> {
+    deleteBudgetById(id: number): Promise<boolean> {
         // query db
         const to_be_deleted_budget_sql_object: any = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])
@@ -126,5 +135,5 @@ export class BudgetService {
 
         // send response
         return deleted_budget;
-    }
-}
+    },
+};
