@@ -1,12 +1,12 @@
 // routes for envelope table
 
-import CustomError from "../../utils/errors/CustomError";
-
 //const express = require('express')
-const router = require("@root/async-router").Router();
-const TransactionService = require("../../services/transactionService");
-const CategoryService = require("../../services/categoryService");
-const asyncErrorHandler = require("../../controllers/asyncErrorHandler");
+// const router = require("@root/async-router").Router();
+import Router from "@root/async-router";
+const router = Router.Router();
+import { TransactionService } from "../../services/transactionService.js";
+import { CategoryService } from "../../services/categoryService.js";
+import asyncErrorHandler from "../../controllers/asyncErrorHandler.js";
 
 // VIEWS
 router.get(
@@ -86,4 +86,4 @@ router.put("/:id", async (req: Request, res: Response, next: any) => {
         .catch(next);
 });
 
-module.exports = router;
+export default router;

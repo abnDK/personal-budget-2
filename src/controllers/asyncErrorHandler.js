@@ -1,4 +1,3 @@
-"use strict";
 /**
  *
  * Baseret på https://www.youtube.com/watch?v=xnedbgDoRkA&t=2s&ab_channel=procademy
@@ -7,7 +6,7 @@
  *
  *
  */
-module.exports = (func) => {
+export default (func) => {
     return (req, res, next) => {
         func(req, res, next).catch((err) => next(err));
     };

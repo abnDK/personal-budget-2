@@ -1,4 +1,3 @@
-"use strict";
 const iso8601dateToInputValue = function (isoD8601Date) {
     // input is string of type "YYYY-MM-DDTHH:mm:ss.SSSZ" ie. 1989-01-24T04:35:39.348Z
     // returns "YYYY-MM-DD"
@@ -13,3 +12,4 @@ const iso8601dateToInputValue = function (isoD8601Date) {
     const dayString = day.toString().padStart(2, '0');
     return `${year}-${monthString}-${dayString}`;
 };
+export {};

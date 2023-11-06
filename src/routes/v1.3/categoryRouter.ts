@@ -1,5 +1,6 @@
-const router = require("@root/async-router").Router();
-const CategoryService = require("../../services/categoryService");
+import Router from "@root/async-router";
+const router = Router.Router();
+import { CategoryService } from "../../services/categoryService.js";
 
 router.get("/", async (req: Request, res: Response, next: any) => {
     await CategoryService.getCategories()
@@ -41,4 +42,4 @@ router.put("/:id", async (req: Request, res: Response, next: any) => {
         .catch(next);
 });
 
-module.exports = router;
+export default router;

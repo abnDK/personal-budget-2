@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Test_period = void 0;
-class Test_period {
+export class Test_period {
 }
-exports.Test_period = Test_period;
 Test_period.month_1 = {
     name: 'January',
     primo: new Date(2000, 0, 1, 1),

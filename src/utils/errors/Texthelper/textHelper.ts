@@ -1,21 +1,5 @@
-// export factory
-
-// functions:
-/**
- * read csv file
- *
- * get function
- *
- * parse csv
- *
- *
- *
- *
- */
-
-const fs = require("fs");
-const { parse } = require("csv-parse/sync");
-
+import fs from "fs";
+import { parse } from "csv-parse/sync";
 interface IErrorTextHelper {
     get(key: string): string;
     readParseCsv(path: string): void;
@@ -57,4 +41,4 @@ class ErrorTextHelper implements IErrorTextHelper {
     }
 }
 
-module.exports = new ErrorTextHelper();
+export { ErrorTextHelper };

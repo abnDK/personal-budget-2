@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,13 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const budget_1 = require("../models/1.3/budget");
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
+import { Budget } from "../models/1.3/budget.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+const ETH = new ErrorTextHelper();
 // ("use strict"); // CAN WE DELETE THIS? Commented out since 24/10-2023
-class BudgetService {
+export class BudgetService {
     static getBudgets() {
         return __awaiter(this, void 0, void 0, function* () {
             // get Budgets in database
@@ -25,7 +24,7 @@ class BudgetService {
             });
             // make budgets array
             let budgets = data.rows.map(function (res) {
-                return new budget_1.Budget(res.name, res.date_start, res.date_end, parseInt(res.id));
+                return new Budget(res.name, res.date_start, res.date_end, parseInt(res.id));
             });
             return budgets;
         });
@@ -39,11 +38,11 @@ class BudgetService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"), 404);
+                throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
             }
             // init budget as Budget object
             let budget_in_array = data.rows.map(function (res) {
-                return new budget_1.Budget(res.name, res.date_start, res.date_end, parseInt(res.id));
+                return new Budget(res.name, res.date_start, res.date_end, parseInt(res.id));
             });
             let budget = budget_in_array[0];
             return budget;
@@ -58,10 +57,10 @@ class BudgetService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data_budget.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("BUDGET.CREATE.ERROR.NOROWCREATED"), 400);
+                throw new CustomError(ETH.get("BUDGET.CREATE.ERROR.NOROWCREATED"), 400);
             }
             // init budget object
-            let budget = new budget_1.Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id);
+            let budget = new Budget(data_budget.rows[0].name, data_budget.rows[0].date_start, data_budget.rows[0].date_end, data_budget.rows[0].id);
             // return budget object
             return budget;
         });
@@ -76,7 +75,7 @@ class BudgetService {
             });
             // verify id only equals 1 budget
             if (to_be_deleted_budget_sql_object.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"), 404);
+                throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
             }
             // delete budget in db
             const deleted_budget_sql_object = yield pool
@@ -85,10 +84,9 @@ class BudgetService {
                 throw new CustomError(err.message, 400, false);
             });
             // create budget object
-            const deleted_budget = new budget_1.Budget(deleted_budget_sql_object["rows"][0].name, deleted_budget_sql_object["rows"][0].date_start, deleted_budget_sql_object["rows"][0].date_end, deleted_budget_sql_object["rows"][0].id);
+            const deleted_budget = new Budget(deleted_budget_sql_object["rows"][0].name, deleted_budget_sql_object["rows"][0].date_start, deleted_budget_sql_object["rows"][0].date_end, deleted_budget_sql_object["rows"][0].id);
             // send response
             return deleted_budget;
         });
     }
 }
-module.exports = BudgetService;

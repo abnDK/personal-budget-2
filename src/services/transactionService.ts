@@ -1,8 +1,8 @@
-const CategoryService = require("./categoryService");
-import { Transaction } from "../models/1.3/transaction";
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
+import { CategoryService } from "./categoryService.js";
+import { Transaction } from "../models/1.3/transaction.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 
 interface pgError extends Error {
     code: string;
@@ -16,7 +16,7 @@ interface resTransaction {
     date: Date;
 }
 
-class TransactionService {
+export class TransactionService {
     static async getTransactions(): Promise<Array<Transaction>> {
         // get Transactions in database
         let data = await pool
@@ -258,5 +258,3 @@ class TransactionService {
         return transaction;
     }
 }
-
-module.exports = TransactionService;

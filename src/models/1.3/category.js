@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Category = void 0;
-class Category {
+export class Category {
     constructor(name, amount, id, parent_id, budget_id) {
         this.name = name;
         this.amount = amount;
@@ -15,4 +12,3 @@ class Category {
         return 'Category';
     }
 }
-exports.Category = Category;

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,8 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { createHTMLElement } from "./htmlTools.js";
+import { PERIOD, BUDGET } from "./budget.js";
 /****   R O W   ****/
-class TransactionRow {
+export class TransactionRow {
     constructor(id, name, amount, date, category_id, category_name, frozen = true, renderer) {
         /* READING / WRITING DATA */
         this.isValid = () => {
@@ -273,7 +274,7 @@ class TransactionRowRender {
     }
 }
 /****   C O N T A I N E R   ****/
-class TransactionContainer {
+export class TransactionContainer {
     constructor(budget_id, query, renderer) {
         this.init = () => __awaiter(this, void 0, void 0, function* () {
             yield this.fetchTransactionDomElement();
@@ -655,7 +656,7 @@ class TransactionContainer {
         this._rows = rows;
     }
 }
-class TransactionContainerRender {
+export class TransactionContainerRender {
     constructor() {
         this.frozen = () => {
             return "new element";
@@ -711,7 +712,7 @@ class TransactionContainerRender {
         };
     }
 }
-class MockTransactionQueries {
+export class MockTransactionQueries {
     constructor() {
         this.getTransactions = (budget_id) => __awaiter(this, void 0, void 0, function* () {
             // getting raw categories in json

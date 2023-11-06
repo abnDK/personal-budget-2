@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,8 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const router = require("@root/async-router").Router();
-const CategoryService = require("../../services/categoryService");
+import Router from "@root/async-router";
+const router = Router.Router();
+import { CategoryService } from "../../services/categoryService.js";
 router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     yield CategoryService.getCategories()
         .then((categories) => res.status(200).json(categories))
@@ -41,4 +41,4 @@ router.put("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     })
         .catch(next);
 }));
-module.exports = router;
+export default router;

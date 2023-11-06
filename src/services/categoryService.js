@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,12 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const category_1 = require("../models/1.3/category");
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
-class CategoryService {
+import { Category } from "../models/1.3/category.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+const ETH = new ErrorTextHelper();
+export class CategoryService {
     static getCategories() {
         return __awaiter(this, void 0, void 0, function* () {
             // get Budgets in database
@@ -23,7 +22,7 @@ class CategoryService {
                 throw new CustomError(err.message, 500);
             });
             // make categories array
-            let categories = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
+            let categories = data.rows.map((res) => new Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
             return categories;
         });
     }
@@ -36,10 +35,10 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
+                throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // init budget as Budget object
-            let category_in_array = data.rows.map((res) => new category_1.Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
+            let category_in_array = data.rows.map((res) => new Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
             let category = category_in_array[0];
             return category;
         });
@@ -53,10 +52,10 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             if (data_category.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.CREATE.ERROR.NOROWCREATED"), 400);
+                throw new CustomError(ETH.get("CATEGORY.CREATE.ERROR.NOROWCREATED"), 400);
             }
             // init category object
-            let category = new category_1.Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
+            let category = new Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
             // return category object
             return category;
         });
@@ -70,7 +69,7 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             if (to_be_deleted_category_sql_object.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
+                throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // delete category in db
             const deleted_category_sql_object = yield pool
@@ -79,7 +78,7 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             // create category object
-            const deleted_category = new category_1.Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
+            const deleted_category = new Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
             // send response
             return deleted_category;
         });
@@ -107,10 +106,10 @@ class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
             if (updated_category.rowCount === 0) {
-                throw new CustomError(ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
+                throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // init category object
-            let category = new category_1.Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
+            let category = new Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
             // return transaction object
             return category;
         });
@@ -127,4 +126,3 @@ class CategoryService {
         });
     }
 }
-module.exports = CategoryService;

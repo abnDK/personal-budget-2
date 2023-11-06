@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Transaction = void 0;
-class Transaction {
+export class Transaction {
     constructor(id, name, amount, date, category_id, recipient, comment) {
         this.id = id;
         this.name = name;
@@ -14,7 +11,6 @@ class Transaction {
     // for assertions of instances type.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toStringTag
     get [Symbol.toStringTag]() {
-        return 'Transaction';
+        return "Transaction";
     }
 }
-exports.Transaction = Transaction;

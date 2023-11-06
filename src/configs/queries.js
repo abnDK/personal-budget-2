@@ -1,8 +1,8 @@
-const Pool = require('pg').Pool
+import Pool from 'pg'
 
-const config = require('./db.config');
+import config from './db.config.js';
 
-const pool = new Pool({
+const pool = new Pool.Pool({
   user: config.USERNAME,
   host: 'localhost',
   database: config.DATABASE_NAME,
@@ -10,8 +10,7 @@ const pool = new Pool({
   port: 5432,
 })
 
-module.exports = pool
-
+export {pool};
 
 // config = username etc
 // queries = create pool file

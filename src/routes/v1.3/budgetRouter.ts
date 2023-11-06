@@ -1,6 +1,6 @@
-const router = require("@root/async-router").Router();
-const BudgetService = require("../../services/budgetService");
-const CategoryServic = require("../../services/categoryService");
+import Router from "@root/async-router";
+const router = Router.Router();
+import { BudgetService } from "../../services/budgetService.js";
 
 // VIEWS
 router.get("/show/:id", async (req: Request, res: Response, next: any) => {
@@ -45,4 +45,4 @@ router.delete("/:id", async (req: Request, res: Response, next: any) => {
         .catch(next);
 });
 
-module.exports = router;
+export default router;

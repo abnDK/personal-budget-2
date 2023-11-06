@@ -1,5 +1,8 @@
+import { createHTMLElement } from "./htmlTools.js";
+import { PERIOD, BUDGET } from "./budget.js";
+
 /****   R O W   ****/
-class TransactionRow implements ITransactionRow {
+export class TransactionRow implements ITransactionRow {
     id: number;
     name: string;
     amount: number;
@@ -408,7 +411,7 @@ class TransactionRowRender implements ITransactionRowRender {
 }
 
 /****   C O N T A I N E R   ****/
-class TransactionContainer implements ITransactionContainer {
+export class TransactionContainer implements ITransactionContainer {
     _rows: TransactionRow[];
     dom_element_ref: Element;
     budget_id: number;
@@ -507,7 +510,7 @@ class TransactionContainer implements ITransactionContainer {
         */
     };
 
-    saveRow = async (saveRow: TransactionRow): void => {
+    saveRow = async (saveRow: TransactionRow): Promise<void> => {
         // maybe we have to fetch values from the input fields first and write to object??
         saveRow.fetchEditableValues();
 
@@ -945,7 +948,7 @@ class TransactionContainer implements ITransactionContainer {
     };
 }
 
-class TransactionContainerRender implements ITransactionContainerRender {
+export class TransactionContainerRender implements ITransactionContainerRender {
     frozen = (): Element => {
         return "new element";
     };
@@ -1019,7 +1022,7 @@ class TransactionContainerRender implements ITransactionContainerRender {
     };
 }
 
-class MockTransactionQueries implements ITransactionQueries {
+export class MockTransactionQueries implements ITransactionQueries {
     getTransactions = async (budget_id: number): Promise<ITransaction[]> => {
         // getting raw categories in json
         const categoriesOfBudgetId = await this.getCategories(budget_id).catch(

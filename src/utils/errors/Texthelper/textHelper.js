@@ -1,5 +1,3 @@
-"use strict";
-// export factory
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,20 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// functions:
-/**
- * read csv file
- *
- * get function
- *
- * parse csv
- *
- *
- *
- *
- */
-const fs = require("fs");
-const { parse } = require("csv-parse/sync");
+import fs from "fs";
+import { parse } from "csv-parse/sync";
 class ErrorTextHelper {
     constructor() {
         this.csvPath = "/Users/andersbusk/Programming/Codecademy/back-end-engineer-career-path/api-dev-with-swagger-and-openapi/personal_budget_2/src/utils/errors/Errors.csv";
@@ -52,4 +38,4 @@ class ErrorTextHelper {
         });
     }
 }
-module.exports = new ErrorTextHelper();
+export { ErrorTextHelper };

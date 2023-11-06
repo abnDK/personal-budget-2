@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Budget = void 0;
-class Budget {
+export class Budget {
     constructor(name, date_start, date_end, id) {
         this.name = name;
         this.date_start = date_start;
@@ -14,4 +11,3 @@ class Budget {
         return 'Budget';
     }
 }
-exports.Budget = Budget;

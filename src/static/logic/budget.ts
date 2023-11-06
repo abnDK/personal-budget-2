@@ -1,6 +1,14 @@
-let BUDGET: Budget;
-let TRANS: TransactionContainer;
-const PERIOD = {
+import { BudgetPage, Budget } from "./interfaces.js";
+import {
+    TransactionContainer,
+    MockTransactionQueries,
+    TransactionContainerRender,
+} from "./TransactionClasses.js";
+import { getCategories } from "./budgetQueries.js";
+
+export let BUDGET: Budget;
+export let TRANS: TransactionContainer;
+export const PERIOD = {
     YEAR: new Date().getFullYear(),
     MONTH: new Date().getMonth(), // month is 0-indexed (0 = january, 1 = february...)
     DAY: new Date().getDate(),

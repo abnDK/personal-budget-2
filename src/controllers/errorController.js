@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,16 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
 // let customError: CustomError = require("../utils/errors/customError");
-const CustomError_1 = __importDefault(require("../utils/errors/CustomError"));
+import { CustomError } from "../utils/errors/CustomError.js";
 const devErrors = (res, error) => {
     console.log("Error occured in development mode: ");
     console.error(error);
-    if (error instanceof CustomError_1.default) {
+    if (error instanceof CustomError) {
         return res.status(error.statusCode).json({
             status: error.statusCode,
             message: error.message,
@@ -58,7 +53,7 @@ const prodErrors = (res, error) => __awaiter(void 0, void 0, void 0, function* (
         });
     }
 });
-const globalErrorHandler = (error, req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+export const globalErrorHandler = (error, req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (process.env.NODE_ENV === "development") {
         devErrors(res, error);
     }
@@ -66,4 +61,3 @@ const globalErrorHandler = (error, req, res, next) => __awaiter(void 0, void 0, 
         prodErrors(res, error);
     }
 });
-module.exports = globalErrorHandler;

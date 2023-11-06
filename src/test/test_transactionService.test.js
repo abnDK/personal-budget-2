@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,14 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 // TEST LIBRARIES
 //const chai = require('chai');
 const { assert } = require('chai');
-const Test_period_1 = require("./Test_period");
+import { Test_period } from "./Test_period";
 // CLASSES UNDER TEST
 const TransactionService = require("../services/transactionService");
-const category_1 = require("../models/1.3/category");
+import { Category } from "../models/1.3/category";
 describe('transactionService', () => {
     describe('.getTransactions()', () => {
         it('Returns array of transactions', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -32,38 +30,38 @@ describe('transactionService', () => {
             it('returns only transactions with date in month 1', () => {
                 // ARRANGE
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo);
                 // VERIFY
-                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
-                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_1.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period.month_1.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
         describe('startDate=month_1.primo and endDate=month_2.ultimo', () => {
             it('returns only transactions with date in month 1 or 2', () => {
                 // ARRANGE
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_2.ultimo);
                 // VERIFY
-                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
-                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_2.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period.month_2.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
         describe('startDate=month_1.primo and endDate=month_3.ultimo', () => {
             it('returns only transactions with date in month 1, 2 or 3', () => {
                 // ARRANGE
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_3.ultimo);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_3.ultimo);
                 // VERIFY
-                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period_1.Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
-                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period_1.Test_period.month_3.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date >= Test_period.month_1.primo, `${trans.name} - ${trans.date} greater than or equal to first day of month 1`));
+                transactions.forEach(trans => assert.isTrue(trans.date <= Test_period.month_3.ultimo, `${trans.name} - ${trans.date} less than or equal to last day of month 1`));
             });
         });
         describe('startDate=month_1.primo, endDate=month_1.ultimo, category="a"', () => {
             it('returns only transactions with category A', () => {
                 // ARRANGE
-                let cat_a = new category_1.Category('A', 1);
+                let cat_a = new Category('A', 1);
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_1.ultimo, cat_a);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_1.ultimo, cat_a);
                 // VERIFY
                 transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`));
             });
@@ -71,9 +69,9 @@ describe('transactionService', () => {
         describe('startDate=month_1.primo, endDate=month_2.ultimo, category="a"', () => {
             it('returns only transactions with category A', () => {
                 // ARRANGE
-                let cat_a = new category_1.Category('A', 1);
+                let cat_a = new Category('A', 1);
                 // ACT
-                const transactions = TransactionService.getTransactions(Test_period_1.Test_period.month_1.primo, Test_period_1.Test_period.month_2.ultimo, cat_a);
+                const transactions = TransactionService.getTransactions(Test_period.month_1.primo, Test_period.month_2.ultimo, cat_a);
                 // VERIFY
                 transactions.forEach(trans => assert.equal(trans.category.name, cat_a.name, `${trans}: transaction category correct ("${cat_a.name}")`));
             });
@@ -83,7 +81,7 @@ describe('transactionService', () => {
                 // ARRANGE
                 const getTransactions = TransactionService.getTransactions;
                 // ACT
-                const getTransactionsWithInvalidDateInput = getTransactions.bind(TransactionService, Test_period_1.Test_period.month_1.ultimo, Test_period_1.Test_period.month_1.primo);
+                const getTransactionsWithInvalidDateInput = getTransactions.bind(TransactionService, Test_period.month_1.ultimo, Test_period.month_1.primo);
                 // VERIFY
                 assert.throws(getTransactionsWithInvalidDateInput, RangeError);
             });

@@ -1,9 +1,10 @@
-import { Category } from "../models/1.3/category";
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
+import { Category } from "../models/1.3/category.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+const ETH = new ErrorTextHelper();
 
-class CategoryService {
+export class CategoryService {
     static async getCategories(): Promise<Array<Category>> {
         // get Budgets in database
         let data = await pool
@@ -43,7 +44,7 @@ class CategoryService {
 
         if (data.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
+                ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -88,7 +89,7 @@ class CategoryService {
 
         if (data_category.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.CREATE.ERROR.NOROWCREATED"),
+                ETH.get("CATEGORY.CREATE.ERROR.NOROWCREATED"),
                 400
             );
         }
@@ -125,7 +126,7 @@ class CategoryService {
 
         if (to_be_deleted_category_sql_object.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
+                ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -191,7 +192,7 @@ class CategoryService {
 
         if (updated_category.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("CATEGORY.READ.ERROR.INVALIDID"),
+                ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -219,5 +220,3 @@ class CategoryService {
             });
     }
 }
-
-module.exports = CategoryService;

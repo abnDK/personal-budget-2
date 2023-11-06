@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,13 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const CategoryService = require("./categoryService");
-const transaction_1 = require("../models/1.3/transaction");
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
-class TransactionService {
+import { CategoryService } from "./categoryService.js";
+import { Transaction } from "../models/1.3/transaction.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+export class TransactionService {
     static getTransactions() {
         return __awaiter(this, void 0, void 0, function* () {
             // get Transactions in database
@@ -39,7 +37,7 @@ class TransactionService {
                 let date = resTransaction.date
                     ? new Date(resTransaction.date)
                     : new Date();
-                return new transaction_1.Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
+                return new Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
             });
             return transactions;
         });
@@ -60,7 +58,7 @@ class TransactionService {
                 let date = resTransaction.date
                     ? new Date(resTransaction.date)
                     : new Date();
-                return new transaction_1.Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
+                return new Transaction(resTransaction.id, resTransaction.name, resTransaction.amount, date, resTransaction.category_id);
             });
             let transaction = transaction_in_array[0];
             return transaction;
@@ -92,7 +90,7 @@ class TransactionService {
                 throw new CustomError(ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"), 400);
             }
             // init transaction object
-            let transaction = new transaction_1.Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id);
+            let transaction = new Transaction(data_trans.rows[0].id, data_trans.rows[0].name, data_trans.rows[0].amount, data_trans.rows[0].date, data_trans.rows[0].category_id);
             // return transaction object
             return transaction;
         });
@@ -118,7 +116,7 @@ class TransactionService {
                 throw new CustomError(err.message, 400, false);
             });
             // create Transaction object
-            const deleted_transaction = new transaction_1.Transaction(deleted_transaction_sql_object["rows"][0].id, deleted_transaction_sql_object["rows"][0].name, deleted_transaction_sql_object["rows"][0].amount, deleted_transaction_sql_object["rows"][0].date);
+            const deleted_transaction = new Transaction(deleted_transaction_sql_object["rows"][0].id, deleted_transaction_sql_object["rows"][0].name, deleted_transaction_sql_object["rows"][0].amount, deleted_transaction_sql_object["rows"][0].date);
             // send response
             return deleted_transaction;
         });
@@ -152,10 +150,9 @@ class TransactionService {
                 throw new CustomError(err.message, 400, false);
             });
             // init transaction object
-            let transaction = new transaction_1.Transaction(updated_trans.rows[0].id, updated_trans.rows[0].name, updated_trans.rows[0].amount, updated_trans.rows[0].date, updated_trans.rows[0].category_id);
+            let transaction = new Transaction(updated_trans.rows[0].id, updated_trans.rows[0].name, updated_trans.rows[0].amount, updated_trans.rows[0].date, updated_trans.rows[0].category_id);
             // return transaction object
             return transaction;
         });
     }
 }
-module.exports = TransactionService;

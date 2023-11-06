@@ -1,2 +1,2 @@
-"use strict";
+export {};
 // Service for handling database interactions - CRUD functionality

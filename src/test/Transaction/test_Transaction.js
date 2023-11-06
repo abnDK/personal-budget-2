@@ -1,5 +1,5 @@
-"use strict";
 // File for writing test cases for Transaction, TransactionContainer etc.
+export {};
 /*
 
 Transaction requirements

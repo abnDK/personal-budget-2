@@ -1,11 +1,11 @@
 // Config for accessing db
 
-DATABASE_NAME = 'pb2'
-USERNAME = 'pb2_app'
-PASSWORD = 'password'
+const DATABASE_NAME = 'pb2'
+const USERNAME = 'pb2_app'
+const PASSWORD = 'password'
 
 
 
-module.exports = {
+export default {
     DATABASE_NAME, USERNAME, PASSWORD
 }

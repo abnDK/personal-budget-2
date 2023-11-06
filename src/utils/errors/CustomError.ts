@@ -10,7 +10,7 @@ interface ICustomError {
     isOperational: boolean;
 }
 
-class CustomError extends Error implements ICustomError {
+export class CustomError extends Error implements ICustomError {
     statusCode: number;
     status: string;
     isOperational: boolean;
@@ -30,5 +30,3 @@ class CustomError extends Error implements ICustomError {
         Error.captureStackTrace(this, this.constructor);
     }
 }
-
-export = CustomError;

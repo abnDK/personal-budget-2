@@ -1,11 +1,12 @@
-import { Budget } from "../models/1.3/budget";
-const pool = require("../configs/queries");
-const CustomError = require("../utils/errors/CustomError");
-const ErrorTextHelper = require("../utils/errors/Texthelper/textHelper");
+import { Budget } from "../models/1.3/budget.js";
+import { pool } from "../configs/queries.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+const ETH = new ErrorTextHelper();
 
 // ("use strict"); // CAN WE DELETE THIS? Commented out since 24/10-2023
 
-class BudgetService {
+export class BudgetService {
     static async getBudgets(): Promise<Array<Budget>> {
         // get Budgets in database
         let data = await pool
@@ -36,10 +37,7 @@ class BudgetService {
             });
 
         if (data.rowCount === 0) {
-            throw new CustomError(
-                ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"),
-                404
-            );
+            throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
         }
 
         // init budget as Budget object
@@ -74,7 +72,7 @@ class BudgetService {
 
         if (data_budget.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("BUDGET.CREATE.ERROR.NOROWCREATED"),
+                ETH.get("BUDGET.CREATE.ERROR.NOROWCREATED"),
                 400
             );
         }
@@ -101,10 +99,7 @@ class BudgetService {
 
         // verify id only equals 1 budget
         if (to_be_deleted_budget_sql_object.rowCount === 0) {
-            throw new CustomError(
-                ErrorTextHelper.get("BUDGET.READ.ERROR.INVALIDID"),
-                404
-            );
+            throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
         }
 
         // delete budget in db
@@ -133,5 +128,3 @@ class BudgetService {
         return deleted_budget;
     }
 }
-
-module.exports = BudgetService;

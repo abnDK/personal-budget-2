@@ -1,10 +1,9 @@
-"use strict";
 /**
  * making a CustomError is based on video tutorials from 'procademy' on youtube
  * https://www.youtube.com/watch?v=BZPrK1nQcFI&ab_channel=procademy
  *
  */
-class CustomError extends Error {
+export class CustomError extends Error {
     constructor(message, statusCode, isOperational = true) {
         super(message);
         this.statusCode = statusCode;
@@ -14,4 +13,3 @@ class CustomError extends Error {
         Error.captureStackTrace(this, this.constructor);
     }
 }
-module.exports = CustomError;

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,12 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-class CategoryRow {
+import { PERIOD, BUDGET } from "./budget.js";
+import { BuildTree, dfsTree } from "./datastructures.js";
+import { BudgetQueryService } from "./budgetQueries.js";
+import { createBudgetRow, createEditableBudgetRow } from "./budgetDOMTools.js";
+export class CategoryRow {
     /* ADDROW: new: boolean is added here */
     constructor(name, amount, id, parent_id, budget_id) {
         this.addChild = () => {
             if (this.level === 3)
-                throw 'cannot add child to grandchild/level 3 category in budget';
+                throw "cannot add child to grandchild/level 3 category in budget";
             const newRow = new CategoryRow("", 0, NaN, this.id, this.budget_id);
             newRow.level = this.level + 1;
             this.children.push(newRow);
@@ -24,16 +27,16 @@ class CategoryRow {
             this.dom_element_ref.remove(this.dom_element_ref);
         };
         this.bindDomElementToObject = () => {
-            Object.defineProperty(this.dom_element_ref, 'getObject', {
+            Object.defineProperty(this.dom_element_ref, "getObject", {
                 value: () => this,
-                writable: false
+                writable: false,
             });
         };
         this.focusOnElement = () => {
             if (this.frozen) {
-                throw 'can only focus on editable elements';
+                throw "can only focus on editable elements";
             }
-            this.dom_element_ref.querySelector('.category-name').focus();
+            this.dom_element_ref.querySelector(".category-name").focus();
         };
         this.name = name;
         this.amount = amount;
@@ -76,43 +79,44 @@ class CategoryRow {
     }
     readValuesFromDomElement() {
         if (this.dom_element_ref == undefined) {
-            throw new Error('Object == undefined. Cannot extract values.');
+            throw new Error("Object == undefined. Cannot extract values.");
         }
         if (this.frozen) {
             // extract values from frozen element
-            const name = this.dom_element_ref.querySelector('.category-name').innerText;
-            const amount = Number(this.dom_element_ref.querySelector('.category-amount').innerText);
+            const name = this.dom_element_ref.querySelector(".category-name").innerText;
+            const amount = Number(this.dom_element_ref.querySelector(".category-amount").innerText);
             this.name = name;
             this.amount = amount;
         }
         else {
             // extract values from editable element
-            const name = this.dom_element_ref.querySelector('.category-name').value;
-            const amount = Number(this.dom_element_ref.querySelector('.category-amount').value);
+            const name = this.dom_element_ref.querySelector(".category-name").value;
+            const amount = Number(this.dom_element_ref.querySelector(".category-amount").value);
             this.name = name;
             this.amount = amount;
         }
     }
     syncNameAmountParentIdWithDB() {
         return __awaiter(this, void 0, void 0, function* () {
-            throw 'POSSIBLY NOT IN USE - CONSIDER DELETE - REMOVE MARK IF THIS IS THROWN';
+            // POSSIBLY NOT IN USE - CONSIDER DELETE
+            throw "POSSIBLY NOT IN USE - CONSIDER DELETE - REMOVE MARK IF THIS IS THROWN";
             const updatedCategoryRow = yield updateCategoryNameAmountRequest(this);
         });
     }
 }
-const LevelClassMap = new Map([
-    ["1", 'category-parent'],
-    ["2", 'category-child'],
-    ["3", 'category-grandchild'],
-    ['category-parent', '1'],
-    ['category-child', '2'],
-    ['category-grandchild', '3']
+export const LevelClassMap = new Map([
+    ["1", "category-parent"],
+    ["2", "category-child"],
+    ["3", "category-grandchild"],
+    ["category-parent", "1"],
+    ["category-child", "2"],
+    ["category-grandchild", "3"],
 ]);
-class Budget {
+export class Budget {
     constructor(rows, budgetRowsDomElement) {
         var _a;
         this.rowsByLevel = (rootLevel = 0) => {
-            return this.rows.filter(row => row.level >= rootLevel);
+            return this.rows.filter((row) => row.level >= rootLevel);
         };
         //// DOM INTERACTIONS \\\\
         this.initRenderBudget = () => {
@@ -121,7 +125,7 @@ class Budget {
             this.renderBudgetSum();
         };
         this.fetchDataFromDOM = () => {
-            for (let row of this.rows.filter(row => row.name != 'root')) {
+            for (let row of this.rows.filter((row) => row.name != "root")) {
                 row.readValuesFromDomElement();
             }
         };
@@ -130,7 +134,7 @@ class Budget {
             // Array.from(this.root.children).forEach(child=>child.remove(child)); // remove all children from budget-rows root node. Should not be necessary on initial population though
             // test "rootLevel" filter on rows:
             const levelOneTree = this.rowsByLevel(1);
-            levelOneTree.forEach(row => {
+            levelOneTree.forEach((row) => {
                 //this.toKeep.forEach(row => {
                 if (frozen) {
                     //row.dom_element_ref = this.budgetRowsDomElement.appendChild(row.renderFrozen());
@@ -179,7 +183,7 @@ class Budget {
             }
         });
         this.updateCategoryRows = () => __awaiter(this, void 0, void 0, function* () {
-            console.log('getting new rows: ', this.newRows);
+            console.log("getting new rows: ", this.newRows);
             // add post new row function here
             // think the rest will work if BuildTree sets parent_id on children rows?
             for (const cat of this.newRows) {
@@ -205,7 +209,7 @@ class Budget {
             // update amount and value in db
             for (const cat of this.rows) {
                 // if not new, update database with new values
-                console.log('inside updateCategoryRows: Now updating cat: ', cat);
+                console.log("inside updateCategoryRows: Now updating cat: ", cat);
                 yield this.query.updateCategoryNameAmount(cat.id, cat.name, cat.amount);
             }
         });
@@ -225,14 +229,17 @@ class Budget {
             this.sum = this.root.amount;
         };
         this.rowById = (id) => {
-            return this.rows.filter(row => row.id == id)[0];
+            return this.rows.filter((row) => row.id == id)[0];
         };
         this.removeById = (categoryId, root = this.root) => {
             // Finds category and removes.
             // If category has children, the children will be lifted 1 generation
             for (const child of root.children) {
                 if (child.id == categoryId) {
-                    root.children = [...root.children.filter(child => child.id != categoryId), ...child.children];
+                    root.children = [
+                        ...root.children.filter((child) => child.id != categoryId),
+                        ...child.children,
+                    ];
                     return;
                 }
                 this.removeById(categoryId, root);
@@ -267,12 +274,12 @@ class Budget {
         });
         this.addNewCategoryToDB = (category) => __awaiter(this, void 0, void 0, function* () {
             const newCat = yield this.query.postNewCategory(category.name, category.amount, category.parent_id, category.budget_id);
-            console.log('newCat just posted: ', newCat);
+            console.log("newCat just posted: ", newCat);
             return newCat.id;
         });
-        //// OLD - CONSIDER DELETE \\\\ 
+        //// OLD - CONSIDER DELETE \\\\
         this.syncDB = () => {
-            throw 'syncDB-deprecated, if not in use?';
+            throw "syncDB-deprecated, if not in use?";
             // write amounts to db
             // get parent_id's from db
             // maybe render elements?
@@ -281,32 +288,32 @@ class Budget {
             }
         };
         this.addRow = (row) => {
-            throw 'addRow-deprecated, if not in use?';
+            throw "addRow-deprecated, if not in use?";
             this.rows.push(row);
         };
         this.rowsByParentId = (parent_id) => {
-            throw 'rowsByParentId-deprecated, if not in use?';
-            return this.rows.filter(row => row.parent_id == parent_id);
+            throw "rowsByParentId-deprecated, if not in use?";
+            return this.rows.filter((row) => row.parent_id == parent_id);
         };
         this.parseCategoryArray = (categories) => {
-            throw 'parseCategoryArray-deprecated, if not in use?';
-            const categoryRowsTree = BuildTree(categories, 'parent_id');
+            throw "parseCategoryArray-deprecated, if not in use?";
+            const categoryRowsTree = BuildTree(categories, "parent_id");
             const categoryRowsTreeAsArray = dfsTree(categoryRowsTree);
-            this.rows = categoryRowsTreeAsArray.map(category => {
-                let categoryRow = new CategoryRow(category['name'], category['amount'], category['id'], category['parent_id'], category['level'], category['budget_id'], category['children']);
+            this.rows = categoryRowsTreeAsArray.map((category) => {
+                let categoryRow = new CategoryRow(category["name"], category["amount"], category["id"], category["parent_id"], category["level"], category["budget_id"], category["children"]);
                 return categoryRow;
             });
             return this.rows;
         };
         this.removeDeletable = () => {
-            throw 'removeDeletable-deprecated, if not in use?';
-            console.log('called removeDeletable');
+            throw "removeDeletable-deprecated, if not in use?";
+            console.log("called removeDeletable");
             for (const row of this.toDelete) {
                 console.log("NOW DELETING: ", row);
-                console.log('before delete: ', this.rows);
+                console.log("before delete: ", this.rows);
                 // removing row in BUDGET object
                 this.removeById(row.id);
-                console.log('after delete: ', this.rows);
+                console.log("after delete: ", this.rows);
                 // removing row in DOM
                 row.dom_element_ref.remove(row.dom_element_ref);
             }
@@ -365,25 +372,25 @@ class Budget {
         }
         */
         /*
-         private renderFrozenAll = (): void => {
-             throw 'renderFrozenAll-deprecated, if not in use?'
-             
-             // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
-     
-             this.renderCategories(true)
-     
-         }
-         */
+        private renderFrozenAll = (): void => {
+            throw 'renderFrozenAll-deprecated, if not in use?'
+            
+            // this.clearDOM(); THIS ONE NEEDS TO BE FIXED...
+    
+            this.renderCategories(true)
+    
+        }
+        */
         /*
-         private renderEditableAll = (): void => {
-             throw 'renderEditableAll-deprecated, if not in use?'
-     
-             // this.clearDOM();
-             
-             this.renderCategories(false)
-     
-         }
-          */
+        private renderEditableAll = (): void => {
+            throw 'renderEditableAll-deprecated, if not in use?'
+    
+            // this.clearDOM();
+            
+            this.renderCategories(false)
+    
+        }
+         */
         /*
         syncFromDomElementToObject = (): void => {
             throw 'syncFromDomElementToObject-deprecated, if not in use?'
@@ -494,11 +501,12 @@ class Budget {
         
         */
         this.renderBudgetSum = () => {
-            document.querySelector('.budget-sum').innerText = `Budget sum: ${this.sum}`;
+            document.querySelector(".budget-sum").innerText = `Budget sum: ${this.sum}`;
         };
         this.root = BuildTree(rows);
         this.budgetRowsDomElement = budgetRowsDomElement;
-        this.id = (_a = parseInt(window.location.href.split("/").at(-1))) !== null && _a !== void 0 ? _a : "unknowns budget_id";
+        this.id =
+            (_a = parseInt(window.location.href.split("/").at(-1))) !== null && _a !== void 0 ? _a : "unknowns budget_id";
         this.query = new BudgetQueryService();
         this.sum = this.root.amount;
         this.initRenderBudget();
@@ -523,25 +531,25 @@ class Budget {
             */
             // FETCHING DATA FROM DOM
             this.fetchDataFromDOM();
-            console.log('After fetching data from DOM: ', this.rows);
-            console.log('Status: SUCCESS');
+            console.log("After fetching data from DOM: ", this.rows);
+            console.log("Status: SUCCESS");
             // DELETING ROWS
             this.deleteCategoryRows()
                 .then(() => {
-                console.log('After deleting categories in object and db: ', this.rows);
-                console.log('Status: AWAITING');
+                console.log("After deleting categories in object and db: ", this.rows);
+                console.log("Status: AWAITING");
                 // UPDATING EXISTING ROWS
                 return this.updateCategoryRows();
             })
                 .then(() => {
-                console.log('After updating categories with name, amount and parent_ids: ', this.rows);
-                console.log('Status: AWAITING');
+                console.log("After updating categories with name, amount and parent_ids: ", this.rows);
+                console.log("Status: AWAITING");
                 // RENDER TO DOM
                 return this.renderFrozenBudget();
             })
                 .finally(() => {
-                console.log('After rendering budget to the DOM: ', this.rows);
-                console.log('Status: SUCCESS');
+                console.log("After rendering budget to the DOM: ", this.rows);
+                console.log("Status: SUCCESS");
             });
             // hide addRow button when not editable any more
             document.querySelector("#addRow").hidden = true;
@@ -559,35 +567,39 @@ class Budget {
     }
     get toKeep() {
         // we dont keep rows marked to be deleted or with no name
-        return this.rows.filter(row => !row.to_be_deleted && row.name != '');
+        return this.rows.filter((row) => !row.to_be_deleted && row.name != "");
     }
     get toDelete() {
-        const toDelete = this.rows.filter(row => row.to_be_deleted);
+        const toDelete = this.rows.filter((row) => row.to_be_deleted);
         // sorted by level (i.e. child before parent) to avoid FK constraint errors on backend.
         return toDelete.toSorted((a, b) => b.level - a.level);
     }
     get newRows() {
-        return this.rows.filter(row => !row.id && this.toKeep.includes(row));
+        return this.rows.filter((row) => !row.id && this.toKeep.includes(row));
     }
     /* ADDROW: get newRows() {} is added here */
     get loners() {
         // return elements closest to the root and not having any children
-        const parentIdsOfChildren = Array.from(new Set(this.children.map(child => child.parent_id)));
-        return this.parents.filter(row => !parentIdsOfChildren.includes(row.id));
+        const parentIdsOfChildren = Array.from(new Set(this.children.map((child) => child.parent_id)));
+        return this.parents.filter((row) => !parentIdsOfChildren.includes(row.id));
     }
     get parents() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-parent')));
+        return this.rows.filter((row) => !row.to_be_deleted &&
+            row.level === Number(LevelClassMap.get("category-parent")));
     }
     get children() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-child')));
+        return this.rows.filter((row) => !row.to_be_deleted &&
+            row.level === Number(LevelClassMap.get("category-child")));
     }
     get grandChildren() {
-        return this.rows.filter(row => !row.to_be_deleted && row.level === Number(LevelClassMap.get('category-grandchild')));
+        return this.rows.filter((row) => !row.to_be_deleted &&
+            row.level === Number(LevelClassMap.get("category-grandchild")));
     }
 }
-class BudgetPage {
+export class BudgetPage {
 }
 BudgetPage.renderTitles = () => {
-    document.querySelector('.budget-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
-    document.querySelector('.transactions-header-title').innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
+    document.querySelector(".budget-title").innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
+    document.querySelector(".transactions-header-title").innerHTML += `${PERIOD.monthNames[PERIOD.MONTH]} ${PERIOD.YEAR}`;
 };
+//export { BudgetPage, Budget, Transaction, CategoryRow };

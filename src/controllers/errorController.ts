@@ -1,5 +1,5 @@
 // let customError: CustomError = require("../utils/errors/customError");
-import CustomError from "../utils/errors/CustomError";
+import { CustomError } from "../utils/errors/CustomError.js";
 
 const devErrors = (res: Response, error: Error) => {
     console.log("Error occured in development mode: ");
@@ -47,7 +47,7 @@ const prodErrors = async (res: Response, error: Error) => {
     }
 };
 
-const globalErrorHandler = async (
+export const globalErrorHandler = async (
     error: Error,
     req: Request,
     res: Response,
@@ -61,5 +61,3 @@ const globalErrorHandler = async (
         prodErrors(res, error);
     }
 };
-
-module.exports = globalErrorHandler;

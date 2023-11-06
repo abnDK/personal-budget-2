@@ -6,6 +6,17 @@
 
 }
 
+@media screen and (min-width: 750px) {
+    * {
+        /* font-size: 12px; */
+    }
+}
+@media screen and (min-width : 1000px) {
+    * {
+        /* font-size: 16px; */
+    }
+}
+
 
 /** GRID CONTAINER / STRUCTURE **/
 
@@ -17,6 +28,7 @@
     background-color: #686e62;
     font-family: Arial, Helvetica, sans-serif;
 }
+
 
 .grid-header {
     grid-column-start: first;
