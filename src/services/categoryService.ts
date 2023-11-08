@@ -1,3 +1,6 @@
+// THIS IS THE 1.3 VERSION
+// MUST BE UPDATED TO RUN WITH 1.4
+
 import { Category } from "../models/1.3/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";

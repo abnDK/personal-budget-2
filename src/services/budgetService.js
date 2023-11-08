@@ -13,6 +13,7 @@ import { BudgetFactory } from "./budgetFactory.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 import { pool } from "../configs/queries.js";
+// setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 export const BudgetService = {
     getBudgets() {

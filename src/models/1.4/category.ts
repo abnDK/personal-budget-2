@@ -3,7 +3,7 @@ interface IBaseCategory {
     name: string;
     amount: number;
     endOfLife: boolean;
-    budgetId?: number;
+    budgetId: number | undefined;
     createDate: Date;
 
     // end of life
@@ -12,17 +12,17 @@ interface IBaseCategory {
 }
 
 export interface ICategory extends IBaseCategory {
-    prevId?: number | undefined;
-    nextId?: number | undefined;
-    parentId?: number | undefined;
-    childrenIds?: number[] | undefined;
+    prevId: number | undefined;
+    nextId: number | undefined;
+    parentId: number | undefined;
+    childrenIds: number[] | undefined;
 }
 
 export interface IVersionCategory extends IBaseCategory {
-    parent?: VersionCategory | undefined;
-    children?: VersionCategory[] | undefined;
-    prev?: VersionCategory | undefined;
-    next?: VersionCategory | undefined;
+    parent: VersionCategory | undefined;
+    children: VersionCategory[] | undefined;
+    prev: VersionCategory | undefined;
+    next: VersionCategory | undefined;
 
     addNewVersion<T extends VersionCategory>(newVersion: T): T; //
     latestVersion<T extends VersionCategory>(filterDate?: Date): T | undefined; // if no next, return this
@@ -46,10 +46,11 @@ export class Category implements ICategory {
     amount: number;
     endOfLife: boolean;
     createDate: Date;
-    prevId?: number | undefined;
-    nextId?: number | undefined;
-    parentId?: number | undefined;
-    childrenIds?: number[] | undefined;
+    budgetId: number | undefined;
+    prevId: number | undefined;
+    nextId: number | undefined;
+    parentId: number | undefined;
+    childrenIds: number[] | undefined;
 
     constructor(
         name: string,
@@ -57,16 +58,18 @@ export class Category implements ICategory {
         endOfLife: boolean,
         createDate: Date,
         id: number | undefined = undefined,
-        prevId?: number | undefined,
-        nextId?: number | undefined,
-        parentId?: number | undefined,
-        childrenIds?: number[] | undefined
+        budgetId: number | undefined = undefined,
+        prevId: number | undefined = undefined,
+        nextId: number | undefined = undefined,
+        parentId: number | undefined = undefined,
+        childrenIds: number[] | undefined = undefined
     ) {
         this.name = name;
         this.amount = amount;
         this.endOfLife = endOfLife;
         this.createDate = createDate;
         this.id = id;
+        this.budgetId = budgetId;
         this.prevId = prevId;
         this.nextId = nextId;
         this.parentId = parentId;
@@ -88,10 +91,11 @@ export class VersionCategory implements IVersionCategory {
     amount: number;
     endOfLife: boolean;
     createDate: Date;
-    parent?: VersionCategory | undefined;
-    children?: VersionCategory[] | undefined;
-    prev?: VersionCategory | undefined;
-    next?: VersionCategory | undefined;
+    budgetId: number | undefined;
+    parent: VersionCategory | undefined;
+    children: VersionCategory[] | undefined;
+    prev: VersionCategory | undefined;
+    next: VersionCategory | undefined;
 
     constructor(
         name: string,
@@ -99,6 +103,7 @@ export class VersionCategory implements IVersionCategory {
         endOfLife: boolean,
         createDate: Date,
         id: number | undefined = undefined,
+        budgetId: number | undefined = undefined,
         parent: VersionCategory | undefined = undefined,
         children: VersionCategory[] | undefined = undefined,
         prev: VersionCategory | undefined = undefined,
@@ -109,6 +114,7 @@ export class VersionCategory implements IVersionCategory {
         this.endOfLife = endOfLife;
         this.createDate = createDate;
         this.id = id;
+        this.budgetId = budgetId;
         this.parent = parent;
         this.children = children;
         this.prev = prev;
@@ -152,11 +158,24 @@ export class FlatCategory implements IFlatCategory {
     amount: number;
     endOfLife: boolean;
     createDate: Date;
-    parent?: FlatCategory | undefined;
-    children?: FlatCategory[] | undefined;
+    budgetId: number | undefined;
+    parent: FlatCategory | undefined;
+    children: FlatCategory[] | undefined;
 
-    constructor() {
-        throw new Error("not implemented");
+    constructor(
+        name: string,
+        amount: number,
+        endOfLife: boolean,
+        createDate: Date,
+        id: number | undefined,
+        budgetId: number | undefined
+    ) {
+        this.name = name;
+        this.amount = amount;
+        this.endOfLife = endOfLife;
+        this.createDate = createDate;
+        this.id = id;
+        this.budgetId = budgetId;
     }
 
     makeChild<T extends FlatCategory>(child: T): T {
