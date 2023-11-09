@@ -1,4 +1,4 @@
-import { Category, VersionCategory, FlatCategory } from "./category";
+import { Category, VersionCategory, FlatCategory } from "./category.js";
 export class Budget {
     constructor(name, createDate, ownerName, id = undefined) {
         this.id = id;

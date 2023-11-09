@@ -1,7 +1,4 @@
-// THIS IS THE 1.3 VERSION
-// MUST BE UPDATED TO RUN WITH 1.4
-
-import { Category } from "../models/1.3/category.js";
+import { Category } from "../models/1.4/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
@@ -19,18 +16,26 @@ export class CategoryService {
         // make categories array
         let categories = data.rows.map(
             (res: {
+                id: number;
+                budget_id: number;
                 name: string;
                 amount: number;
-                id: string;
-                parent_id: string;
-                budget_id: string;
+                endOfLife: boolean;
+                create_date: Date;
+                prev_id: number | undefined;
+                next_id: number | undefined;
+                parent_id: number | undefined;
             }) =>
                 new Category(
                     res.name,
                     res.amount,
-                    parseInt(res.id),
-                    parseInt(res.parent_id),
-                    parseInt(res.budget_id)
+                    res.endOfLife,
+                    res.create_date,
+                    res.id,
+                    res.budget_id,
+                    res.prev_id,
+                    res.next_id,
+                    res.parent_id
                 )
         );
 
@@ -55,18 +60,26 @@ export class CategoryService {
         // init budget as Budget object
         let category_in_array = data.rows.map(
             (res: {
+                id: number;
+                budget_id: number;
                 name: string;
                 amount: number;
-                id: string;
-                parent_id: string;
-                budget_id: string;
+                end_of_life: boolean;
+                create_date: Date;
+                prev_id: number | undefined;
+                next_id: number | undefined;
+                parent_id: number | undefined;
             }) =>
                 new Category(
                     res.name,
                     res.amount,
-                    parseInt(res.id),
-                    parseInt(res.parent_id),
-                    parseInt(res.budget_id)
+                    res.end_of_life,
+                    res.create_date,
+                    res.id,
+                    res.budget_id,
+                    res.prev_id,
+                    res.next_id,
+                    res.parent_id
                 )
         );
         let category = category_in_array[0];
@@ -77,14 +90,40 @@ export class CategoryService {
     static async createCategory(
         name: string,
         amount: number,
-        parent_id?: number,
-        budget_id?: number
+        endOfLife: boolean,
+        createDate: Date,
+        budgetId: number | undefined = undefined,
+        prevId: number | undefined = undefined,
+        nextId: number | undefined = undefined,
+        parentId: number | undefined = undefined
     ): Promise<Category> {
         // create budget
-        let data_category = await pool
+        let data_category: {
+            rows: Array<{
+                id: number;
+                budget_id: number;
+                name: string;
+                amount: number;
+                end_of_life: boolean;
+                create_date: Date;
+                prev_id: number | undefined;
+                next_id: number | undefined;
+                parent_id: number | undefined;
+            }>;
+            rowCount: number;
+        } = await pool
             .query(
-                "INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *",
-                [name, amount, parent_id, budget_id]
+                "INSERT INTO category (budget_id, name, amount, end_of_life, create_date, prev_id, next_id, parent_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+                [
+                    budgetId,
+                    name,
+                    amount,
+                    endOfLife,
+                    createDate,
+                    prevId,
+                    nextId,
+                    parentId,
+                ]
             )
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
@@ -97,28 +136,63 @@ export class CategoryService {
             );
         }
 
-        // init category object
-        let category = new Category(
+        // init and return category object
+        return new Category(
             data_category.rows[0].name,
             data_category.rows[0].amount,
+            data_category.rows[0].end_of_life,
+            data_category.rows[0].create_date,
             data_category.rows[0].id,
-            data_category.rows[0].parent_id,
-            data_category.rows[0].budget_id
+            data_category.rows[0].budget_id,
+            data_category.rows[0].prev_id,
+            data_category.rows[0].next_id,
+            data_category.rows[0].parent_id
         );
-
-        // return category object
-        return category;
     }
 
-    static async deleteCategory(id: number): Promise<Category> {
-        // query db - verify category exists, and only returns one unique row from db
-        const to_be_deleted_category_sql_object: {
+    static async deleteCategory(id: number): Promise<number> {
+        // verify id is valid
+        await this.exists(id);
+
+        // delete category in db
+        await pool
+            .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
+            .catch((err: Error) => {
+                throw new CustomError(err.message, 400, false);
+            });
+
+        // return id if delete succesful
+        return id;
+    }
+
+    static async updateCategory(
+        id: number,
+        budgetId?: string | undefined,
+        name?: string | undefined,
+        amount?: number | undefined,
+        endOfLife?: boolean | undefined,
+        createDate?: Date | undefined,
+        prevId?: number | undefined,
+        nextId?: number | undefined,
+        parentId?: number | undefined
+    ): Promise<Category> {
+        // verify valid prev, next and parent ids
+        await this.exists(id);
+        prevId ? await this.exists(prevId) : true;
+        nextId ? await this.exists(nextId) : true;
+        parentId ? await this.exists(parentId) : true;
+
+        let pre_update_category: {
             rows: Array<{
+                id: number;
+                budget_id: number;
                 name: string;
                 amount: number;
-                id: number;
-                parent_id: number;
-                budget_id: number;
+                end_of_life: boolean;
+                create_date: Date;
+                prev_id: number | undefined;
+                next_id: number | undefined;
+                parent_id: number | undefined;
             }>;
             rowCount: number;
         } = await pool
@@ -127,90 +201,36 @@ export class CategoryService {
                 throw new CustomError(err.message, 400, false);
             });
 
-        if (to_be_deleted_category_sql_object.rowCount === 0) {
-            throw new CustomError(
-                ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
-                404
-            );
-        }
-
-        // delete category in db
-        const deleted_category_sql_object: {
-            rows: Array<{
-                name: string;
-                amount: number;
-                id: number;
-                parent_id: number;
-                budget_id: number;
-            }>;
-        } = await pool
-            .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
-            .catch((err: Error) => {
-                throw new CustomError(err.message, 400, false);
-            });
-
-        // create category object
-        const deleted_category: Category = new Category(
-            deleted_category_sql_object["rows"][0].name,
-            deleted_category_sql_object["rows"][0].amount,
-            deleted_category_sql_object["rows"][0].id,
-            deleted_category_sql_object["rows"][0].parent_id,
-            deleted_category_sql_object["rows"][0].budget_id
-        );
-
-        // send response
-        return deleted_category;
-    }
-
-    static async updateCategory(
-        id: number,
-        name?: string,
-        amount?: number,
-        parent_id?: string,
-        budget_id?: string
-    ): Promise<Category> {
-        let previous_category = await pool
-            .query("SELECT * FROM category WHERE id = $1", [id])
-            .catch((err: Error) => {
-                throw new CustomError(err.message, 400, false);
-            });
-        previous_category = previous_category.rows[0];
-
         // update category
-        let updated_category = await pool
+        let updated_category: typeof pre_update_category = await pool
             .query(
-                "UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *",
-                // we need to keep checking parent_id for truthy or falsy, as updating categories name and value will be sent with parent_id == null and keep previous parent_id
+                "UPDATE category SET budget_id = $2, name = $3, amount = $4, end_of_life = $5, create_date = $6, prev_id = $7, next_id = $8, parent_id = $9 WHERE id = $1 RETURNING *",
                 [
                     id,
-                    name || previous_category.name,
-                    amount || previous_category.amount,
-                    parent_id || previous_category.parent_id,
-                    budget_id || previous_category.budget_id,
+                    budgetId || pre_update_category.rows[0].budget_id,
+                    name || pre_update_category.rows[0].name,
+                    amount || pre_update_category.rows[0].amount,
+                    endOfLife || pre_update_category.rows[0].end_of_life,
+                    createDate || pre_update_category.rows[0].create_date,
+                    prevId || pre_update_category.rows[0].prev_id,
+                    nextId || pre_update_category.rows[0].next_id,
+                    parentId || pre_update_category.rows[0].parent_id,
                 ]
             )
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
             });
 
-        if (updated_category.rowCount === 0) {
-            throw new CustomError(
-                ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
-                404
-            );
-        }
-
-        // init category object
-        let category = new Category(
+        return new Category(
             updated_category.rows[0].name,
             updated_category.rows[0].amount,
-            updated_category.rows[0].id,
-            updated_category.rows[0].parent_id,
-            updated_category.rows[0].budget_id
+            updated_category.rows[0].end_of_life,
+            updated_category.rows[0].create_date,
+            updated_category.rows[0].budget_id,
+            updated_category.rows[0].prev_id,
+            updated_category.rows[0].next_id,
+            updated_category.rows[0].parent_id
         );
-
-        // return transaction object
-        return category;
     }
 
     static async exists(id: number): Promise<boolean> {

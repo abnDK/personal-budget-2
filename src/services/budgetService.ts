@@ -1,6 +1,6 @@
 // MUST BE UPDATED TO RUN WITH 1.4
 
-import { IBudget } from "../models/1.4/budget";
+import { IBudget } from "../models/1.4/budget.js";
 import { BudgetFactory } from "./budgetFactory.js";
 
 import { CustomError } from "../utils/errors/CustomError.js";

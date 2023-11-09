@@ -1,8 +1,10 @@
 import { CategoryService } from "./categoryService.js";
-import { Transaction } from "../models/1.3/transaction.js";
+import { Transaction } from "../models/1.4/transaction.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+// setting up text helper for error messages
+const ETH = new ErrorTextHelper();
 
 interface pgError extends Error {
     code: string;
@@ -12,8 +14,9 @@ interface resTransaction {
     id: number;
     name: string;
     amount: number;
+    create_date: Date;
     category_id: number;
-    date: Date;
+    note: string;
 }
 
 export class TransactionService {
@@ -24,7 +27,7 @@ export class TransactionService {
             .catch((err: pgError) => {
                 if (err.code === "42P01") {
                     // 42P01 is when table name is unkown
-                    let errorMessage = ErrorTextHelper.get(
+                    let errorMessage = ETH.get(
                         "TRANSACTION.READ.ERROR.INVALIDTABLENAME"
                     ).split("<");
 
@@ -43,16 +46,13 @@ export class TransactionService {
 
         // build array of transactions
         let transactions = data.rows.map((resTransaction: resTransaction) => {
-            let date: Date = resTransaction.date
-                ? new Date(resTransaction.date)
-                : new Date();
-
             return new Transaction(
-                resTransaction.id,
                 resTransaction.name,
                 resTransaction.amount,
-                date,
-                resTransaction.category_id
+                resTransaction.create_date,
+                resTransaction.id,
+                resTransaction.category_id,
+                resTransaction.note
             );
         });
 
@@ -69,7 +69,7 @@ export class TransactionService {
 
         if (data.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                ETH.get("TRANSACTION.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -128,15 +128,13 @@ export class TransactionService {
 
         if (data_trans.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"),
+                ETH.get("TRANSACTION.CREATE.ERROR.NOROWCREATED"),
                 400
             );
         }
         if (data_trans.rowCount !== 1) {
             throw new CustomError(
-                ErrorTextHelper.get(
-                    "TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"
-                ),
+                ETH.get("TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"),
                 400
             );
         }
@@ -168,7 +166,7 @@ export class TransactionService {
         // verify id only equals 1 transaction
         if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                ETH.get("TRANSACTION.READ.ERROR.INVALIDID"),
                 404
             );
         }
@@ -216,7 +214,7 @@ export class TransactionService {
 
         if (pre_updated_trans_response.rowCount === 0) {
             throw new CustomError(
-                ErrorTextHelper.get("TRANSACTION.READ.ERROR.INVALIDID"),
+                ETH.get("TRANSACTION.READ.ERROR.INVALIDID"),
                 404
             );
         }

@@ -1,4 +1,4 @@
-import { Category, VersionCategory, FlatCategory } from "./category";
+import { Category, VersionCategory, FlatCategory } from "./category.js";
 
 interface IBaseBudget {
     id?: number | undefined;
@@ -126,12 +126,13 @@ export class Budget implements IBudget {
             visited.push(versionCategory); // might be better to shift() - DFS or BFS? - maybe not relevant
         }
 
-        return createVersionBudget({
-            id: this.id,
-            name: this.name,
-            createDate: this.createDate,
-            root: root,
-        });
+        return new VersionBudget(
+            this.id,
+            this.name,
+            this.createDate,
+            "abnDK",
+            root
+        );
     }
 }
 
@@ -140,18 +141,20 @@ export class VersionBudget implements IVersionBudget {
     name: string;
     createDate: Date;
     ownerName: string;
-    root: VersionCategory[] | undefined = undefined;
+    root: VersionCategory[] | undefined;
 
     constructor(
         id: number | undefined,
         name: string,
         createDate: Date,
-        ownerName: string
+        ownerName: string,
+        root: VersionCategory[] | undefined = undefined
     ) {
         this.id = id;
         this.name = name;
         this.createDate = createDate;
         this.ownerName = ownerName;
+        this.root = root;
     }
 
     flattenBudget(filterDate?: Date | undefined): FlatBudget {
