@@ -1,5 +1,3 @@
-// THIS IS THE 1.3 VERSION
-// MUST BE UPDATED TO RUN WITH 1.4
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,10 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Category } from "../models/1.3/category.js";
+import { Category } from "../models/1.4/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+// setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 export class CategoryService {
     static getCategories() {
@@ -23,8 +22,14 @@ export class CategoryService {
                 .catch((err) => {
                 throw new CustomError(err.message, 500);
             });
+            if (data.rowCount === 0) {
+                throw new CustomError(ETH.get("ALL.READ.ERROR.INVALIDID"), 404);
+            }
+            if (data.rowCount >= 2) {
+                throw new CustomError(ETH.get("ALL.READ.ERROR.MULTIPLEIDROWS"), 500);
+            }
             // make categories array
-            let categories = data.rows.map((res) => new Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
+            let categories = data.rows.map((res) => new Category(res.name, res.amount, res.endOfLife, res.create_date, res.id, res.budget_id, res.prev_id, res.next_id, res.parent_id));
             return categories;
         });
     }
@@ -40,80 +45,78 @@ export class CategoryService {
                 throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
             }
             // init budget as Budget object
-            let category_in_array = data.rows.map((res) => new Category(res.name, res.amount, parseInt(res.id), parseInt(res.parent_id), parseInt(res.budget_id)));
+            let category_in_array = data.rows.map((res) => new Category(res.name, res.amount, res.end_of_life, res.create_date, res.id, res.budget_id, res.prev_id, res.next_id, res.parent_id));
             let category = category_in_array[0];
             return category;
         });
     }
-    static createCategory(name, amount, parent_id, budget_id) {
+    static createCategory(name, amount, endOfLife, createDate, budgetId = undefined, prevId = undefined, nextId = undefined, parentId = undefined) {
         return __awaiter(this, void 0, void 0, function* () {
             // create budget
             let data_category = yield pool
-                .query("INSERT INTO category (name, amount, parent_id, budget_id) VALUES ($1, $2, $3, $4) RETURNING *", [name, amount, parent_id, budget_id])
+                .query("INSERT INTO category (budget_id, name, amount, end_of_life, create_date, prev_id, next_id, parent_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [
+                budgetId,
+                name,
+                amount,
+                endOfLife,
+                createDate,
+                prevId,
+                nextId,
+                parentId,
+            ])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
             if (data_category.rowCount === 0) {
                 throw new CustomError(ETH.get("CATEGORY.CREATE.ERROR.NOROWCREATED"), 400);
             }
-            // init category object
-            let category = new Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].id, data_category.rows[0].parent_id, data_category.rows[0].budget_id);
-            // return category object
-            return category;
+            // init and return category object
+            return new Category(data_category.rows[0].name, data_category.rows[0].amount, data_category.rows[0].end_of_life, data_category.rows[0].create_date, data_category.rows[0].id, data_category.rows[0].budget_id, data_category.rows[0].prev_id, data_category.rows[0].next_id, data_category.rows[0].parent_id);
         });
     }
     static deleteCategory(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            // query db - verify category exists, and only returns one unique row from db
-            const to_be_deleted_category_sql_object = yield pool
-                .query("SELECT * FROM category WHERE id = $1", [id])
-                .catch((err) => {
-                throw new CustomError(err.message, 400, false);
-            });
-            if (to_be_deleted_category_sql_object.rowCount === 0) {
-                throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
-            }
+            // verify id is valid
+            yield this.exists(id);
             // delete category in db
-            const deleted_category_sql_object = yield pool
+            yield pool
                 .query("DELETE FROM category WHERE id = $1 RETURNING *", [id])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
-            // create category object
-            const deleted_category = new Category(deleted_category_sql_object["rows"][0].name, deleted_category_sql_object["rows"][0].amount, deleted_category_sql_object["rows"][0].id, deleted_category_sql_object["rows"][0].parent_id, deleted_category_sql_object["rows"][0].budget_id);
-            // send response
-            return deleted_category;
+            // return id if delete succesful
+            return id;
         });
     }
-    static updateCategory(id, name, amount, parent_id, budget_id) {
+    static updateCategory(id, budgetId, name, amount, endOfLife, createDate, prevId, nextId, parentId) {
         return __awaiter(this, void 0, void 0, function* () {
-            let previous_category = yield pool
+            // verify valid prev, next and parent ids
+            yield this.exists(id);
+            prevId ? yield this.exists(prevId) : true;
+            nextId ? yield this.exists(nextId) : true;
+            parentId ? yield this.exists(parentId) : true;
+            let pre_update_category = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
-            previous_category = previous_category.rows[0];
             // update category
             let updated_category = yield pool
-                .query("UPDATE category SET name = $2, amount = $3, parent_id = $4, budget_id = $5 WHERE id = $1 RETURNING *", 
-            // we need to keep checking parent_id for truthy or falsy, as updating categories name and value will be sent with parent_id == null and keep previous parent_id
-            [
+                .query("UPDATE category SET budget_id = $2, name = $3, amount = $4, end_of_life = $5, create_date = $6, prev_id = $7, next_id = $8, parent_id = $9 WHERE id = $1 RETURNING *", [
                 id,
-                name || previous_category.name,
-                amount || previous_category.amount,
-                parent_id || previous_category.parent_id,
-                budget_id || previous_category.budget_id,
+                budgetId || pre_update_category.rows[0].budget_id,
+                name || pre_update_category.rows[0].name,
+                amount || pre_update_category.rows[0].amount,
+                endOfLife || pre_update_category.rows[0].end_of_life,
+                createDate || pre_update_category.rows[0].create_date,
+                prevId || pre_update_category.rows[0].prev_id,
+                nextId || pre_update_category.rows[0].next_id,
+                parentId || pre_update_category.rows[0].parent_id,
             ])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
-            if (updated_category.rowCount === 0) {
-                throw new CustomError(ETH.get("CATEGORY.READ.ERROR.INVALIDID"), 404);
-            }
-            // init category object
-            let category = new Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].id, updated_category.rows[0].parent_id, updated_category.rows[0].budget_id);
-            // return transaction object
-            return category;
+            return new Category(updated_category.rows[0].name, updated_category.rows[0].amount, updated_category.rows[0].end_of_life, updated_category.rows[0].create_date, updated_category.rows[0].budget_id, updated_category.rows[0].prev_id, updated_category.rows[0].next_id, updated_category.rows[0].parent_id);
         });
     }
     static exists(id) {

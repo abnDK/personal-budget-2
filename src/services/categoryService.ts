@@ -2,6 +2,7 @@ import { Category } from "../models/1.4/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+// setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 
 export class CategoryService {
@@ -12,6 +13,16 @@ export class CategoryService {
             .catch((err: Error) => {
                 throw new CustomError(err.message, 500);
             });
+
+        if (data.rowCount === 0) {
+            throw new CustomError(ETH.get("ALL.READ.ERROR.INVALIDID"), 404);
+        }
+        if (data.rowCount >= 2) {
+            throw new CustomError(
+                ETH.get("ALL.READ.ERROR.MULTIPLEIDROWS"),
+                500
+            );
+        }
 
         // make categories array
         let categories = data.rows.map(
