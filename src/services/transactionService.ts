@@ -61,7 +61,7 @@ export class TransactionService {
 
     static async getTransactionById(id: number): Promise<Transaction> {
         // get Transaction in database
-        let data = await pool
+        let data: { rows: Array<resTransaction>; rowCount: number } = await pool
             .query("SELECT * FROM transaction WHERE id = $1", [id])
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
@@ -77,54 +77,41 @@ export class TransactionService {
         // init transaction as Transaction object
         let transaction_in_array = data.rows.map(
             (resTransaction: resTransaction) => {
-                let date: Date = resTransaction.date
-                    ? new Date(resTransaction.date)
-                    : new Date();
-
                 return new Transaction(
-                    resTransaction.id,
                     resTransaction.name,
                     resTransaction.amount,
-                    date,
-                    resTransaction.category_id
+                    resTransaction.create_date,
+                    resTransaction.id,
+                    resTransaction.category_id,
+                    resTransaction.note
                 );
             }
         );
 
-        let transaction = transaction_in_array[0];
-
-        return transaction;
+        return transaction_in_array[0];
     }
 
     static async createTransaction(
         name: string,
         amount: number,
-        date: Date,
-        category_id?: number,
-        recipient?: string,
-        comment?: string
+        createDate: Date,
+        categoryId: number,
+        note: string | undefined = undefined
     ): Promise<Transaction> {
-        let category;
-
-        // if no category_id; set to undefined
-        if (!category_id) {
-            category_id = undefined;
-        } else {
-            // verify category_id if given
-            await CategoryService.exists(category_id).catch((err: Error) => {
-                throw err;
-            });
-        }
+        await CategoryService.exists(categoryId).catch((err: Error) => {
+            throw err;
+        });
 
         // create transaction
-        let data_trans = await pool
-            .query(
-                "INSERT INTO transaction (name, amount, date, category_id, recipient, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-                [name, amount, date, category_id, recipient, comment]
-            )
-            .catch((err: Error) => {
-                throw new CustomError(err.message, 400, false);
-            });
+        let data_trans: { rows: Array<resTransaction>; rowCount: number } =
+            await pool
+                .query(
+                    "INSERT INTO transaction (name, amount, create_date, category_id, note) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+                    [name, amount, createDate, categoryId, note]
+                )
+                .catch((err: Error) => {
+                    throw new CustomError(err.message, 400, false);
+                });
 
         if (data_trans.rowCount === 0) {
             throw new CustomError(
@@ -132,81 +119,72 @@ export class TransactionService {
                 400
             );
         }
-        if (data_trans.rowCount !== 1) {
+        if (data_trans.rowCount >= 2) {
             throw new CustomError(
                 ETH.get("TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED"),
                 400
             );
         }
 
-        // init transaction object
-        let transaction = new Transaction(
-            data_trans.rows[0].id,
+        return new Transaction(
             data_trans.rows[0].name,
             data_trans.rows[0].amount,
-            data_trans.rows[0].date,
-            data_trans.rows[0].category_id
+            data_trans.rows[0].create_date,
+            data_trans.rows[0].id,
+            data_trans.rows[0].category_id,
+            data_trans.rows[0].note
         );
-
-        // return transaction object
-        return transaction;
     }
 
-    static async deleteTransaction(delete_id: string): Promise<Transaction> {
-        // parse id
-        const id: number = parseInt(delete_id);
-
-        // query db
-        const to_be_deleted_transaction_sql_object: { rows: [] } = await pool
-            .query("SELECT * FROM transaction WHERE id = $1", [id])
+    static async deleteTransaction(delete_id: number): Promise<Transaction> {
+        // delete transaction in db
+        const deleted_transaction_sql_object: {
+            rows: Array<resTransaction>;
+            rowCount: number;
+        } = await pool
+            .query("DELETE FROM transaction WHERE id = $1 RETURNING *", [
+                delete_id,
+            ])
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
             });
 
-        // verify id only equals 1 transaction
-        if (to_be_deleted_transaction_sql_object["rows"].length === 0) {
+        if (deleted_transaction_sql_object.rowCount === 0) {
             throw new CustomError(
                 ETH.get("TRANSACTION.READ.ERROR.INVALIDID"),
                 404
             );
         }
 
-        // delete transaction in db
-        const deleted_transaction_sql_object: {
-            rows: Array<{
-                id: number;
-                name: string;
-                amount: number;
-                date: Date;
-            }>;
-        } = await pool
-            .query("DELETE FROM transaction WHERE id = $1 RETURNING *", [id])
-            .catch((err: Error) => {
-                throw new CustomError(err.message, 400, false);
-            });
-
-        // create Transaction object
-        const deleted_transaction: Transaction = new Transaction(
-            deleted_transaction_sql_object["rows"][0].id,
+        return new Transaction(
             deleted_transaction_sql_object["rows"][0].name,
             deleted_transaction_sql_object["rows"][0].amount,
-            deleted_transaction_sql_object["rows"][0].date
+            deleted_transaction_sql_object["rows"][0].create_date,
+            deleted_transaction_sql_object["rows"][0].id,
+            deleted_transaction_sql_object["rows"][0].category_id,
+            deleted_transaction_sql_object["rows"][0].note
         );
-
-        // send response
-        return deleted_transaction;
     }
 
     static async updateTransaction(
         id: number,
-        name?: string,
-        amount?: number,
-        date?: Date,
-        category_id?: number | null,
-        recipient?: string,
-        comment?: string
+        name: string | undefined,
+        amount: number | undefined,
+        createDate: Date | undefined,
+        categoryId: number | undefined,
+        note: string | undefined
     ): Promise<Transaction> {
-        let pre_updated_trans_response = await pool
+        if (!name && !amount && !createDate && !categoryId && !note) {
+            throw new CustomError(
+                ETH.get("TRANSACTION.UPDATE.ERROR.NOINPUT"),
+                400
+            );
+        }
+
+        let pre_updated_trans_response: {
+            rows: Array<resTransaction>;
+            rowCount: number;
+        } = await pool
             .query("SELECT * FROM transaction WHERE id = $1", [id])
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
@@ -219,40 +197,39 @@ export class TransactionService {
             );
         }
 
-        // verify category_id
-        await CategoryService.exists(category_id).catch((err: Error) => {
-            throw err;
-        });
-
         const pre_updated_trans = pre_updated_trans_response["rows"][0];
         // setting previous values, if no new is given.
         name = name ? name : pre_updated_trans.name;
         amount = amount ? amount : pre_updated_trans.amount;
-        date = date ? date : pre_updated_trans.date;
-        category_id = category_id ? category_id : null; //pre_updated_trans.category_id; // WHY ARE WE SETTING TO NULL ?
-        recipient = recipient ? recipient : pre_updated_trans.recipient;
-        comment = comment ? comment : pre_updated_trans.comment;
+        createDate = createDate ? createDate : pre_updated_trans.create_date;
+        categoryId = categoryId ? categoryId : pre_updated_trans.category_id;
+        note = note ? note : pre_updated_trans.note;
 
+        // verify category_id
+        await CategoryService.exists(categoryId).catch((err: Error) => {
+            throw err;
+        });
         // update transaction
-        let updated_trans = await pool
+        let updated_trans: {
+            rows: Array<resTransaction>;
+            rowCount: number;
+        } = await pool
             .query(
-                "UPDATE transaction SET name = $2, amount = $3, date = $4, category_id = $5, recipient = $6, comment = $7 WHERE id = $1 RETURNING *",
-                [id, name, amount, date, category_id, recipient, comment]
+                "UPDATE transaction SET name = $2, amount = $3, create_date = $4, category_id = $5, note = $6 WHERE id = $1 RETURNING *",
+                [id, name, amount, createDate, categoryId, note]
             )
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
             });
 
         // init transaction object
-        let transaction = new Transaction(
-            updated_trans.rows[0].id,
+        return new Transaction(
             updated_trans.rows[0].name,
             updated_trans.rows[0].amount,
-            updated_trans.rows[0].date,
-            updated_trans.rows[0].category_id
+            updated_trans.rows[0].create_date,
+            updated_trans.rows[0].id,
+            updated_trans.rows[0].category_id,
+            updated_trans.rows[0].note
         );
-
-        // return transaction object
-        return transaction;
     }
 }
