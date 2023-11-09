@@ -3,9 +3,13 @@ TRANSACTION.READ.ERROR.INVALIDTABLENAME;Cannot find table <table<!
 TRANSACTION.CREATE.ERROR.NOROWCREATED;No new transaction row was created in db!
 TRANSACTION.CREATE.ERROR.MORETHANONEROWCREATED;Created more than 1 new transaction in db!
 TRANSACTION.UPDATE.ERROR.GENERAL;Something wen't wrong when updating transaction!
+TRANSACTION.UPDATE.ERROR.NOINPUT;No new values where given, so cannot update!
 CATEGORY.READ.ERROR.INVALIDID;Unknown category id!
 CATEGORY.CREATE.ERROR.NOROWCREATED;No new category row was created in db!
 BUDGET.READ.ERROR.INVALIDID;Unknown budget id!
 BUDGET.CREATE.ERROR.NOROWCREATED;No new budget row was created in db!
+ALL.READ.ERROR.INVALIDID;Unknown id!
+ALL.READ.ERROR.MULTIPLEIDROWS;More than 1 row returned on id query. Should only return 1!
+
 
 
