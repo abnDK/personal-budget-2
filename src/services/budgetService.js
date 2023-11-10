@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { IBudget } from "../models/1.4/budget.js";
+import { Budget } from "../models/1.4/budget.js";
 import { BudgetFactory } from "./budgetFactory.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
@@ -24,11 +24,7 @@ export const BudgetService = {
                 throw new CustomError(err.message, 400, false);
             });
             let budgets = data.rows.map(function (res) {
-                return {
-                    id: parseInt(res.id),
-                    name: res.name,
-                    create_date: res.create_date,
-                };
+                return new Budget(res.name, res.create_date, res.owner_name, res.id);
             });
             return budgets;
         });
@@ -45,20 +41,16 @@ export const BudgetService = {
                 throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
             }
             const budget = data.rows[0].map(function (res) {
-                return {
-                    id: parseInt(res.id),
-                    name: res.name,
-                    create_date: res.create_date,
-                };
+                return new Budget(res.name, res.create_date, res.owner_name, res.id);
             })[0];
             return budget;
         });
     },
-    createBudget(name, create_date, owner_name) {
+    createBudget(name, createDate, ownerName) {
         return __awaiter(this, void 0, void 0, function* () {
             // create budget
             let data_budget = yield pool
-                .query("INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *", [name, create_date, owner_name])
+                .query("INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *", [name, createDate, ownerName])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
@@ -66,23 +58,26 @@ export const BudgetService = {
                 throw new CustomError(ETH.get("BUDGET.CREATE.ERROR.NOROWCREATED"), 400);
             }
             // init budget object
-            let budget = BudgetFactory(data_budget.rows[0].id, data_budget.rows[0].name, data_budget.rows[0].create_date, data_budget.rows[0].owner_name);
+            let budget = new Budget(data_budget.rows[0].name, data_budget.rows[0].create_date, data_budget.rows[0].owner_name, data_budget.rows[0].id);
             // return budget object
             return budget;
         });
     },
-    deleteBudgetById(id) {
+    updateBudget(id, name, ownerName) {
         return __awaiter(this, void 0, void 0, function* () {
-            // query db
-            const to_be_deleted_budget_sql_object = yield pool
-                .query("SELECT * FROM budget WHERE id = $1", [id])
+            const newBudgetResponse = yield pool
+                .query("UPDATE budget SET name = $2, owner_name = $3 WHERE id = $1 RETURNING *", [id, name, ownerName])
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
-            // verify id only equals 1 budget
-            if (to_be_deleted_budget_sql_object.rowCount === 0) {
-                throw new CustomError(ETH.get("BUDGET.READ.ERROR.INVALIDID"), 404);
+            if (newBudgetResponse.rowCount === 0) {
+                throw new CustomError(ETH.get("BUDGET.UPDATE.ERROR.INVALIDID"), 404);
             }
+            return newBudgetResponse.rows[0];
+        });
+    },
+    deleteBudgetById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
             // delete budget in db and return true if one and only one budget with correct id has been deleted
             const deleted_budget_sql_object = yield pool
                 .query("DELETE FROM budget WHERE id = $1 RETURNING *", [id])
