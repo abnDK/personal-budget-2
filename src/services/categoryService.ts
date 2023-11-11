@@ -77,13 +77,35 @@ export class CategoryService {
                 undefined, // next id
                 undefined // parent id
             ),
+            new Category(
+                "test_cat_ac0 - DONT SHOW",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 2),
+                7, // id
+                1, // budget id
+                undefined, // prev id
+                9, // next id
+                2 // parent id
+            ),
+            new Category(
+                "test_cat_ac1 - DONT SHOW",
+                1, // amount
+                true, // end of life
+                new Date(2023, 0, 2),
+                9, // id
+                1, // budget id
+                7, // prev id
+                undefined, // next id
+                undefined // parent id
+            ),
             // TESTBUDGET B
             new Category(
                 "test_cat_x0",
                 1, // amount
                 false, // end of life
                 new Date(2023, 0, 1),
-                7, // id
+                8, // id
                 2, // budget id
                 undefined, // prev id
                 undefined, // next id
