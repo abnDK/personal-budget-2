@@ -216,17 +216,6 @@ export class VersionBudget implements IVersionBudget {
 
                 // check if category is the child of any of the other versionCategories. If not, category has no parents
                 // and is thus at the root level.
-                /* if (
-                    !this?.categoriesAsList.some((verCat) =>
-                        verCat.children?.some(
-                            (childVerCat) =>
-                                childVerCat.id === category.firstVersion().id
-                        )
-                    )
-                ) {
-                    flatBudget.root.push(latestVersionAsCategory);
-                } */
-
                 if (!category.firstVersion().parent) {
                     flatBudget.root.push(latestVersionAsCategory);
                 }
