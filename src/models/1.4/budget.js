@@ -57,8 +57,7 @@ export class Budget {
             prev.length === 1 ? prev[0].addNewVersion(versionCategory) : false;
             visited.push(versionCategory); // might be better to shift() - DFS or BFS? - maybe not relevant
         }
-        const versionBudget = new VersionBudget(this.id, this.name, this.createDate, "abnDK", root);
-        versionBudget.categoriesAsList = visited;
+        const versionBudget = new VersionBudget(this.id, this.name, this.createDate, "abnDK", root, visited);
         return versionBudget;
     }
 }
@@ -102,18 +101,9 @@ export class VersionBudget {
             if (latestVersion && !latestVersion.isDead()) {
                 const latestVersionAsCategory = new FlatCategory(latestVersion.name, latestVersion.amount, latestVersion.endOfLife, latestVersion.createDate, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.id, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.budgetId);
                 visited.push(latestVersionAsCategory);
+                // REFACTOR: when parsing versionBudget, root is filled only with categories, that has no parent or previous, so this line can be removed...
                 // check if category is the child of any of the other versionCategories. If not, category has no parents
                 // and is thus at the root level.
-                /* if (
-                    !this?.categoriesAsList.some((verCat) =>
-                        verCat.children?.some(
-                            (childVerCat) =>
-                                childVerCat.id === category.firstVersion().id
-                        )
-                    )
-                ) {
-                    flatBudget.root.push(latestVersionAsCategory);
-                } */
                 if (!category.firstVersion().parent) {
                     flatBudget.root.push(latestVersionAsCategory);
                 }

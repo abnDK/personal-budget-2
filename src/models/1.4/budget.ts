@@ -130,10 +130,9 @@ export class Budget implements IBudget {
             this.name,
             this.createDate,
             "abnDK",
-            root
+            root,
+            visited
         );
-
-        versionBudget.categoriesAsList = visited;
 
         return versionBudget;
     }
@@ -214,6 +213,7 @@ export class VersionBudget implements IVersionBudget {
 
                 visited.push(latestVersionAsCategory);
 
+                // REFACTOR: when parsing versionBudget, root is filled only with categories, that has no parent or previous, so this line can be removed...
                 // check if category is the child of any of the other versionCategories. If not, category has no parents
                 // and is thus at the root level.
                 if (!category.firstVersion().parent) {
