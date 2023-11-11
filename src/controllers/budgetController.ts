@@ -1,16 +1,18 @@
-import { Budget, VersionBudget, FlatBudget } from "../models/1.4/budget";
-import { Category } from "../models/1.4/category";
+import { Budget, VersionBudget, FlatBudget } from "../models/1.4/budget.js";
+import { Category } from "../models/1.4/category.js";
 
-import { BudgetService } from "../services/budgetService";
-import { CategoryService } from "../services/categoryService";
-import { CustomError } from "../utils/errors/CustomError";
-import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper";
+import { BudgetService } from "../services/budgetService.js";
+import { CategoryService } from "../services/categoryService.js";
+import { CustomError } from "../utils/errors/CustomError.js";
+import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 const ETH = new ErrorTextHelper();
 
 export const getBudgets = async (
     id?: number | undefined,
     filterDate?: Date | undefined
-): Promise<FlatBudget[]> => {
+): Promise<FlatBudget[] | FlatBudget> => {
+    console.log("Hello from budgetController.getBudgets");
+
     const budgets: Budget[] = id
         ? [
               await BudgetService.getBudgetById(id).catch((err) => {
@@ -20,6 +22,7 @@ export const getBudgets = async (
         : await BudgetService.getBudgets().catch((err) => {
               throw new Error(err.message);
           });
+
     const categories: Category[] = await CategoryService.getCategories();
 
     if (budgets.length === 0) {
@@ -40,7 +43,8 @@ export const getBudgets = async (
         versionBudget.flattenBudget(filterDate)
     );
 
-    return flatBudgets;
+    // if id given, we expect a single flatBudget. Otherwise we expect an array of FlatBudgets
+    return id ? flatBudgets[0] : flatBudgets;
 };
 
 export const createBudget = async (
@@ -71,8 +75,10 @@ export const updateBudget = async (
 
     const updatedBudget = await BudgetService.updateBudget(
         id,
-        name ? name : prevBudget.name,
-        ownerName ? ownerName : prevBudget.ownerName
+        name ?? prevBudget?.name ?? ETH.get("BUDGET.UPDATE.ERROR.UNKNOWNNAME"),
+        ownerName ??
+            prevBudget.ownerName ??
+            ETH.get("BUDGET.UPDATE.ERROR.UNKNOWNOWNERNAME")
     ).catch((err) => {
         throw new Error(err.message);
     });

@@ -10,7 +10,9 @@ BUDGET.READ.ERROR.NOBUDGETS;No budgets in db!
 BUDGET.READ.ERROR.INVALIDID;Unknown budget id!
 BUDGET.CREATE.ERROR.NOROWCREATED;No new budget row was created in db!
 BUDGET.UPDATE.ERROR.NOINPUT;No new values where given, so cannot update!
-BUDGET.UPDATE.ERROR.INVALIDID;Unknow budget id!
+BUDGET.UPDATE.ERROR.INVALIDID;Unknown budget id!
+BUDGET.UPDATE.ERROR.UNKNOWNNAME;Name could not be found!
+BUDGET.UPDATE.ERROR.UNKNOWNOWNERNAME;Owner name could not be found!
 ALL.READ.ERROR.INVALIDID;Unknown id!
 ALL.READ.ERROR.MULTIPLEIDROWS;More than 1 row returned on id query. Should only return 1!
 

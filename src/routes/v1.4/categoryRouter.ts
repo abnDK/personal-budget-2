@@ -1,5 +1,4 @@
 // NEEDS UPDATE FOR 1.4
-throw new Error();
 
 import Router from "@root/async-router";
 const router = Router.Router();
@@ -12,6 +11,7 @@ router.get("/", async (req: Request, res: Response, next: any) => {
 });
 
 router.get("/:id", async (req: Request, res: Response, next: any) => {
+    console.log("hello");
     await CategoryService.getCategoryById(req.params.id)
         .then((category: Category) => res.status(200).json(category))
         .catch(next);

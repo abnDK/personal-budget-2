@@ -28,12 +28,21 @@ interface IBudgetService {
 
 export const BudgetService: IBudgetService = {
     async getBudgets(): Promise<Budget[]> {
+        console.log("hello from BudgetService.getBudgets");
+
+        // return mock data while testing - remove after implementation
+        return [
+            new Budget("testbudget_a", new Date(2023, 0, 1), "ABN", 1),
+            new Budget("testbudget_b", new Date(2023, 0, 1), "ABN", 2),
+        ];
+
         let data = await pool
             .query("SELECT * FROM budget ORDER BY id ASC")
             .catch((err: Error) => {
                 throw new CustomError(err.message, 400, false);
             });
-
+        console.log(data.fields);
+        console.log(data.command);
         let budgets: Budget[] = data.rows.map(function (res: any) {
             return new Budget(
                 res.name,
@@ -47,6 +56,7 @@ export const BudgetService: IBudgetService = {
     },
 
     async getBudgetById(id: number): Promise<Budget> {
+        throw new Error("....error in service");
         // get Budget in database
         let data = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])

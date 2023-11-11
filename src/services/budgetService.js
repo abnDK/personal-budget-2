@@ -18,11 +18,19 @@ const ETH = new ErrorTextHelper();
 export const BudgetService = {
     getBudgets() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("hello from BudgetService.getBudgets");
+            // return mock data while testing - remove after implementation
+            return [
+                new Budget("testbudget_a", new Date(2023, 0, 1), "ABN", 1),
+                new Budget("testbudget_b", new Date(2023, 0, 1), "ABN", 2),
+            ];
             let data = yield pool
                 .query("SELECT * FROM budget ORDER BY id ASC")
                 .catch((err) => {
                 throw new CustomError(err.message, 400, false);
             });
+            console.log(data.fields);
+            console.log(data.command);
             let budgets = data.rows.map(function (res) {
                 return new Budget(res.name, res.create_date, res.owner_name, res.id);
             });
@@ -31,6 +39,7 @@ export const BudgetService = {
     },
     getBudgetById(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            throw new Error("....error in service");
             // get Budget in database
             let data = yield pool
                 .query("SELECT * FROM budget WHERE id = $1", [id])

@@ -1,4 +1,6 @@
-import { IBudget, IVersionBudget } from "../models/1.4/budget";
+// DONT USE - USE CLASSES INSTEAD!
+
+//import { IBudget, IVersionBudget } from "../models/1.4/budget";
 
 export const BudgetFactory = (
     id: number | undefined,

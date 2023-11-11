@@ -1,7 +1,6 @@
-// routes for envelope table
+// NEEDS UPDATE FOR 1.4
+throw new Error();
 
-//const express = require('express')
-// const router = require("@root/async-router").Router();
 import Router from "@root/async-router";
 const router = Router.Router();
 import { TransactionService } from "../../services/transactionService.js";

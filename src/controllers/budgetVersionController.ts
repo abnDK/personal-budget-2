@@ -44,6 +44,7 @@ interface dbCategory extends baseCategory {
     childrenIds?: number[] | null;
 }
 
+// in memory category, flat
 interface _Category extends baseCategory {
     parent?: _Category | undefined;
     children?: _Category[] | undefined;

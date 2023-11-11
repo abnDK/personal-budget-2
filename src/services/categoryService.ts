@@ -6,23 +6,97 @@ import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 const ETH = new ErrorTextHelper();
 
 export class CategoryService {
-    static async getCategories(): Promise<Array<Category>> {
+    static async getCategories(): Promise<Category[]> {
+        // returning mock data while testing - delete after implementation
+        return [
+            // TESTBUDGET A
+
+            new Category(
+                "test_cat_a0",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 1),
+                1, // id
+                1, // budget id
+                undefined, // prev id
+                2, // next id
+                undefined // parent id
+            ),
+            new Category(
+                "test_cat_a1",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 2),
+                2, // id
+                1, // budget id
+                1, // prev id
+                3, // next id
+                undefined // parent id
+            ),
+            new Category(
+                "test_cat_a2",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 3),
+                3, // id
+                1, // budget id
+                2, // prev id
+                undefined, // next id
+                undefined // parent id
+            ),
+            new Category(
+                "test_cat_ab0",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 4),
+                4, // id
+                1, // budget id
+                undefined, // prev id
+                undefined, // next id
+                1 // parent id
+            ),
+            new Category(
+                "test_cat_abc0",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 5),
+                5, // id
+                1, // budget id
+                undefined, // prev id
+                6, // next id
+                4 // parent id
+            ),
+            new Category(
+                "test_cat_abc1",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 6),
+                6, // id
+                1, // budget id
+                5, // prev id
+                undefined, // next id
+                undefined // parent id
+            ),
+            // TESTBUDGET B
+            new Category(
+                "test_cat_x0",
+                1, // amount
+                false, // end of life
+                new Date(2023, 0, 1),
+                7, // id
+                2, // budget id
+                undefined, // prev id
+                undefined, // next id
+                undefined // parent id
+            ),
+        ];
+
         // get Budgets in database
         let data = await pool
             .query("SELECT * FROM category ORDER BY id ASC")
             .catch((err: Error) => {
                 throw new CustomError(err.message, 500);
             });
-
-        if (data.rowCount === 0) {
-            throw new CustomError(ETH.get("ALL.READ.ERROR.INVALIDID"), 404);
-        }
-        if (data.rowCount >= 2) {
-            throw new CustomError(
-                ETH.get("ALL.READ.ERROR.MULTIPLEIDROWS"),
-                500
-            );
-        }
 
         // make categories array
         let categories = data.rows.map(
@@ -65,6 +139,12 @@ export class CategoryService {
             throw new CustomError(
                 ETH.get("CATEGORY.READ.ERROR.INVALIDID"),
                 404
+            );
+        }
+        if (data.rowCount !== null && data.rowCount >= 2) {
+            throw new CustomError(
+                ETH.get("ALL.READ.ERROR.MULTIPLEIDROWS"),
+                500
             );
         }
 

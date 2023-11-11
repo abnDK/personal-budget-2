@@ -32,28 +32,75 @@ export class VersionCategory {
         this.next = next;
     }
     kill() {
-        throw new Error("not implemented");
+        this.endOfLife = true;
     }
     isDead() {
-        throw new Error("not implemented");
+        return this.endOfLife;
     }
     addNewVersion(newVersion) {
-        throw new Error("not implemented");
+        // get latest version with some filterDate = newVersion.date
+        // set as next of this.
+        // if latest version has a next, set this as next on this (this will insert newVersion inbetween.)
+        const latestVersion = this.firstVersion().latestVersion(newVersion.createDate);
+        if (!latestVersion) {
+            // if no version exists with date <= filterDate
+            // we insert the new version as the first node
+            // in the linked list, becoming the new first version.
+            // The new version thus get the parent
+            // of the first version and has it's
+            // .next set to the previous first version
+            const firstVersion = this.firstVersion();
+            newVersion.parent = firstVersion.parent;
+            firstVersion.parent = undefined;
+            newVersion.next = firstVersion;
+        }
+        else {
+            newVersion.prev = latestVersion;
+            newVersion.next = latestVersion.next // refactor to: latestVersion?.next ?? undefined
+                ? latestVersion.next
+                : undefined;
+            latestVersion.next = newVersion;
+        }
+        return newVersion;
     }
     latestVersion(filterDate) {
-        throw new Error("not implemented");
+        if (filterDate && this.createDate > filterDate)
+            return undefined;
+        let returnValue = this.next // refactor: could we just return here?
+            ? filterDate
+                ? this.next.createDate <= filterDate
+                    ? this.next.latestVersion(filterDate)
+                    : this
+                : this.next.latestVersion()
+            : this;
+        // console.log("returning: ", returnValue);
+        return returnValue;
     }
     firstVersion() {
-        throw new Error("not implemented");
+        return this.prev ? this.prev.firstVersion() : this;
     }
     getParent() {
-        throw new Error("not implemented");
+        var _a;
+        // gets parent of the first version
+        const firstVersion = this.firstVersion();
+        return (_a = firstVersion === null || firstVersion === void 0 ? void 0 : firstVersion.parent) !== null && _a !== void 0 ? _a : undefined;
     }
     makeChild(child) {
-        throw new Error("not implemented");
+        var _a;
+        // child.parent = this; // to remove, as this creates circular ref when sent as json response
+        this.children ? (_a = this.children) === null || _a === void 0 ? void 0 : _a.push(child) : (this.children = [child]);
+        return child;
     }
     getChildren() {
-        throw new Error("not implemented");
+        // only looks for children in this node and later versions. Does not look at previous versions children.
+        let children = [];
+        if (this.children) {
+            children = [...this.children, ...children];
+        }
+        if (this.next) {
+            children = [...this.next.getChildren(), ...children];
+        }
+        return children;
     }
 }
 export class FlatCategory {
@@ -66,12 +113,18 @@ export class FlatCategory {
         this.budgetId = budgetId;
     }
     makeChild(child) {
-        throw new Error("Not implemneted");
+        //child.parent = this; // to remove, as this creates circular ref when sent as json response
+        if (!this.children) {
+            this.children = [child];
+        }
+        else {
+            this.children.push(child);
+        }
     }
     kill() {
-        throw new Error("not implemented");
+        this.endOfLife = true;
     }
     isDead() {
-        throw new Error("not implemented");
+        return this.endOfLife;
     }
 }

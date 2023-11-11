@@ -24,20 +24,20 @@ export interface IVersionCategory extends IBaseCategory {
     prev: VersionCategory | undefined;
     next: VersionCategory | undefined;
 
-    addNewVersion<T extends VersionCategory>(newVersion: T): T; //
-    latestVersion<T extends VersionCategory>(filterDate?: Date): T | undefined; // if no next, return this
-    firstVersion<T extends VersionCategory>(): T; // if no first, return this
+    addNewVersion(newVersion: VersionCategory): VersionCategory; //
+    latestVersion(filterDate?: Date): VersionCategory | undefined; // if no next, return this
+    firstVersion(): VersionCategory; // if no first, return this
 
-    getParent<T extends VersionCategory>(): T | undefined; // returns parent of the first version of a node (as this is where the parent will be referenced)
-    makeChild<T extends VersionCategory>(child: T): T; // add child to this and sets .parent to child
-    getChildren<T extends VersionCategory>(): T[]; // scans all versions and returns a list of all children. Returns empty list if no children.
+    getParent(): VersionCategory | undefined; // returns parent of the first version of a node (as this is where the parent will be referenced)
+    makeChild(child: VersionCategory): VersionCategory; // add child to this and sets .parent to child
+    getChildren(): VersionCategory[]; // scans all versions and returns a list of all children. Returns empty list if no children.
 }
 
 export interface IFlatCategory extends IBaseCategory {
     parent?: FlatCategory | undefined;
     children?: FlatCategory[] | undefined;
 
-    makeChild<T extends FlatCategory>(child: T): T; // add child to node and sets .parent of child to this node
+    makeChild(child: FlatCategory): FlatCategory; // add child to node and sets .parent of child to this node
 }
 
 export class Category implements ICategory {
@@ -120,35 +120,88 @@ export class VersionCategory implements IVersionCategory {
         this.prev = prev;
         this.next = next;
     }
-
     kill(): void {
-        throw new Error("not implemented");
+        this.endOfLife = true;
     }
-
     isDead(): boolean {
-        throw new Error("not implemented");
+        return this.endOfLife;
     }
 
-    addNewVersion<T extends VersionCategory>(newVersion: T): T {
-        throw new Error("not implemented");
+    addNewVersion(newVersion: VersionCategory): VersionCategory {
+        // get latest version with some filterDate = newVersion.date
+        // set as next of this.
+        // if latest version has a next, set this as next on this (this will insert newVersion inbetween.)
+
+        const latestVersion = this.firstVersion().latestVersion(
+            newVersion.createDate
+        );
+
+        if (!latestVersion) {
+            // if no version exists with date <= filterDate
+            // we insert the new version as the first node
+            // in the linked list, becoming the new first version.
+            // The new version thus get the parent
+            // of the first version and has it's
+            // .next set to the previous first version
+
+            const firstVersion = this.firstVersion();
+            newVersion.parent = firstVersion.parent;
+            firstVersion.parent = undefined;
+            newVersion.next = firstVersion;
+        } else {
+            newVersion.prev = latestVersion;
+
+            newVersion.next = latestVersion.next // refactor to: latestVersion?.next ?? undefined
+                ? latestVersion.next
+                : undefined;
+
+            latestVersion.next = newVersion;
+        }
+
+        return newVersion;
     }
 
-    latestVersion<T extends VersionCategory>(
-        filterDate?: Date | undefined
-    ): T | undefined {
-        throw new Error("not implemented");
+    latestVersion(filterDate?: Date | undefined): VersionCategory | undefined {
+        if (filterDate && this.createDate > filterDate) return undefined;
+
+        let returnValue = this.next // refactor: could we just return here?
+            ? filterDate
+                ? this.next.createDate <= filterDate
+                    ? this.next.latestVersion(filterDate)
+                    : this
+                : this.next.latestVersion()
+            : this;
+        // console.log("returning: ", returnValue);
+        return returnValue;
     }
-    firstVersion<T extends VersionCategory>(): T {
-        throw new Error("not implemented");
+    firstVersion(): VersionCategory {
+        return this.prev ? this.prev.firstVersion() : this;
     }
-    getParent<T extends VersionCategory>(): T | undefined {
-        throw new Error("not implemented");
+    getParent(): VersionCategory | undefined {
+        // gets parent of the first version
+        const firstVersion = this.firstVersion();
+
+        return firstVersion?.parent ?? undefined;
     }
-    makeChild<T extends VersionCategory>(child: T): T {
-        throw new Error("not implemented");
+    makeChild(child: VersionCategory): VersionCategory {
+        // child.parent = this; // to remove, as this creates circular ref when sent as json response
+        this.children ? this.children?.push(child) : (this.children = [child]);
+        return child;
     }
-    getChildren<T extends VersionCategory>(): T[] {
-        throw new Error("not implemented");
+    getChildren(): VersionCategory[] {
+        // only looks for children in this node and later versions. Does not look at previous versions children.
+
+        let children = [] as VersionCategory[];
+
+        if (this.children) {
+            children = [...this.children, ...children];
+        }
+
+        if (this.next) {
+            children = [...this.next.getChildren(), ...children];
+        }
+
+        return children;
     }
 }
 
@@ -178,15 +231,20 @@ export class FlatCategory implements IFlatCategory {
         this.budgetId = budgetId;
     }
 
-    makeChild<T extends FlatCategory>(child: T): T {
-        throw new Error("Not implemneted");
+    makeChild(child: FlatCategory): FlatCategory {
+        //child.parent = this; // to remove, as this creates circular ref when sent as json response
+        if (!this.children) {
+            this.children = [child];
+        } else {
+            this.children.push(child);
+        }
     }
 
     kill(): void {
-        throw new Error("not implemented");
+        this.endOfLife = true;
     }
 
     isDead(): boolean {
-        throw new Error("not implemented");
+        return this.endOfLife;
     }
 }

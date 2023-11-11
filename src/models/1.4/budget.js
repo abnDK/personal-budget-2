@@ -57,29 +57,96 @@ export class Budget {
             prev.length === 1 ? prev[0].addNewVersion(versionCategory) : false;
             visited.push(versionCategory); // might be better to shift() - DFS or BFS? - maybe not relevant
         }
-        return createVersionBudget({
-            id: this.id,
-            name: this.name,
-            createDate: this.createDate,
-            root: root,
-        });
+        const versionBudget = new VersionBudget(this.id, this.name, this.createDate, "abnDK", root);
+        versionBudget.categoriesAsList = visited;
+        return versionBudget;
     }
 }
 export class VersionBudget {
-    constructor(id, name, createDate, ownerName) {
-        this.root = undefined;
+    constructor(id, name, createDate, ownerName, root = undefined, categoriesAsList) {
         this.id = id;
         this.name = name;
         this.createDate = createDate;
         this.ownerName = ownerName;
+        this.root = root;
+        this.categoriesAsList = categoriesAsList;
     }
     flattenBudget(filterDate) {
-        throw new Error("not implemented");
+        /**
+         * function takes the versionized tree and "flattens"
+         * it to the latestversion of nodes up until a
+         * potential filterDate. I.e. a given month/year filter.
+         * This means parsing the versionized tree, getting
+         * the latest version of a category. Verify that
+         * it is not dead and check if it has any children.
+         * This returns the tree rendered at any given time
+         * without any knowledge of previous versions of the
+         * category and if the child is specificly a child
+         * of the version of the parent category or sometime
+         * previously.
+         */
+        var _a;
+        const flatBudget = new FlatBudget(this.name, this.createDate, (_a = this === null || this === void 0 ? void 0 : this.ownerName) !== null && _a !== void 0 ? _a : "not implemented - go find a name");
+        flatBudget.id = this === null || this === void 0 ? void 0 : this.id;
+        if (!this.root) {
+            throw new Error("Cannot flatten a budget with no category nodes!");
+        }
+        // for parsing versionized tree/budget
+        const visited = [];
+        let toVisit = filterDate
+            ? this.root.filter((VerCat) => VerCat.createDate <= filterDate)
+            : this.root;
+        flatBudget.root = [];
+        for (const category of toVisit) {
+            const latestVersion = category.latestVersion(filterDate);
+            if (latestVersion && !latestVersion.isDead()) {
+                const latestVersionAsCategory = new FlatCategory(latestVersion.name, latestVersion.amount, latestVersion.endOfLife, latestVersion.createDate, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.id, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.budgetId);
+                visited.push(latestVersionAsCategory);
+                // check if category is at the root level and add to root is true
+                if (!(this === null || this === void 0 ? void 0 : this.categoriesAsList.some((verCat) => {
+                    var _a;
+                    return (_a = verCat.children) === null || _a === void 0 ? void 0 : _a.some((childVerCat) => childVerCat.id === category.firstVersion().id);
+                }))) {
+                    flatBudget.root.push(latestVersionAsCategory);
+                }
+                /* if (!category.firstVersion().parent) {
+                    flatBudget.root.push(latestVersionAsCategory);
+                } */
+                // scan all versions of category up until filterdate
+                // for any children
+                const children = filterDate
+                    ? category
+                        .firstVersion()
+                        .getChildren()
+                        .filter((child) => child.createDate <= filterDate)
+                    : category.firstVersion().getChildren();
+                for (let child of children) {
+                    let flatChild = child;
+                    // if child is found, set an id for it's parent
+                    // after categories has been flattened (child can be linked
+                    // to some version between v.1 and latestVersion). Then
+                    // we can find the parent in the visited array
+                    // in the next iterations and match child to parent
+                    // in the flattened version.
+                    flatChild.flatParentId = latestVersionAsCategory.id;
+                    toVisit.push(flatChild);
+                }
+                // if category previously has been identified as a child
+                // of a already visited parent category,
+                // we related them here as parent/child
+                if (category === null || category === void 0 ? void 0 : category.flatParentId) {
+                    const parent = visited.filter((cat) => cat.id === category.flatParentId)[0];
+                    parent.makeChild(latestVersionAsCategory);
+                }
+            }
+        }
+        return flatBudget;
     }
 }
 export class FlatBudget {
     constructor(name, createDate, ownerName) {
-        throw new Error("not implemented..");
+        this.name = name;
+        (this.createDate = createDate), (this.ownerName = ownerName);
     }
     getCategoryById(id) {
         throw new Error("not implemented..");
