@@ -87,7 +87,7 @@ export class VersionCategory {
     }
     makeChild(child) {
         var _a;
-        // child.parent = this; // to remove, as this creates circular ref when sent as json response
+        child.parent = this; // to remove, as this creates circular ref when sent as json response
         this.children ? (_a = this.children) === null || _a === void 0 ? void 0 : _a.push(child) : (this.children = [child]);
         return child;
     }
@@ -113,13 +113,14 @@ export class FlatCategory {
         this.budgetId = budgetId;
     }
     makeChild(child) {
-        //child.parent = this; // to remove, as this creates circular ref when sent as json response
+        // we cannot add parent to the child, as this will create circular references when sending json response
         if (!this.children) {
             this.children = [child];
         }
         else {
             this.children.push(child);
         }
+        return child;
     }
     kill() {
         this.endOfLife = true;

@@ -20,7 +20,7 @@ export class CategoryService {
             return [
                 // TESTBUDGET A
                 new Category("test_cat_a0", 1, // amount
-                true, // end of life
+                false, // end of life
                 new Date(2023, 0, 1), 1, // id
                 1, // budget id
                 undefined, // prev id
@@ -28,7 +28,7 @@ export class CategoryService {
                 undefined // parent id
                 ),
                 new Category("test_cat_a1", 1, // amount
-                true, // end of life
+                false, // end of life
                 new Date(2023, 0, 2), 2, // id
                 1, // budget id
                 1, // prev id

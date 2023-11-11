@@ -34,7 +34,6 @@ export interface IVersionCategory extends IBaseCategory {
 }
 
 export interface IFlatCategory extends IBaseCategory {
-    parent?: FlatCategory | undefined;
     children?: FlatCategory[] | undefined;
 
     makeChild(child: FlatCategory): FlatCategory; // add child to node and sets .parent of child to this node
@@ -184,7 +183,7 @@ export class VersionCategory implements IVersionCategory {
         return firstVersion?.parent ?? undefined;
     }
     makeChild(child: VersionCategory): VersionCategory {
-        // child.parent = this; // to remove, as this creates circular ref when sent as json response
+        child.parent = this; // to remove, as this creates circular ref when sent as json response
         this.children ? this.children?.push(child) : (this.children = [child]);
         return child;
     }
@@ -212,7 +211,6 @@ export class FlatCategory implements IFlatCategory {
     endOfLife: boolean;
     createDate: Date;
     budgetId: number | undefined;
-    parent: FlatCategory | undefined;
     children: FlatCategory[] | undefined;
 
     constructor(
@@ -232,12 +230,14 @@ export class FlatCategory implements IFlatCategory {
     }
 
     makeChild(child: FlatCategory): FlatCategory {
-        //child.parent = this; // to remove, as this creates circular ref when sent as json response
+        // we cannot add parent to the child, as this will create circular references when sending json response
         if (!this.children) {
             this.children = [child];
         } else {
             this.children.push(child);
         }
+
+        return child;
     }
 
     kill(): void {

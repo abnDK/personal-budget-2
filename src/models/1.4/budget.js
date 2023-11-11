@@ -102,16 +102,21 @@ export class VersionBudget {
             if (latestVersion && !latestVersion.isDead()) {
                 const latestVersionAsCategory = new FlatCategory(latestVersion.name, latestVersion.amount, latestVersion.endOfLife, latestVersion.createDate, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.id, latestVersion === null || latestVersion === void 0 ? void 0 : latestVersion.budgetId);
                 visited.push(latestVersionAsCategory);
-                // check if category is at the root level and add to root is true
-                if (!(this === null || this === void 0 ? void 0 : this.categoriesAsList.some((verCat) => {
-                    var _a;
-                    return (_a = verCat.children) === null || _a === void 0 ? void 0 : _a.some((childVerCat) => childVerCat.id === category.firstVersion().id);
-                }))) {
-                    flatBudget.root.push(latestVersionAsCategory);
-                }
-                /* if (!category.firstVersion().parent) {
+                // check if category is the child of any of the other versionCategories. If not, category has no parents
+                // and is thus at the root level.
+                /* if (
+                    !this?.categoriesAsList.some((verCat) =>
+                        verCat.children?.some(
+                            (childVerCat) =>
+                                childVerCat.id === category.firstVersion().id
+                        )
+                    )
+                ) {
                     flatBudget.root.push(latestVersionAsCategory);
                 } */
+                if (!category.firstVersion().parent) {
+                    flatBudget.root.push(latestVersionAsCategory);
+                }
                 // scan all versions of category up until filterdate
                 // for any children
                 const children = filterDate
