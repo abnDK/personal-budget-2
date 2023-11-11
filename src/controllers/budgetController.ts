@@ -10,7 +10,7 @@ const ETH = new ErrorTextHelper();
 export const getBudgets = async (
     id?: number | undefined,
     filterDate?: Date | undefined
-): Promise<FlatBudget[] | FlatBudget> => {
+): Promise<FlatBudget[]> => {
     console.log("Hello from budgetController.getBudgets");
 
     const budgets: Budget[] = id
@@ -44,7 +44,7 @@ export const getBudgets = async (
     );
 
     // if id given, we expect a single flatBudget. Otherwise we expect an array of FlatBudgets
-    return id ? flatBudgets[0] : flatBudgets;
+    return flatBudgets;
 };
 
 export const createBudget = async (
@@ -71,6 +71,7 @@ export const updateBudget = async (
     const prevBudgetArray: FlatBudget[] = await getBudgets(id).catch((err) => {
         throw new Error(err.message);
     });
+
     const prevBudget = prevBudgetArray[0];
 
     const updatedBudget = await BudgetService.updateBudget(
