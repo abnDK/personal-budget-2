@@ -285,7 +285,7 @@ class TransactionContainer {
         // add/remove data
         this.addRow = () => {
             // create new empty row
-            const newRow = new TransactionRow(NaN, 'Enter name', 0, new Date(PERIOD.YEAR, PERIOD.MONTH, PERIOD.DAY), NaN, 'Test', false);
+            const newRow = new TransactionRow(NaN, "Enter name", 0, new Date(PERIOD.YEAR, PERIOD.MONTH, PERIOD.DAY), NaN, "Test", false);
             // add row to rows
             this.rows = [newRow, ...this.rows];
             // render the row to dom
@@ -295,28 +295,27 @@ class TransactionContainer {
             if (deleteRow.id) {
                 // only send del req if row is in db (if no id, its new and not in db yet)
                 if (yield this.query.deleteTransaction(deleteRow.id)) {
-                    this.rows = this.rows.filter(row => row !== deleteRow);
+                    this.rows = this.rows.filter((row) => row !== deleteRow);
                     this.renderTransactions();
                 }
-                ;
             }
             else {
-                this.rows = this.rows.filter(row => row !== deleteRow);
+                this.rows = this.rows.filter((row) => row !== deleteRow);
                 this.renderTransactions();
             }
             /*
-            throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
-            if (deleteRow.delete()) {
-                // if row is deleted from db,
-                // remove from mem object this.rows
-                
-                this.rows = this.rows.filter(row => row !== deleteRow);
-    
-                // remove from dom element
-                deleteRow.dom_element_ref.parentElement?.removeChild(deleteRow.dom_element_ref)
-                        
-            }
-            */
+                throw 'TODO: Replace deleteRow.delete() with call to queries from TransactionContainer, as this hold the service for sending requests.'
+                if (deleteRow.delete()) {
+                    // if row is deleted from db,
+                    // remove from mem object this.rows
+                    
+                    this.rows = this.rows.filter(row => row !== deleteRow);
+        
+                    // remove from dom element
+                    deleteRow.dom_element_ref.parentElement?.removeChild(deleteRow.dom_element_ref)
+                            
+                }
+                */
         });
         this.saveRow = (saveRow) => __awaiter(this, void 0, void 0, function* () {
             // maybe we have to fetch values from the input fields first and write to object??
@@ -339,7 +338,7 @@ class TransactionContainer {
             // dont implement yet, but a CR for later
         };
         // SORTING ROWS
-        this.sortRowsBy = (key = 'date') => {
+        this.sortRowsBy = (key = "date") => {
             // set config by logic
             if (this.sortedBy.key === key) {
                 // if same key is used, make ascending = decending and vice versa
@@ -356,13 +355,13 @@ class TransactionContainer {
         this.sortedRows = () => {
             // call correct function based no this.sortedBy.key
             switch (this.sortedBy.key) {
-                case 'date':
+                case "date":
                     return this.sortRowsByDate();
-                case 'amount':
+                case "amount":
                     return this.sortRowsByAmount();
-                case 'description':
+                case "description":
                     return this.sortRowsByDescription();
-                case 'category':
+                case "category":
                     return this.sortRowsByCategory();
                 default:
                     throw `Could not rows by the specified key ${this.sortedBy.key}`;
@@ -389,7 +388,7 @@ class TransactionContainer {
         this.sortRowsByDescription = () => {
             let sortedRows = this._rows.toSorted((a, b) => {
                 // sort by name string without case sensitivity
-                return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+                return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
             });
             if (!this.sortedBy.asc) {
                 sortedRows.reverse();
@@ -399,7 +398,9 @@ class TransactionContainer {
         this.sortRowsByCategory = () => {
             let sortedRows = this._rows.toSorted((a, b) => {
                 // sort by category name string without case sensitivity
-                return a.category_name.localeCompare(b.category_name, 'en', { sensitivity: 'base' });
+                return a.category_name.localeCompare(b.category_name, "en", {
+                    sensitivity: "base",
+                });
             });
             if (!this.sortedBy.asc) {
                 sortedRows.reverse();
@@ -409,19 +410,19 @@ class TransactionContainer {
         // EVENT HANDLER
         this.clickTransactionRowBtns = (e) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c, _d, _e;
-            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('addTransRow')) {
+            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains("addTransRow")) {
                 // setting frozen to true saves object to db and render frozen afterwards
                 yield ((_b = e.currentTarget) === null || _b === void 0 ? void 0 : _b.getObject().saveRow(e.target.parentElement.getObject()));
                 this.updateAddTransRowBtn();
             }
-            else if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains('delTransRow')) {
+            else if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains("delTransRow")) {
                 // gets object of parent element == TransactionContainer element
                 // and calls the remove row using the row object.
                 yield ((_d = e.currentTarget) === null || _d === void 0 ? void 0 : _d.getObject().removeRow(e.target.parentElement.getObject()));
                 this.updateAddTransRowBtn();
             }
-            else if ((_e = e === null || e === void 0 ? void 0 : e.target) === null || _e === void 0 ? void 0 : _e.classList.contains('transaction-edit')) {
-                if (this.rows.filter(row => !row.frozen).length == 0) {
+            else if ((_e = e === null || e === void 0 ? void 0 : e.target) === null || _e === void 0 ? void 0 : _e.classList.contains("transaction-edit")) {
+                if (this.rows.filter((row) => !row.frozen).length == 0) {
                     // only render row editable if no other rows is editable
                     e.target.parentElement.getObject().renderEditable();
                     this.updateAddTransRowBtn();
@@ -441,43 +442,45 @@ class TransactionContainer {
             // remove '.sorted-by' from previous sorting column title
             let columnTitleElements = Array.from(e.currentTarget.children);
             for (let element of columnTitleElements) {
-                element.classList.remove('sorted-by');
-                element.classList.remove('ascending');
-                element.classList.remove('descending');
+                element.classList.remove("sorted-by");
+                element.classList.remove("ascending");
+                element.classList.remove("descending");
             }
-            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains('transaction-date')) {
+            if ((_a = e === null || e === void 0 ? void 0 : e.target) === null || _a === void 0 ? void 0 : _a.classList.contains("transaction-date")) {
                 console.log('clicked "day" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortRowsBy('date');
+                transactionsRowsObject.sortRowsBy("date");
             }
-            if ((_b = e === null || e === void 0 ? void 0 : e.target) === null || _b === void 0 ? void 0 : _b.classList.contains('transaction-amount')) {
+            if ((_b = e === null || e === void 0 ? void 0 : e.target) === null || _b === void 0 ? void 0 : _b.classList.contains("transaction-amount")) {
                 console.log('clicked "amount" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortRowsBy('amount');
+                transactionsRowsObject.sortRowsBy("amount");
             }
-            if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains('transaction-description')) {
+            if ((_c = e === null || e === void 0 ? void 0 : e.target) === null || _c === void 0 ? void 0 : _c.classList.contains("transaction-description")) {
                 console.log('clicked "description" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortRowsBy('description');
+                transactionsRowsObject.sortRowsBy("description");
             }
-            if ((_d = e === null || e === void 0 ? void 0 : e.target) === null || _d === void 0 ? void 0 : _d.classList.contains('transaction-category')) {
+            if ((_d = e === null || e === void 0 ? void 0 : e.target) === null || _d === void 0 ? void 0 : _d.classList.contains("transaction-category")) {
                 console.log('clicked "category" column and ready for sorting...');
                 // getting the transaction rows container, sorts the rows and rerender rows
-                transactionsRowsObject.sortRowsBy('category');
+                transactionsRowsObject.sortRowsBy("category");
             }
             // set '.sorted-by' for new sorting column title
-            e === null || e === void 0 ? void 0 : e.target.classList.add('sorted-by');
+            e === null || e === void 0 ? void 0 : e.target.classList.add("sorted-by");
             // set '.ascending/.descending' class for adding up/down icon
-            transactionsRowsObject.sortedBy.asc ? e === null || e === void 0 ? void 0 : e.target.classList.add('ascending') : e === null || e === void 0 ? void 0 : e.target.classList.add('descending');
+            transactionsRowsObject.sortedBy.asc
+                ? e === null || e === void 0 ? void 0 : e.target.classList.add("ascending")
+                : e === null || e === void 0 ? void 0 : e.target.classList.add("descending");
         };
         // RENDERING
         this.renderTransactions = () => {
             // get container element
-            const transactionRowsElement = document.querySelector('.transaction-rows');
+            const transactionRowsElement = document.querySelector(".transaction-rows");
             // remove all children, if any
             this.unrenderChildren(transactionRowsElement);
             // eventhandler for click on transactions rows buttons
-            transactionRowsElement === null || transactionRowsElement === void 0 ? void 0 : transactionRowsElement.addEventListener('click', this.clickTransactionRowBtns);
+            transactionRowsElement === null || transactionRowsElement === void 0 ? void 0 : transactionRowsElement.addEventListener("click", this.clickTransactionRowBtns);
             // render transaction rows one by one. T.frozen()
             for (let row of this.rows) {
                 transactionRowsElement === null || transactionRowsElement === void 0 ? void 0 : transactionRowsElement.appendChild(row.render());
@@ -494,35 +497,35 @@ class TransactionContainer {
         };
         this.renderHeader = () => {
             /*
-    
-    
-    
-    
-            TARGET ELEMENT
-    
-                <div class="transaction-row header">
-                    <div class="transaction-date">DATE</div>
-                    <div class="transaction-amount">AMOUNT</div>
-                    <div class="transaction-description">DESCRIPTION</div>
-                    <div class="transaction-category">CATEGORY</div>
-                </div>
-    
-            */
-            const transactionsRowsTitle = document.querySelector('.transaction-rows-title');
+        
+        
+        
+        
+                TARGET ELEMENT
+        
+                    <div class="transaction-row header">
+                        <div class="transaction-date">DATE</div>
+                        <div class="transaction-amount">AMOUNT</div>
+                        <div class="transaction-description">DESCRIPTION</div>
+                        <div class="transaction-category">CATEGORY</div>
+                    </div>
+        
+                */
+            const transactionsRowsTitle = document.querySelector(".transaction-rows-title");
             // render header section of transaction columns
-            const dateChild = createHTMLElement('div', 'transaction-date', 'Day');
-            const amountChild = createHTMLElement('div', 'transaction-amount', 'Amt');
-            const descriptionChild = createHTMLElement('div', 'transaction-description', 'Name');
-            const categoryChild = createHTMLElement('div', 'transaction-category', 'Category');
+            const dateChild = createHTMLElement("div", "transaction-date", "Day");
+            const amountChild = createHTMLElement("div", "transaction-amount", "Amt");
+            const descriptionChild = createHTMLElement("div", "transaction-description", "Name");
+            const categoryChild = createHTMLElement("div", "transaction-category", "Category");
             transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(dateChild);
             transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(amountChild);
             transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(descriptionChild);
             transactionsRowsTitle === null || transactionsRowsTitle === void 0 ? void 0 : transactionsRowsTitle.appendChild(categoryChild);
             // eventhandler for sorting when clicking on column titles
-            transactionsRowsTitle.addEventListener('click', this.clickHeaderSort);
+            transactionsRowsTitle.addEventListener("click", this.clickHeaderSort);
         };
         this.updateAddTransRowBtn = () => {
-            if (this.rows.filter(row => !row.frozen).length > 0) {
+            if (this.rows.filter((row) => !row.frozen).length > 0) {
                 this.renderAddTransRowBtn(false);
             }
             else {
@@ -534,12 +537,12 @@ class TransactionContainer {
             // eventhandler on the container element listens for clicks on target where id = addTransRow
             // if any rows !frozen, render inactive. If not, render active.
             var _a;
-            console.log('render add trans row');
-            const addTransRowBtn = document.createElement('div');
+            console.log("render add trans row");
+            const addTransRowBtn = document.createElement("div");
             addTransRowBtn.id = "addTransRow";
             if (active) {
-                addTransRowBtn.className = 'bi bi-plus-circle-fill active';
-                addTransRowBtn.addEventListener('click', () => {
+                addTransRowBtn.className = "bi bi-plus-circle-fill active";
+                addTransRowBtn.addEventListener("click", () => {
                     this.addRow();
                     // why does this line not get called when clicking on the element?
                     // - i think to 2 way binding error is causing this not to be read.
@@ -548,22 +551,22 @@ class TransactionContainer {
                 });
             }
             else {
-                addTransRowBtn.className = 'bi bi-plus-circle';
+                addTransRowBtn.className = "bi bi-plus-circle";
             }
-            (_a = document.querySelector('#addTransRow')) === null || _a === void 0 ? void 0 : _a.replaceWith(addTransRowBtn);
+            (_a = document.querySelector("#addTransRow")) === null || _a === void 0 ? void 0 : _a.replaceWith(addTransRowBtn);
         };
         this.fetchTransactionDomElement = () => {
-            const transactionRowDomElement = document.querySelector('.transaction-rows');
+            const transactionRowDomElement = document.querySelector(".transaction-rows");
             if (!transactionRowDomElement)
-                throw 'could not locate the transaction-row element';
+                throw "could not locate the transaction-row element";
             this.dom_element_ref = transactionRowDomElement;
         };
         this.bindDomElementToObject = () => {
             // bindDomElement for CONTAINER
-            if (!this.dom_element_ref.hasOwnProperty('getObject')) {
-                Object.defineProperty(this.dom_element_ref, 'getObject', {
+            if (!this.dom_element_ref.hasOwnProperty("getObject")) {
+                Object.defineProperty(this.dom_element_ref, "getObject", {
                     value: () => this,
-                    writable: false
+                    writable: false,
                 });
             }
         };
@@ -574,26 +577,27 @@ class TransactionContainer {
             // datestring returned from db is interpreted as UTC and not our timezone
             // so date will be day - 1. Parsing it with new Date() this is
             // corrected, so the returned datestring is intepreted as our timezone.
-            // This results in the right date, but with an extra hour or 2, irrelevant 
+            // This results in the right date, but with an extra hour or 2, irrelevant
             // for application to work. Thus new Date(...) may not be deleted.
-            trans => {
+            (trans) => {
                 trans.date = new Date(trans.date);
-                if (trans.date.getFullYear() == PERIOD.YEAR && trans.date.getMonth() === PERIOD.MONTH) {
+                if (trans.date.getFullYear() == PERIOD.YEAR &&
+                    trans.date.getMonth() === PERIOD.MONTH) {
                     // return transactions that matches the period currently rendered on budget page
                     return trans;
                 }
             });
             return transByBudgetIdAndPeriod.map(
-            // parse trans.date with new Date as pr. the above comment 
-            trans => new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true));
+            // parse trans.date with new Date as pr. the above comment
+            (trans) => new TransactionRow(trans.id, trans.name, trans.amount, new Date(trans.date), trans.category_id, trans.category_name, true));
         });
         this.query = query;
         this.renderer = renderer;
         this.budget_id = budget_id;
         this.editing = false;
         this.sortedBy = {
-            key: 'date',
-            asc: false
+            key: "date",
+            asc: false,
         };
     }
     // getters / setters
