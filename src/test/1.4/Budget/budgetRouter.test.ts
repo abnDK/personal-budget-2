@@ -24,8 +24,41 @@ const testValue2 = (target: any, goal: any, paramName?: string) => {
             });
 
             break;
+        case "number":
+            it(`should be a number`, () => {
+                expect(target).to.be.a("number");
+            });
+            it(`should be equal to "${goal}"`, () => {
+                expect(target).to.deep.equal(goal);
+            });
+
+            break;
+        case "boolean":
+            it(`should be a boolean`, () => {
+                expect(target).to.be.a("boolean");
+            });
+            it(`should be equal to "${goal}"`, () => {
+                expect(target).to.deep.equal(goal);
+            });
+
+            break;
         default:
-            console.log("UNKNOWN");
+            if (Array.isArray(target)) {
+                it(`should be an array`, () => {
+                    expect(target).to.be.an("array");
+                });
+                it(`should be equal to an array with values [${goal.join(
+                    ", "
+                )}]`, () => {
+                    expect(target).to.have.members(goal);
+                });
+
+                it(`should return an array of length ${goal.length}`, () => {
+                    expect(target).to.have.lengthOf(goal.length);
+                });
+            } else {
+                console.log(target + " is an unknown type");
+            }
     }
 };
 
@@ -1940,8 +1973,20 @@ describe("GET /budget/:id/:year/:month", () => {
 
         describe.only("Test return object", () => {
             testObject2(
-                { name: "anders", horse: "not undefined" },
-                { name: "anders", horse: undefined }
+                {
+                    name: "anders",
+                    horse: "not undefined",
+                    party: "5",
+                    cow: [1, 2, 3],
+                    jaNej: false,
+                },
+                {
+                    name: "anders",
+                    horse: undefined,
+                    party: 5,
+                    cow: ["a", "b", "c"],
+                    jaNej: true,
+                }
             );
         });
 
