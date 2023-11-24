@@ -1,18 +1,17 @@
 // NEEDS UPDATE FOR 1.4
 
-import Router from "@root/async-router";
-const router = Router.Router();
-import { CategoryService } from "../../services/categoryService.js";
+import { Router } from "@root/async-router";
+import { getCategories } from "../../controllers/categoryController.js";
+const router = Router();
 
 router.get("/", async (req: Request, res: Response, next: any) => {
-    await CategoryService.getCategories()
+    await getCategories()
         .then((categories: Category[]) => res.status(200).json(categories))
         .catch(next);
 });
 
 router.get("/:id", async (req: Request, res: Response, next: any) => {
-    console.log("hello");
-    await CategoryService.getCategoryById(req.params.id)
+    await getCategories(req.params.id)
         .then((category: Category) => res.status(200).json(category))
         .catch(next);
 });
@@ -45,4 +44,4 @@ router.put("/:id", async (req: Request, res: Response, next: any) => {
         .catch(next);
 });
 
-export default router;
+export { router };

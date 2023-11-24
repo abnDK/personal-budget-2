@@ -4,7 +4,8 @@
   "description": "for completing \"personal budget 2\" on codecademy",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --timeout 5000 --exit ./src/test/*.test.js",
+    "test": "mocha --timeout 5000 --exit ./src/test/1.4/Budget/*.test.js",
+    "testing": "mocha",
     "compile": "tsc",
     "seed": "node ./src/utils/seeding/seed.js",
     "run-server": "node index.js",
@@ -27,9 +28,17 @@
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.8.6",
+    "@types/pg": "^8.10.9",
     "chai": "^4.3.7",
+    "chai-http": "^4.4.0",
     "mocha": "^10.2.0",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
   },
-  "type": "module"
+  "type": "module",
+  "mocha": {
+    "extension": [
+      "ts"
+    ]
+  }
 }

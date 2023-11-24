@@ -11,88 +11,14 @@ import { Category } from "../models/1.4/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+import { MOCKCATEGORIES } from "../test/1.4/TestData/categoryMockData.js";
 // setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 export class CategoryService {
     static getCategories() {
         return __awaiter(this, void 0, void 0, function* () {
             // returning mock data while testing - delete after implementation
-            return [
-                // TESTBUDGET A
-                new Category("test_cat_a0", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 1), 1, // id
-                1, // budget id
-                undefined, // prev id
-                2, // next id
-                undefined // parent id
-                ),
-                new Category("test_cat_a1", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 2), 2, // id
-                1, // budget id
-                1, // prev id
-                3, // next id
-                undefined // parent id
-                ),
-                new Category("test_cat_a2", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 3), 3, // id
-                1, // budget id
-                2, // prev id
-                undefined, // next id
-                undefined // parent id
-                ),
-                new Category("test_cat_ab0", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 4), 4, // id
-                1, // budget id
-                undefined, // prev id
-                undefined, // next id
-                1 // parent id
-                ),
-                new Category("test_cat_abc0", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 5), 5, // id
-                1, // budget id
-                undefined, // prev id
-                6, // next id
-                4 // parent id
-                ),
-                new Category("test_cat_abc1", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 6), 6, // id
-                1, // budget id
-                5, // prev id
-                undefined, // next id
-                undefined // parent id
-                ),
-                new Category("test_cat_ac0", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 2), 7, // id
-                1, // budget id
-                undefined, // prev id
-                9, // next id
-                2 // parent id
-                ),
-                new Category("test_cat_ac1", 1, // amount
-                true, // end of life
-                new Date(2023, 0, 2), 9, // id
-                1, // budget id
-                7, // prev id
-                undefined, // next id
-                undefined // parent id
-                ),
-                // TESTBUDGET B
-                new Category("test_cat_x0", 1, // amount
-                false, // end of life
-                new Date(2023, 0, 1), 8, // id
-                2, // budget id
-                undefined, // prev id
-                undefined, // next id
-                undefined // parent id
-                ),
-            ];
+            return MOCKCATEGORIES;
             // get Budgets in database
             let data = yield pool
                 .query("SELECT * FROM category ORDER BY id ASC")
@@ -106,6 +32,11 @@ export class CategoryService {
     }
     static getCategoryById(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            return new Promise(() => {
+                return this.getCategories().then((categories) => {
+                    return categories.filter((cat) => cat.id === id);
+                });
+            });
             // get category in database
             let data = yield pool
                 .query("SELECT * FROM category WHERE id = $1", [id])
@@ -126,6 +57,17 @@ export class CategoryService {
     }
     static createCategory(name, amount, endOfLife, createDate, budgetId = undefined, prevId = undefined, nextId = undefined, parentId = undefined) {
         return __awaiter(this, void 0, void 0, function* () {
+            MOCKDB_CATEGORY.push({
+                name: name,
+                amount: amount,
+                endOfLife: endOfLife,
+                createDate: createDate,
+                budgetId: budgetId,
+                prevId: prevId,
+                nextId: nextId,
+                parentId: parentId,
+            });
+            return;
             // create budget
             let data_category = yield pool
                 .query("INSERT INTO category (budget_id, name, amount, end_of_life, create_date, prev_id, next_id, parent_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [

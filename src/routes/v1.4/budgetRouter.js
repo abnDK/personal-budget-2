@@ -28,19 +28,23 @@ router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     yield getBudgets()
         .then((budgets) => {
         console.log("called GET budgets route:...");
-        console.log(budgets);
-        console.log(budgets[0]);
-        console.log(budgets[0].root);
-        console.log(budgets[0].root[0].children);
         res.status(200).json(budgets);
     })
         .catch(next);
 }));
 router.get("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    throw new Error("....error in router");
     yield getBudgets(parseInt(req.params.id))
         .then((budget) => {
-        res.status(200).json(budget);
+        res.status(200).json(budget[0]);
+    })
+        .catch(next);
+}));
+router.get("/:id/:year/:month", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = parseInt(req.params.id);
+    const filterDate = new Date(parseInt(req.params.year), parseInt(req.params.month), 0); // TODO! FIX LAST DATE!
+    yield getBudgets(id, filterDate)
+        .then((budget) => {
+        res.status(200).json(budget[0]);
     })
         .catch(next);
 }));

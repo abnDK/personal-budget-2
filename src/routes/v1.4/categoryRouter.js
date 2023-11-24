@@ -8,17 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import Router from "@root/async-router";
-const router = Router.Router();
-import { CategoryService } from "../../services/categoryService.js";
+import { Router } from "@root/async-router";
+import { getCategories } from "../../controllers/categoryController.js";
+const router = Router();
 router.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    yield CategoryService.getCategories()
+    yield getCategories()
         .then((categories) => res.status(200).json(categories))
         .catch(next);
 }));
 router.get("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("hello");
-    yield CategoryService.getCategoryById(req.params.id)
+    yield getCategories(req.params.id)
         .then((category) => res.status(200).json(category))
         .catch(next);
 }));
@@ -43,4 +42,4 @@ router.put("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     })
         .catch(next);
 }));
-export default router;
+export { router };

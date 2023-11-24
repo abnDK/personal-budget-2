@@ -44,15 +44,15 @@ app.set('view engine', 'pug')
 app.use(express.static('./src/static'))
 
 // setting up routes
-import transactionRouter from './src/routes/v1.3/transactionRouter.js';
-import categoryRouter from './src/routes/v1.3/categoryRouter.js';
-import budgetRouter from './src/routes/v1.3/budgetRouter.js';
+/* import transactionRouter from './src/routes/v1.3/transactionRouter.js';*/
+import {router as categoryRouter } from './src/routes/v1.4/categoryRouter.js'; 
+import { router as budgetRouter } from './src/routes/v1.4/budgetRouter.js';
 //const reports = require('./src/routes/reportsRouter')
 
-
-app.use('/categories', categoryRouter)
-app.use('/transactions', transactionRouter)
-app.use('/budgets', budgetRouter)
+app.use('/category', categoryRouter)
+/* 
+app.use('/transaction', transactionRouter) */
+app.use('/budget', budgetRouter)
 //app.use('/reports', reports) // TODO: UPDATE FOR 1.3
 
 app.get('/', (req, res) => {
@@ -71,3 +71,5 @@ app.listen(port, ()=>{
     console.log(`Personal budget 2, ready for implementation on port ${port}`)
 })
 
+
+export { app }

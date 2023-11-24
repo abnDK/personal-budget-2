@@ -2,9 +2,10 @@ import { Budget, VersionBudget, FlatBudget } from "../models/1.4/budget.js";
 import { Category } from "../models/1.4/category.js";
 
 import { BudgetService } from "../services/budgetService.js";
-import { CategoryService } from "../services/categoryService.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+import { getCategories } from "./categoryController.js";
+
 const ETH = new ErrorTextHelper();
 
 export const getBudgets = async (
@@ -23,8 +24,8 @@ export const getBudgets = async (
               throw new Error(err.message);
           });
 
-    const categories: Category[] = await CategoryService.getCategories();
-
+    const categories: Category[] = await getCategories();
+    console.log("###", categories);
     if (budgets.length === 0) {
         throw new CustomError(ETH.get("BUDGET.READ.ERROR.NOBUDGETS"), 404);
     }
@@ -39,9 +40,14 @@ export const getBudgets = async (
         budget.parseVersionBudget()
     );
 
+    console.log("##2", versionBudgets[0].root[0]);
+
     const flatBudgets: FlatBudget[] = versionBudgets.map((versionBudget) =>
         versionBudget.flattenBudget(filterDate)
     );
+
+    console.log("##3", flatBudgets);
+    console.log("##4", flatBudgets[0].root[0]);
 
     // if id given, we expect a single flatBudget. Otherwise we expect an array of FlatBudgets
     return flatBudgets;

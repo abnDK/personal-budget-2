@@ -2,117 +2,15 @@ import { Category } from "../models/1.4/category.js";
 import { pool } from "../configs/queries.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+import { MOCKCATEGORIES } from "../test/1.4/TestData/categoryMockData.js";
+
 // setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 
 export class CategoryService {
     static async getCategories(): Promise<Category[]> {
         // returning mock data while testing - delete after implementation
-        return [
-            // TESTBUDGET A
-
-            new Category(
-                "test_cat_a0",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 1),
-                1, // id
-                1, // budget id
-                undefined, // prev id
-                2, // next id
-                undefined // parent id
-            ),
-            new Category(
-                "test_cat_a1",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 2),
-                2, // id
-                1, // budget id
-                1, // prev id
-                3, // next id
-                undefined // parent id
-            ),
-            new Category(
-                "test_cat_a2",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 3),
-                3, // id
-                1, // budget id
-                2, // prev id
-                undefined, // next id
-                undefined // parent id
-            ),
-            new Category(
-                "test_cat_ab0",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 4),
-                4, // id
-                1, // budget id
-                undefined, // prev id
-                undefined, // next id
-                1 // parent id
-            ),
-            new Category(
-                "test_cat_abc0",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 5),
-                5, // id
-                1, // budget id
-                undefined, // prev id
-                6, // next id
-                4 // parent id
-            ),
-            new Category(
-                "test_cat_abc1",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 6),
-                6, // id
-                1, // budget id
-                5, // prev id
-                undefined, // next id
-                undefined // parent id
-            ),
-            new Category(
-                "test_cat_ac0 - DONT SHOW",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 2),
-                7, // id
-                1, // budget id
-                undefined, // prev id
-                9, // next id
-                2 // parent id
-            ),
-            new Category(
-                "test_cat_ac1 - DONT SHOW",
-                1, // amount
-                true, // end of life
-                new Date(2023, 0, 2),
-                9, // id
-                1, // budget id
-                7, // prev id
-                undefined, // next id
-                undefined // parent id
-            ),
-            // TESTBUDGET B
-            new Category(
-                "test_cat_x0",
-                1, // amount
-                false, // end of life
-                new Date(2023, 0, 1),
-                8, // id
-                2, // budget id
-                undefined, // prev id
-                undefined, // next id
-                undefined // parent id
-            ),
-        ];
-
+        return MOCKCATEGORIES;
         // get Budgets in database
         let data = await pool
             .query("SELECT * FROM category ORDER BY id ASC")
@@ -150,6 +48,12 @@ export class CategoryService {
     }
 
     static async getCategoryById(id: number): Promise<Category> {
+        return new Promise(() => {
+            return this.getCategories().then((categories) => {
+                return categories.filter((cat) => cat.id === id);
+            });
+        });
+
         // get category in database
         let data = await pool
             .query("SELECT * FROM category WHERE id = $1", [id])
@@ -210,6 +114,18 @@ export class CategoryService {
         nextId: number | undefined = undefined,
         parentId: number | undefined = undefined
     ): Promise<Category> {
+        MOCKDB_CATEGORY.push({
+            name: name,
+            amount: amount,
+            endOfLife: endOfLife,
+            createDate: createDate,
+            budgetId: budgetId,
+            prevId: prevId,
+            nextId: nextId,
+            parentId: parentId,
+        });
+        return;
+
         // create budget
         let data_category: {
             rows: Array<{

@@ -13,12 +13,14 @@ import { BudgetFactory } from "./budgetFactory.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 import { pool } from "../configs/queries.js";
+import { MOCKBUDGETS } from "../test/1.4/TestData/budgetMockData.js";
 // setting up text helper for error messages
 const ETH = new ErrorTextHelper();
 export const BudgetService = {
     getBudgets() {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("hello from BudgetService.getBudgets");
+            return MOCKBUDGETS;
             // return mock data while testing - remove after implementation
             return [
                 new Budget("testbudget_a", new Date(2023, 0, 1), "ABN", 1),
@@ -39,7 +41,7 @@ export const BudgetService = {
     },
     getBudgetById(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            throw new Error("....error in service");
+            return MOCKBUDGETS.filter((budget) => budget.id == id)[0];
             // get Budget in database
             let data = yield pool
                 .query("SELECT * FROM budget WHERE id = $1", [id])
@@ -57,6 +59,13 @@ export const BudgetService = {
     },
     createBudget(name, createDate, ownerName) {
         return __awaiter(this, void 0, void 0, function* () {
+            MOCKDB_BUDGET.push({
+                name: name,
+                createDate: createDate,
+                ownerName: ownerName,
+                id: 1,
+            });
+            return MOCKDB_BUDGET[0];
             // create budget
             let data_budget = yield pool
                 .query("INSERT INTO budget (name, date_start, date_end) VALUES ($1, $2, $3) RETURNING *", [name, createDate, ownerName])

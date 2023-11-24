@@ -27,23 +27,34 @@ router.get("/", async (req: Request, res: Response, next: any) => {
     await getBudgets()
         .then((budgets: FlatBudget[]) => {
             console.log("called GET budgets route:...");
-            console.log(budgets);
-            console.log(budgets[0]);
-            console.log(budgets[0].root);
-            console.log(budgets[0].root[0].children);
+
             res.status(200).json(budgets);
         })
         .catch(next);
 });
 router.get("/:id", async (req: Request, res: Response, next: any) => {
-    throw new Error("....error in router");
-
     await getBudgets(parseInt(req.params.id))
-        .then((budget: FlatBudget) => {
-            res.status(200).json(budget);
+        .then((budget: FlatBudget[]) => {
+            res.status(200).json(budget[0]);
         })
         .catch(next);
 });
+router.get(
+    "/:id/:year/:month",
+    async (req: Request, res: Response, next: any) => {
+        const id = parseInt(req.params.id);
+        const filterDate = new Date(
+            parseInt(req.params.year),
+            parseInt(req.params.month),
+            0
+        ); // TODO! FIX LAST DATE!
+        await getBudgets(id, filterDate)
+            .then((budget: FlatBudget[]) => {
+                res.status(200).json(budget[0]);
+            })
+            .catch(next);
+    }
+);
 
 router.post("/", async (req: Request, res: Response, next: any) => {
     const { name, createDate, ownerName } = req.body;

@@ -1,3 +1,4 @@
+"use strict";
 // FACTORIES
 const createDbBudget = (id, name, createDate) => {
     return {
@@ -570,7 +571,6 @@ const mockBudgetService = {
             : this.categoryService.getCategories();
     },
 };
-export {};
 /*
 const root_3: _VersionCategory = mockBudgetService
     .getBudget(3)

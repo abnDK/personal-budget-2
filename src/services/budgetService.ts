@@ -6,6 +6,7 @@ import { BudgetFactory } from "./budgetFactory.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
 import { pool } from "../configs/queries.js";
+import { MOCKBUDGETS } from "../test/1.4/TestData/budgetMockData.js";
 
 // setting up text helper for error messages
 const ETH = new ErrorTextHelper();
@@ -29,7 +30,7 @@ interface IBudgetService {
 export const BudgetService: IBudgetService = {
     async getBudgets(): Promise<Budget[]> {
         console.log("hello from BudgetService.getBudgets");
-
+        return MOCKBUDGETS;
         // return mock data while testing - remove after implementation
         return [
             new Budget("testbudget_a", new Date(2023, 0, 1), "ABN", 1),
@@ -56,7 +57,7 @@ export const BudgetService: IBudgetService = {
     },
 
     async getBudgetById(id: number): Promise<Budget> {
-        throw new Error("....error in service");
+        return MOCKBUDGETS.filter((budget) => budget.id == id)[0];
         // get Budget in database
         let data = await pool
             .query("SELECT * FROM budget WHERE id = $1", [id])
@@ -85,6 +86,13 @@ export const BudgetService: IBudgetService = {
         createDate: Date,
         ownerName: string
     ): Promise<Budget> {
+        MOCKDB_BUDGET.push({
+            name: name,
+            createDate: createDate,
+            ownerName: ownerName,
+            id: 1,
+        });
+        return MOCKDB_BUDGET[0];
         // create budget
         let data_budget = await pool
             .query(

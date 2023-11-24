@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Budget, VersionBudget, FlatBudget } from "../models/1.4/budget.js";
 import { Category } from "../models/1.4/category.js";
 import { BudgetService } from "../services/budgetService.js";
-import { CategoryService } from "../services/categoryService.js";
 import { CustomError } from "../utils/errors/CustomError.js";
 import { ErrorTextHelper } from "../utils/errors/Texthelper/textHelper.js";
+import { getCategories } from "./categoryController.js";
 const ETH = new ErrorTextHelper();
 export const getBudgets = (id, filterDate) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("Hello from budgetController.getBudgets");
@@ -25,7 +25,8 @@ export const getBudgets = (id, filterDate) => __awaiter(void 0, void 0, void 0, 
         : yield BudgetService.getBudgets().catch((err) => {
             throw new Error(err.message);
         });
-    const categories = yield CategoryService.getCategories();
+    const categories = yield getCategories();
+    console.log("###", categories);
     if (budgets.length === 0) {
         throw new CustomError(ETH.get("BUDGET.READ.ERROR.NOBUDGETS"), 404);
     }
@@ -33,9 +34,12 @@ export const getBudgets = (id, filterDate) => __awaiter(void 0, void 0, void 0, 
         budget.categories = categories.filter((cat) => cat.budgetId === budget.id);
     }
     const versionBudgets = budgets.map((budget) => budget.parseVersionBudget());
+    console.log("##2", versionBudgets[0].root[0]);
     const flatBudgets = versionBudgets.map((versionBudget) => versionBudget.flattenBudget(filterDate));
+    console.log("##3", flatBudgets);
+    console.log("##4", flatBudgets[0].root[0]);
     // if id given, we expect a single flatBudget. Otherwise we expect an array of FlatBudgets
-    return id ? flatBudgets[0] : flatBudgets;
+    return flatBudgets;
 });
 export const createBudget = (name, createDate = new Date(), ownerName = "unknown") => __awaiter(void 0, void 0, void 0, function* () {
     return yield BudgetService.createBudget(name, createDate, ownerName).catch((err) => {
